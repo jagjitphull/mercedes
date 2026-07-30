@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Animated full-day trainee reference for in-vehicle segmentation, zonal architecture, automotive Ethernet, CAN, FlexRay, SOME/IP, UDS, DoIP, SecOC, OTA and IDS.">
+<title>Session 2 — In-Vehicle Network Segmentation | Version 3</title>
+<style>
+:root{
+  --bg:#07111f;--bg2:#0b1728;--panel:#10223a;--panel2:#142a46;--text:#f4f8ff;
+  --muted:#c0cee2;--soft:#91a8c7;--cyan:#4fd8ff;--green:#6df2b1;--amber:#ffd166;
+  --red:#ff7b89;--violet:#aa8cff;--line:#294564;--shadow:0 18px 55px rgba(0,0,0,.32);
+  --radius:18px;--code:#050c16;--focus:#fff2a8;
+}
+[data-theme="light"]{
+  --bg:#eef5fb;--bg2:#f9fcff;--panel:#ffffff;--panel2:#f0f7fd;--text:#102033;
+  --muted:#334b66;--soft:#5d7188;--line:#c8d9e8;--code:#132234;--shadow:0 16px 40px rgba(39,72,102,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);
+  font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input,select{font:inherit}
+a{color:var(--cyan)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+#scrollbar{position:fixed;z-index:9999;top:0;left:0;height:4px;width:0;
+  background:linear-gradient(90deg,var(--cyan),var(--green),var(--amber))}
+.shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;overflow:auto;padding:22px 17px;border-right:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);z-index:30}
+.brand{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.brandmark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:900;
+ background:linear-gradient(135deg,var(--cyan),var(--green));color:#06121c;box-shadow:0 8px 24px rgba(79,216,255,.25)}
+.brand h1{font-size:1.03rem;line-height:1.25;margin:0}
+.sidebar p{margin:.3rem 0 1rem;color:var(--soft);font-size:.9rem}
+.nav{display:grid;gap:7px}
+.nav a{color:var(--muted);text-decoration:none;padding:9px 11px;border-radius:10px;border:1px solid transparent;font-size:.91rem}
+.nav a:hover,.nav a.active{color:var(--text);background:color-mix(in srgb,var(--cyan) 12%,transparent);border-color:color-mix(in srgb,var(--cyan) 35%,transparent)}
+.sidebar-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+main{width:min(1260px,100%);padding:26px;margin:0 auto}
+section{scroll-margin-top:18px;margin-bottom:24px;border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 97%,white 3%),var(--panel));
+  box-shadow:var(--shadow);overflow:hidden}
+.inner{padding:27px}
+.hero{position:relative;background:
+ radial-gradient(circle at 8% 5%,rgba(79,216,255,.18),transparent 34%),
+ radial-gradient(circle at 85% 12%,rgba(109,242,177,.14),transparent 30%),
+ linear-gradient(145deg,var(--panel),var(--bg2))}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;
+ border:1px solid color-mix(in srgb,var(--green) 40%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent);
+ color:var(--green);font-weight:700;font-size:.82rem}
+h2{font-size:clamp(2rem,4.4vw,4.2rem);line-height:1.04;margin:.8rem 0 1rem;letter-spacing:-.045em}
+h3{font-size:clamp(1.45rem,2.4vw,2.25rem);line-height:1.15;margin:0 0 .6rem}
+h4{font-size:1.08rem;margin:0 0 .45rem}
+p,li,td{color:var(--muted)}
+.lead{font-size:1.07rem;max-width:760px}
+.pills,.actions,.legend{display:flex;gap:8px;flex-wrap:wrap}
+.pill,.legend span{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;
+  border:1px solid var(--line);background:color-mix(in srgb,var(--panel2) 75%,transparent);font-size:.85rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%}
+.btn{border:1px solid color-mix(in srgb,var(--cyan) 45%,transparent);background:linear-gradient(90deg,#168bd2,#16b8a5);
+ color:white;font-weight:750;padding:9px 13px;border-radius:11px;cursor:pointer;box-shadow:0 7px 20px rgba(15,143,193,.2)}
+.btn:hover{transform:translateY(-1px)}
+.btn.secondary{background:color-mix(in srgb,var(--panel2) 80%,transparent);border-color:var(--line);box-shadow:none;color:var(--text)}
+.btn.danger{background:linear-gradient(90deg,#bd4764,#df6c71);border-color:#ff96a2}
+.btn.small{font-size:.82rem;padding:6px 9px}
+.hero-art{min-height:390px;border:1px solid var(--line);border-radius:20px;background:rgba(2,9,18,.28);padding:8px;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}
+.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.card{border:1px solid var(--line);border-radius:15px;padding:17px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.callout{padding:14px 16px;border:1px solid color-mix(in srgb,var(--cyan) 35%,var(--line));
+ border-left:4px solid var(--cyan);border-radius:12px;background:color-mix(in srgb,var(--cyan) 8%,transparent);margin:14px 0}
+.callout.good{border-left-color:var(--green);background:color-mix(in srgb,var(--green) 8%,transparent)}
+.callout.warn{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 8%,transparent)}
+.callout.bad{border-left-color:var(--red);background:color-mix(in srgb,var(--red) 8%,transparent)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.kpi{padding:13px;text-align:center;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035)}
+.kpi strong{font-size:1.45rem;color:var(--green);display:block}.kpi span{font-size:.83rem;color:var(--soft)}
+.story{display:grid;grid-template-columns:260px 1fr;gap:17px}
+.story-nav{display:grid;gap:9px}
+.story-step{padding:12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.035);cursor:pointer;color:var(--muted)}
+.story-step.active{color:var(--text);border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 11%,transparent)}
+.story-stage{min-height:315px;border:1px solid var(--line);border-radius:15px;padding:19px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.tab{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--muted);padding:9px 12px;border-radius:11px;cursor:pointer}
+.tab.active{color:var(--text);border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 11%,transparent)}
+.tabpane{display:none}.tabpane.active{display:block}
+table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+th,td{padding:11px 12px;text-align:left;vertical-align:top;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+th:last-child,td:last-child{border-right:0}tr:last-child td{border-bottom:0}
+th{color:var(--text);background:color-mix(in srgb,var(--panel2) 82%,black 4%)}
+.codewrap{position:relative;margin:12px 0}
+pre{margin:0;padding:16px;background:var(--code);color:#e7f1ff;border:1px solid #253d58;border-radius:13px;overflow:auto;
+ white-space:pre;line-height:1.48;font:13.5px/1.48 ui-monospace,SFMono-Regular,Consolas,monospace}
+.copy{position:absolute;right:8px;top:8px}
+.output{padding:14px;border-radius:12px;background:#06120d;color:#bdf7d8;border:1px solid #1f5c42;
+ white-space:pre-wrap;font:13.5px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:52px}
+.lab{border:1px solid var(--line);border-radius:15px;overflow:hidden;margin:12px 0;background:var(--panel)}
+.labhead{width:100%;border:0;background:linear-gradient(90deg,var(--panel2),var(--panel));color:var(--text);padding:15px 17px;
+ display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;cursor:pointer;font-weight:800}
+.labbody{display:none;padding:0 17px 19px}.lab.open .labbody{display:block}.lab.open .chev{transform:rotate(180deg)}
+.chev{transition:.25s}.labmeta{font-size:.82rem;color:var(--soft);font-weight:500}
+.checklist label{display:flex;align-items:flex-start;gap:9px;margin:7px 0;color:var(--muted)}
+.checklist input{margin-top:5px}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.meter{height:12px;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));transition:.5s}
+.policy-row{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
+label.smalllabel{display:grid;gap:5px;color:var(--soft);font-size:.85rem}
+select,input[type="text"]{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg2);color:var(--text);padding:9px}
+.quizq{padding:14px;border:1px solid var(--line);border-radius:13px;margin:10px 0;background:rgba(255,255,255,.025)}
+.quizq label{display:block;margin:7px 0;color:var(--muted)}
+.score{font-weight:900;color:var(--green);font-size:1.08rem;margin-top:10px}
+.reveal{opacity:0;transform:translateY(14px);transition:.62s ease}.reveal.visible{opacity:1;transform:none}
+.packet{animation:travel 4s linear infinite}.packet.delay{animation-delay:1.3s}.packet.delay2{animation-delay:2.5s}
+@keyframes travel{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(315px);opacity:0}}
+.dash{stroke-dasharray:10 9;animation:dash 6s linear infinite}@keyframes dash{to{stroke-dashoffset:-190}}
+.pulse{animation:pulse 2.2s ease-in-out infinite}@keyframes pulse{50%{opacity:.38;transform:scale(.96)}}
+.shake{animation:shake .33s linear 2}@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.footer{font-size:.9rem;color:var(--soft)}
+.hidden{display:none!important}
+@media(max-width:1050px){.shell{grid-template-columns:1fr}.sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+ .nav{grid-template-columns:repeat(3,1fr)}.sidebar-tools{max-width:340px}.hero-grid,.story{grid-template-columns:1fr}}
+@media(max-width:760px){main{padding:13px}.inner{padding:19px}.grid{grid-template-columns:1fr}
+ .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 1}.kpis,.sim-grid{grid-template-columns:1fr}
+ .nav{grid-template-columns:1fr 1fr}.policy-row{grid-template-columns:1fr}.hero-art{min-height:310px}}
+@media print{.sidebar,#scrollbar,.actions,.copy,.btn{display:none!important}.shell{display:block}main{padding:0}
+ body{background:white;color:black}section{break-inside:avoid;box-shadow:none;border:1px solid #aaa}.reveal{opacity:1;transform:none}
+ .labbody{display:block!important}.lab{break-inside:avoid}p,li,td{color:#222}h2,h3,h4,th{color:#000}}
+
+/* Version 3 additions */
+.mode-card{margin-top:16px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.035)}
+.mode-card select{max-width:270px}.lens-result{margin-top:8px;color:var(--muted);font-size:.9rem}
+.compare{display:grid;grid-template-columns:1fr 70px 1fr;gap:13px;align-items:center}.compare-arrow{text-align:center;font-size:2rem;color:var(--cyan)}
+.arch-box{min-height:210px;border:1px solid var(--line);border-radius:15px;padding:15px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.arch-nodes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin-top:13px}.node{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font-size:.85rem}
+.node.central{border-color:var(--cyan);color:var(--text);box-shadow:0 0 0 4px rgba(79,216,255,.07)}
+.layer-stack{display:grid;gap:7px}.layer{padding:11px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.035);display:flex;justify-content:space-between;gap:12px}.layer strong{color:var(--text)}
+.attack-grid{display:grid;grid-template-columns:260px 1fr;gap:16px}.attack-menu{display:grid;gap:8px}.attack-btn{padding:11px;text-align:left;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.035);color:var(--muted);cursor:pointer}.attack-btn.active{border-color:var(--red);background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--text)}
+.attack-stage{border:1px solid var(--line);border-radius:15px;padding:18px;background:linear-gradient(180deg,var(--panel2),var(--panel));min-height:330px}.attack-path{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:13px 0}.attack-hop{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.state-table td.allow{background:rgba(109,242,177,.09);color:var(--green);font-weight:700}.state-table td.block{background:rgba(255,123,137,.08);color:var(--red);font-weight:700}.state-table td.conditional{background:rgba(255,209,102,.08);color:var(--amber);font-weight:700}
+.timeline{display:grid;gap:8px}.event{display:grid;grid-template-columns:95px 1fr auto;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.03);align-items:center}.event .sev{font-size:.78rem;font-weight:800;padding:4px 7px;border-radius:999px}.sev.low{background:rgba(79,216,255,.12);color:var(--cyan)}.sev.med{background:rgba(255,209,102,.12);color:var(--amber)}.sev.high{background:rgba(255,123,137,.12);color:var(--red)}
+.progress-panel{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.ring{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;margin:auto;background:conic-gradient(var(--green) 0deg,rgba(255,255,255,.08) 0deg);position:relative}.ring:after{content:"";position:absolute;inset:17px;border-radius:50%;background:var(--panel)}.ring strong{position:relative;z-index:2;font-size:1.7rem}.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.report-grid textarea{grid-column:1/-1;min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--bg2);color:var(--text);padding:10px}
+.presenter-strip{display:none}.trainer-mode .sidebar{display:none}.trainer-mode .shell{display:block}.trainer-mode main{width:100%;max-width:none;padding:0}.trainer-mode section{min-height:100vh;border-radius:0;margin:0;display:none;box-shadow:none}.trainer-mode section.presenter-current{display:block}.trainer-mode .inner{padding:5vh 6vw}.trainer-mode .presenter-strip{display:flex;position:fixed;right:16px;bottom:16px;z-index:9998;gap:8px;padding:8px;border:1px solid var(--line);border-radius:13px;background:var(--bg);box-shadow:var(--shadow)}
+.simple-mode .technical-detail{display:none}.simple-note{display:none}.simple-mode .simple-note{display:block}.simple-mode .advanced-note{display:none}
+.protocol-badge{font:800 .78rem/1 ui-monospace,SFMono-Regular,Consolas,monospace;padding:6px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:var(--cyan)}
+.flowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.flowline .box{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035)}.flowline .arr{color:var(--cyan);font-size:1.35rem}
+@media(max-width:850px){.compare{grid-template-columns:1fr}.compare-arrow{transform:rotate(90deg)}.attack-grid,.progress-panel{grid-template-columns:1fr}.report-grid{grid-template-columns:1fr}.event{grid-template-columns:75px 1fr}.event .sev{grid-column:2}}
+
+</style>
+</head>
+<body>
+<div id="scrollbar"></div>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><div class="brandmark">IV</div><h1>In-Vehicle Network Segmentation</h1></div>
+  <p>Session 2 • Self-paced • Mixed technical audience</p>
+  <nav class="nav" id="nav">
+    <a href="#start">Start</a><a href="#story">Attack Story</a><a href="#zones">Vehicle Zones</a>
+    <a href="#evolution">Domain vs Zonal</a><a href="#architecture">Segmentation</a><a href="#ethernet">Automotive Ethernet</a>
+    <a href="#can">CAN & FlexRay</a><a href="#someip">SOME/IP</a><a href="#diagnostics">UDS & DoIP</a>
+    <a href="#secoc">SecOC</a><a href="#attacks">Attack Paths</a><a href="#trustchain">OTA & Trust Chain</a>
+    <a href="#ids">IDS & Monitoring</a><a href="#labs">Technical Labs</a><a href="#dashboard">Progress & Report</a>
+    <a href="#assessment">Assessment</a><a href="#references">References</a>
+  </nav>
+  <div class="sidebar-tools">
+    <button class="btn secondary small" id="themeBtn">☀ Theme</button>
+    <button class="btn secondary small" id="simpleBtn">◐ Simple</button>
+    <button class="btn secondary small" id="trainerBtn">▣ Trainer</button>
+    <button class="btn secondary small" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="callout good" style="font-size:.84rem">
+    <strong>Progress is saved locally.</strong><br>
+    Lab checkboxes, reading progress and quiz results persist in this browser.
+  </div>
+</aside>
+
+<main>
+<section id="start" class="hero reveal">
+<div class="inner hero-grid">
+  <div>
+    <div class="eyebrow">CONNECTED VEHICLE SECURITY • SESSION 2 • VERSION 3</div>
+    <h2>One vehicle.<br>Many trust zones.</h2>
+    <p class="lead">Learn why a Bluetooth-facing head unit must not share unrestricted access with braking, steering, ADAS, battery, or engine-control systems.</p>
+    <div class="pills">
+      <span class="pill">Beginner-friendly concepts</span><span class="pill">Animated diagrams</span>
+      <span class="pill">Runnable Linux labs</span><span class="pill">Expected outputs</span>
+    </div>
+    <div class="actions" style="margin-top:16px">
+      <a class="btn" href="#story" style="text-decoration:none">Begin the story</a>
+      <button class="btn secondary" onclick="resetProgress()">Reset progress</button>
+    </div>
+
+    <div class="mode-card">
+      <label class="smalllabel">Choose your learning lens
+        <select id="lensSelect" onchange="setLens()">
+          <option value="mixed">Mixed technical audience</option>
+          <option value="beginner">Automotive beginner</option>
+          <option value="network">Networking professional</option>
+          <option value="auto">Automotive engineer</option>
+          <option value="security">Security analyst</option>
+        </select>
+      </label>
+      <div class="lens-result" id="lensResult">Focus: connect architecture, protocols, security controls and practical evidence.</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><strong>5</strong><span>core functional zones</span></div>
+      <div class="kpi"><strong>7</strong><span>protocol and architecture topics</span></div>
+      <div class="kpi"><strong>8</strong><span>technical labs</span></div>
+      <div class="kpi"><strong>15</strong><span>assessment questions</span></div>
+    </div>
+  </div>
+  <div class="hero-art">
+  <svg viewBox="0 0 700 450" width="100%" height="100%" role="img" aria-label="Connected vehicle with separated zones">
+    <defs>
+      <linearGradient id="car" x1="0" x2="1"><stop stop-color="#4fd8ff"/><stop offset="1" stop-color="#6df2b1"/></linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g opacity=".45"><circle cx="570" cy="75" r="48" fill="none" stroke="#4fd8ff" class="pulse"/>
+      <path d="M530 75h80M570 35v80" stroke="#4fd8ff" stroke-dasharray="5 7"/></g>
+    <text x="517" y="145" fill="currentColor" style="fill:var(--muted)" font-size="15">Cloud / cellular / V2X</text>
+    <path d="M510 160 Q430 185 400 220" fill="none" stroke="#4fd8ff" stroke-width="3" class="dash"/>
+    <path d="M75 280 L130 205 Q145 182 190 182 H460 Q495 185 520 215 L570 260 Q590 275 592 305
+      H560 Q552 345 510 345 Q468 345 458 305 H245 Q237 345 195 345 Q153 345 145 305 H92 Q72 305 75 280Z"
+      fill="rgba(255,255,255,.035)" stroke="url(#car)" stroke-width="4" filter="url(#glow)"/>
+    <circle cx="195" cy="307" r="35" fill="#07111f" stroke="#6df2b1" stroke-width="4"/>
+    <circle cx="510" cy="307" r="35" fill="#07111f" stroke="#6df2b1" stroke-width="4"/>
+    <g font-size="13" fill="#f4f8ff">
+      <rect x="145" y="212" width="104" height="47" rx="11" fill="rgba(109,242,177,.15)" stroke="#6df2b1"/>
+      <text x="158" y="241">Infotainment</text>
+      <rect x="270" y="212" width="92" height="47" rx="11" fill="rgba(79,216,255,.15)" stroke="#4fd8ff"/>
+      <text x="296" y="241">ADAS</text>
+      <rect x="386" y="212" width="106" height="47" rx="11" fill="rgba(255,209,102,.16)" stroke="#ffd166"/>
+      <text x="405" y="241">Powertrain</text>
+      <rect x="266" y="273" width="132" height="43" rx="11" fill="rgba(170,140,255,.16)" stroke="#aa8cff"/>
+      <text x="286" y="300">Security Gateway</text>
+      <rect x="430" y="151" width="99" height="39" rx="10" fill="rgba(79,216,255,.13)" stroke="#4fd8ff"/>
+      <text x="448" y="176">Telematics</text>
+      <rect x="95" y="265" width="104" height="40" rx="10" fill="rgba(255,123,137,.13)" stroke="#ff7b89"/>
+      <text x="112" y="290">Diagnostics</text>
+    </g>
+    <g stroke-width="2.5" fill="none" class="dash">
+      <path d="M198 259 L270 292" stroke="#6df2b1"/><path d="M316 259 L330 273" stroke="#4fd8ff"/>
+      <path d="M438 259 L397 291" stroke="#ffd166"/><path d="M198 285 L266 294" stroke="#ff7b89"/>
+      <path d="M478 190 L385 274" stroke="#4fd8ff"/>
+    </g>
+  </svg>
+  </div>
+</div>
+</section>
+
+<section id="story" class="reveal">
+<div class="inner">
+<h3>Animated story: “The music player that reached too far”</h3>
+<p>Walk through a simplified attack path. The purpose is not to claim every vehicle is built this way; it is to show why architectural boundaries matter.</p>
+<div class="story">
+  <div class="story-nav" id="storyNav">
+    <button class="story-step active" data-story="0">1. External input</button>
+    <button class="story-step" data-story="1">2. Infotainment compromise</button>
+    <button class="story-step" data-story="2">3. Flat-network danger</button>
+    <button class="story-step" data-story="3">4. Gateway decision</button>
+    <button class="story-step" data-story="4">5. Contained incident</button>
+  </div>
+  <div class="story-stage" id="storyStage"></div>
+</div>
+<div class="actions" style="margin-top:12px"><button class="btn secondary" onclick="storyMove(-1)">Previous</button><button class="btn" onclick="storyMove(1)">Next</button></div>
+</div>
+</section>
+
+<section id="zones" class="reveal">
+<div class="inner">
+<h3>Vehicle zones, explained simply</h3>
+<p>A “zone” here means a security and functional boundary. Production architectures may be domain-based, physically zonal, centralized, or hybrid.</p>
+<div class="tabs" id="zoneTabs">
+  <button class="tab active" data-tab="inf">Infotainment</button><button class="tab" data-tab="tel">Telematics</button>
+  <button class="tab" data-tab="adas">ADAS</button><button class="tab" data-tab="pow">Powertrain</button>
+  <button class="tab" data-tab="diag">Diagnostics</button>
+</div>
+<div id="inf" class="tabpane active">
+  <div class="grid"><div class="card span-7"><h4>What lives here?</h4><p>Head unit, media, navigation UI, smartphone integration, Bluetooth, Wi-Fi, USB and sometimes rear-seat entertainment.</p>
+  <p><strong>Why it is exposed:</strong> it parses content and communicates with users, phones and removable devices.</p></div>
+  <div class="card span-5"><h4>Analogy</h4><p>The hotel lobby: useful and public-facing, but guests do not receive keys to the boiler room.</p>
+  <div class="callout warn"><strong>Typical policy:</strong> no direct command path to critical control ECUs.</div></div></div>
+</div>
+<div id="tel" class="tabpane">
+  <div class="grid"><div class="card span-7"><h4>What lives here?</h4><p>Telematics control unit, cellular connectivity, eCall, GNSS, remote services, fleet telemetry and OTA transport functions.</p>
+  <p><strong>Why it matters:</strong> this zone connects the vehicle to off-board systems.</p></div>
+  <div class="card span-5"><h4>Analogy</h4><p>The building’s internet edge: valuable, monitored, patched and never assumed trustworthy merely because it is “inside”.</p>
+  <div class="callout bad"><strong>Risk:</strong> a remote-facing component can become an ingress point.</div></div></div>
+</div>
+<div id="adas" class="tabpane">
+  <div class="grid"><div class="card span-7"><h4>What lives here?</h4><p>Cameras, radar, lidar, ultrasonic sensing, perception/fusion processors and driver-assistance controllers.</p>
+  <p><strong>Traffic character:</strong> high data volume, time sensitivity, integrity requirements and controlled actuation paths.</p></div>
+  <div class="card span-5"><h4>Analogy</h4><p>The building’s safety-control room: alarms and automated decisions must be timely and protected from casual traffic.</p></div></div>
+</div>
+<div id="pow" class="tabpane">
+  <div class="grid"><div class="card span-7"><h4>What lives here?</h4><p>Engine, transmission, torque coordination, battery management, inverter/motor control and drivetrain-related functions.</p>
+  <p><strong>Security objective:</strong> preserve authorized control, message integrity and predictable behavior.</p></div>
+  <div class="card span-5"><h4>Analogy</h4><p>The machinery room: a visitor may view a status display, but cannot directly alter pumps or motors.</p></div></div>
+</div>
+<div id="diag" class="tabpane">
+  <div class="grid"><div class="card span-7"><h4>What lives here?</h4><p>Service access, fault reading, ECU programming, calibration and maintenance workflows over controlled diagnostic paths.</p>
+  <p><strong>Special concern:</strong> diagnostics is legitimate privileged access, so authorization, session controls, logging and physical/service context matter.</p></div>
+  <div class="card span-5"><h4>Analogy</h4><p>The maintenance entrance: powerful tools are permitted, but only for authorized technicians and approved tasks.</p></div></div>
+</div>
+
+<h4 style="margin-top:22px">Trust and traffic comparison</h4>
+<div style="overflow:auto">
+<table>
+<thead><tr><th>Zone</th><th>External exposure</th><th>Timing sensitivity</th><th>Typical allowed direction</th><th>Primary concern</th></tr></thead>
+<tbody>
+<tr><td>Infotainment</td><td>High</td><td>Low–medium</td><td>Selected status data inward/outward via gateway</td><td>Large attack surface</td></tr>
+<tr><td>Telematics</td><td>Very high</td><td>Medium</td><td>Controlled cloud, update and telemetry flows</td><td>Remote ingress</td></tr>
+<tr><td>ADAS</td><td>Low direct exposure</td><td>High</td><td>Sensor-to-fusion and authorized actuation paths</td><td>Integrity and latency</td></tr>
+<tr><td>Powertrain</td><td>Very low direct exposure</td><td>High</td><td>Highly constrained control/status traffic</td><td>Safety-critical control</td></tr>
+<tr><td>Diagnostics</td><td>Service-context exposure</td><td>Variable</td><td>Privileged, authenticated and audited access</td><td>Abuse of maintenance functions</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+
+<section id="evolution" class="reveal">
+<div class="inner">
+<h3>Domain architecture versus zonal architecture</h3>
+<p>“Powertrain zone” and “front-left zonal controller” describe different grouping ideas. A domain groups functions; a physical zone groups equipment by vehicle location.</p>
+<div class="simple-note callout"><strong>Simple version:</strong> older designs often connect computers by job. Newer zonal designs increasingly connect nearby devices to a local controller, then use high-speed backbones to central compute.</div>
+<div class="compare">
+  <div class="arch-box"><h4>Domain-oriented architecture</h4><p>ECUs are grouped around functions such as body, powertrain, infotainment and ADAS.</p>
+    <div class="arch-nodes"><span class="node">Door ECU</span><span class="node">Lighting ECU</span><span class="node central">Body domain</span><span class="node">Engine ECU</span><span class="node central">Powertrain domain</span><span class="node">ADAS ECU</span></div>
+    <div class="callout warn"><strong>Trade-off:</strong> functional ownership is clear, but wiring may cross large parts of the vehicle.</div>
+  </div>
+  <div class="compare-arrow">→</div>
+  <div class="arch-box"><h4>Physical zonal architecture</h4><p>Nearby sensors and actuators connect to front/rear or left/right zonal controllers, which connect to central compute over Ethernet.</p>
+    <div class="arch-nodes"><span class="node central">Front-left zone</span><span class="node central">Front-right zone</span><span class="node central">Rear zone</span><span class="node">Central compute</span><span class="node">Vehicle cloud gateway</span></div>
+    <div class="callout good"><strong>Benefit:</strong> shorter local wiring and a clearer high-speed backbone; software and safety partitioning become crucial.</div>
+  </div>
+</div>
+<div class="technical-detail grid" style="margin-top:16px">
+  <div class="card span-6"><h4>Security consequence</h4><p>A physical zonal controller can aggregate signals belonging to several functional domains. Security policy must therefore consider <em>function, location, message type, vehicle state and destination</em>, not only which box a cable enters.</p></div>
+  <div class="card span-6"><h4>Migration reality</h4><p>Many production vehicles are hybrid: legacy CAN/LIN networks remain behind domain or zonal controllers while Automotive Ethernet links gateways, compute platforms and service-oriented applications.</p></div>
+</div>
+</div>
+</section>
+
+<section id="architecture" class="reveal">
+<div class="inner">
+<h3>Interactive segmented architecture</h3>
+<p>Select a source and destination. The simulator explains a sensible default policy for a teaching architecture.</p>
+<div class="grid">
+  <div class="card span-8">
+  <svg viewBox="0 0 1050 610" width="100%" role="img" aria-label="Segmented in-vehicle network architecture">
+    <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#91a8c7"/></marker></defs>
+    <rect x="25" y="35" width="250" height="125" rx="20" fill="rgba(109,242,177,.10)" stroke="#6df2b1" stroke-width="2"/>
+    <text x="80" y="70" fill="#f4f8ff" font-size="22" font-weight="700">Infotainment Zone</text>
+    <text x="50" y="102" fill="#c0cee2">Head unit • Bluetooth • USB • HMI</text><text x="50" y="130" fill="#c0cee2">Trust: lower / exposed</text>
+    <rect x="320" y="35" width="250" height="125" rx="20" fill="rgba(79,216,255,.10)" stroke="#4fd8ff" stroke-width="2"/>
+    <text x="385" y="70" fill="#f4f8ff" font-size="22" font-weight="700">Telematics Zone</text>
+    <text x="345" y="102" fill="#c0cee2">TCU • Cellular • OTA transport</text><text x="345" y="130" fill="#c0cee2">Trust: exposed edge</text>
+    <rect x="615" y="35" width="400" height="125" rx="20" fill="rgba(170,140,255,.10)" stroke="#aa8cff" stroke-width="2"/>
+    <text x="750" y="70" fill="#f4f8ff" font-size="22" font-weight="700">Off-board Systems</text>
+    <text x="660" y="102" fill="#c0cee2">OEM backend • Fleet service • Mobile network</text><text x="690" y="130" fill="#c0cee2">Mutual authentication + update trust chain</text>
+    <rect x="315" y="235" width="430" height="135" rx="23" fill="rgba(255,255,255,.07)" stroke="#f4f8ff" stroke-width="2.5"/>
+    <text x="421" y="276" fill="#f4f8ff" font-size="25" font-weight="800">Central / Security Gateway</text>
+    <text x="360" y="310" fill="#c0cee2">Routing • ACLs • protocol translation • rate limiting</text>
+    <text x="380" y="339" fill="#c0cee2">logging • IDS signals • diagnostic authorization</text>
+    <rect x="25" y="445" width="250" height="125" rx="20" fill="rgba(255,123,137,.10)" stroke="#ff7b89" stroke-width="2"/>
+    <text x="80" y="480" fill="#f4f8ff" font-size="22" font-weight="700">Diagnostics Zone</text>
+    <text x="50" y="512" fill="#c0cee2">OBD/service tool • UDS workflows</text><text x="50" y="540" fill="#c0cee2">Privileged and audited</text>
+    <rect x="320" y="445" width="250" height="125" rx="20" fill="rgba(79,216,255,.10)" stroke="#4fd8ff" stroke-width="2"/>
+    <text x="402" y="480" fill="#f4f8ff" font-size="22" font-weight="700">ADAS Zone</text>
+    <text x="345" y="512" fill="#c0cee2">Sensors • fusion • assistance</text><text x="345" y="540" fill="#c0cee2">Integrity + latency critical</text>
+    <rect x="615" y="445" width="400" height="125" rx="20" fill="rgba(255,209,102,.10)" stroke="#ffd166" stroke-width="2"/>
+    <text x="750" y="480" fill="#f4f8ff" font-size="22" font-weight="700">Powertrain Zone</text>
+    <text x="680" y="512" fill="#c0cee2">Engine • transmission • BMS • motor/inverter</text><text x="715" y="540" fill="#c0cee2">Highly constrained control paths</text>
+    <g fill="none" stroke="#91a8c7" stroke-width="3" marker-end="url(#arrow)">
+      <path d="M150 160 Q180 235 315 286" class="dash"/><path d="M445 160 L485 235" class="dash"/>
+      <path d="M615 98 L570 98" class="dash"/><path d="M150 445 Q185 365 315 330" class="dash"/>
+      <path d="M445 445 L485 370" class="dash"/><path d="M815 445 Q790 375 745 330" class="dash"/>
+    </g>
+    <g class="packet"><circle cx="155" cy="178" r="8" fill="#6df2b1"/></g>
+    <g class="packet delay"><circle cx="456" cy="178" r="8" fill="#4fd8ff"/></g>
+  </svg>
+  </div>
+  <div class="card span-4">
+    <h4>Policy decision simulator</h4>
+    <div class="policy-row">
+      <label class="smalllabel">Source<select id="srcZone">
+        <option>Infotainment</option><option>Telematics</option><option>ADAS</option><option>Powertrain</option><option>Diagnostics</option>
+      </select></label>
+      <label class="smalllabel">Destination<select id="dstZone">
+        <option>Powertrain</option><option>ADAS</option><option>Infotainment</option><option>Telematics</option><option>Diagnostics</option>
+      </select></label>
+      <button class="btn" onclick="policyCheck()">Evaluate</button>
+    </div>
+    <div class="output" id="policyOut" style="margin-top:12px">Choose two zones and evaluate the flow.</div>
+    <div class="callout warn"><strong>Teaching model:</strong> real policies depend on OEM architecture, safety case, service definition and vehicle state.</div>
+  </div>
+</div>
+</div>
+</section>
+
+
+<section id="ethernet" class="reveal">
+<div class="inner">
+<h3>Automotive Ethernet and VLAN segmentation</h3>
+<p>Automotive Ethernet provides switched, full-duplex IP communication suitable for service-oriented applications, high-bandwidth sensors, diagnostics and software updates.</p>
+<div class="grid">
+<div class="card span-5"><h4>Physical and link concepts</h4>
+<ul><li><strong>Single-pair Ethernet:</strong> automotive PHY families such as 100BASE-T1 and 1000BASE-T1 use one twisted pair.</li>
+<li><strong>Switching:</strong> traffic can be forwarded only toward the relevant port rather than broadcast across a shared bus.</li>
+<li><strong>VLAN:</strong> an IEEE 802.1Q tag can create logical Layer-2 broadcast domains.</li><li><strong>QoS:</strong> priority and shaping help protect important traffic, but require engineering and validation.</li></ul></div>
+<div class="card span-7"><h4>Protocol stack: where each control lives</h4>
+<div class="layer-stack">
+<div class="layer"><strong>Application</strong><span>SOME/IP, diagnostics, update services</span></div>
+<div class="layer"><strong>Transport</strong><span>UDP or TCP</span></div>
+<div class="layer"><strong>Network</strong><span>IPv4/IPv6, multicast, routing</span></div>
+<div class="layer"><strong>Data link</strong><span>Ethernet MAC, VLAN, priority</span></div>
+<div class="layer"><strong>Physical</strong><span>100BASE-T1 / 1000BASE-T1 and cabling</span></div>
+</div></div>
+</div>
+<div class="callout warn"><strong>Critical distinction:</strong> a VLAN separates Layer-2 traffic. It does not authenticate ECUs, authorize services, inspect application messages or replace an inter-zone firewall.</div>
+<div class="grid">
+<div class="card span-6"><h4>Example teaching VLANs</h4><table><thead><tr><th>VLAN</th><th>Zone</th><th>Example purpose</th></tr></thead><tbody>
+<tr><td>10</td><td>Infotainment</td><td>HMI and approved media/network services</td></tr><tr><td>20</td><td>Telematics</td><td>Off-board connectivity</td></tr>
+<tr><td>30</td><td>ADAS</td><td>Sensor/fusion services</td></tr><tr><td>40</td><td>Powertrain</td><td>Critical control/status exposure through gateways</td></tr>
+<tr><td>50</td><td>Diagnostics</td><td>Authorized workshop and engineering access</td></tr></tbody></table></div>
+<div class="card span-6"><h4>Packet journey</h4>
+<div class="flowline"><span class="box">Camera ECU</span><span class="arr">→</span><span class="protocol-badge">Ethernet/VLAN 30</span><span class="arr">→</span><span class="box">ADAS switch</span><span class="arr">→</span><span class="box">Fusion service</span></div>
+<div class="flowline"><span class="box">Head unit</span><span class="arr">→</span><span class="protocol-badge">VLAN 10</span><span class="arr">→</span><span class="box">Security gateway</span><span class="arr">✕</span><span class="box">Raw powertrain control</span></div>
+<p class="footer">The second path is blocked unless a narrowly designed, justified application flow exists.</p></div>
+</div>
+</div>
+</section>
+
+<section id="can" class="reveal">
+<div class="inner">
+<h3>CAN and FlexRay: two different scheduling ideas</h3>
+<div class="grid">
+<div class="card span-6">
+<h4>CAN — priority-based shared bus</h4>
+<ul><li>ECUs broadcast frames on a shared bus.</li><li>The identifier represents message meaning and arbitration priority, not an IP-style destination.</li>
+<li>During arbitration, a lower numerical CAN identifier has higher priority.</li><li>Classic CAN does not itself provide cryptographic sender authentication.</li></ul>
+<div class="callout"><strong>Analogy:</strong> several speakers start together; the predefined highest-priority announcement continues while others pause and retry.</div>
+</div>
+<div class="card span-6">
+<h4>FlexRay — synchronized communication cycle</h4>
+<ul><li>Designed for deterministic, time-driven communication.</li><li>A communication cycle includes a static segment and may include a dynamic segment.</li>
+<li>Nodes synchronize clocks and transmit in defined opportunities.</li><li>Segmentation and application-layer protections are still required.</li></ul>
+<div class="callout good"><strong>Analogy:</strong> a railway timetable gives critical trains reserved slots, instead of making every train compete at the junction.</div>
+</div>
+</div>
+<div style="overflow:auto;margin-top:15px">
+<table>
+<thead><tr><th>Dimension</th><th>CAN</th><th>FlexRay</th></tr></thead>
+<tbody>
+<tr><td>Access concept</td><td>Event-triggered, nondestructive priority arbitration</td><td>Time-triggered static scheduling plus optional dynamic communication</td></tr>
+<tr><td>Predictability</td><td>Depends on bus load and message priorities</td><td>Strong determinism for statically scheduled traffic</td></tr>
+<tr><td>Typical learning focus</td><td>IDs, arbitration, frames, bus load</td><td>Cycle, slots, clock synchronization, channels</td></tr>
+<tr><td>Security reality</td><td colspan="2">Neither should be treated as an authorization system; use architecture, gateways and higher-layer security.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="grid" style="margin-top:16px">
+<div class="card span-6">
+<h4>CAN arbitration simulator</h4>
+<p>Enter three hexadecimal IDs. The smallest value wins first.</p>
+<div class="policy-row"><label class="smalllabel">ECU A<input id="canA" type="text" value="120"></label>
+<label class="smalllabel">ECU B<input id="canB" type="text" value="080"></label>
+<label class="smalllabel">ECU C<input id="canC" type="text" value="300"></label>
+<button class="btn" onclick="runCan()">Run</button></div>
+<div class="output" id="canOut" style="margin-top:12px">Waiting for arbitration.</div>
+</div>
+<div class="card span-6">
+<h4>Bus load thought experiment</h4><p>Move the slider. High utilization reduces timing margin for lower-priority traffic.</p>
+<input id="loadSlider" type="range" min="10" max="95" value="35" style="width:100%" oninput="updateLoad()">
+<div class="meter"><span id="loadMeter"></span></div><div id="loadText" class="callout good"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="someip" class="reveal">
+<div class="inner">
+<h3>SOME/IP and service discovery</h3>
+<p><strong>SOME/IP</strong> is a service-oriented automotive communication protocol over IP. SOME/IP-SD defines how services are offered, found, subscribed to and stopped.</p>
+<div class="grid">
+<div class="card span-5">
+<h4>Core vocabulary</h4>
+<ul><li><strong>Service:</strong> a logical capability, identified by a Service ID.</li>
+<li><strong>Instance:</strong> a concrete provider instance.</li><li><strong>Method:</strong> request/response interaction.</li>
+<li><strong>Event:</strong> server-originated update.</li><li><strong>Eventgroup:</strong> a group a client can subscribe to.</li>
+<li><strong>OfferService / FindService:</strong> key discovery messages.</li></ul>
+</div>
+<div class="card span-7">
+<h4>Animated discovery flow</h4>
+<svg viewBox="0 0 800 310" width="100%" role="img" aria-label="SOME/IP service discovery sequence">
+  <text x="100" y="34" fill="#f4f8ff" font-size="20" font-weight="700">Provider ECU</text>
+  <text x="605" y="34" fill="#f4f8ff" font-size="20" font-weight="700">Consumer ECU</text>
+  <line x1="160" y1="50" x2="160" y2="285" stroke="#4fd8ff" stroke-width="3"/>
+  <line x1="650" y1="50" x2="650" y2="285" stroke="#6df2b1" stroke-width="3"/>
+  <g stroke="#91a8c7" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M165 88 H645" class="dash"/><path d="M645 138 H165" class="dash"/>
+    <path d="M165 188 H645" class="dash"/><path d="M645 238 H165" class="dash"/>
+  </g>
+  <g fill="#c0cee2" font-size="16">
+    <text x="320" y="78">OfferService</text><text x="310" y="128">FindService (optional)</text>
+    <text x="285" y="178">SubscribeEventgroup</text><text x="300" y="228">Subscribe ACK</text>
+    <text x="335" y="274">Event notifications</text>
+  </g>
+</svg>
+</div>
+</div>
+<div class="callout warn"><strong>Security boundary:</strong> discovery is not authorization. A client finding a service does not automatically mean it should be permitted to use it.</div>
+<div class="story" style="margin-top:16px">
+<div class="story-nav" id="sdNav">
+<button class="story-step active" data-sd="0">1. Startup delay</button><button class="story-step" data-sd="1">2. Offer service</button>
+<button class="story-step" data-sd="2">3. Subscribe</button><button class="story-step" data-sd="3">4. Event updates</button>
+<button class="story-step" data-sd="4">5. Stop offer / expiry</button>
+</div>
+<div class="story-stage" id="sdStage"></div>
+</div>
+</div>
+</section>
+
+
+<section id="diagnostics" class="reveal">
+<div class="inner">
+<h3>UDS and DoIP: controlled diagnostic power</h3>
+<p><strong>Unified Diagnostic Services (UDS)</strong> defines diagnostic services independent of the underlying data link. <strong>DoIP</strong> carries diagnostic communication over IP and enables discovery, routing activation and diagnostic transport through a DoIP entity or gateway.</p>
+<div class="grid">
+<div class="card span-7"><h4>Simplified UDS service map</h4><div style="overflow:auto"><table>
+<thead><tr><th>Service ID</th><th>Common name</th><th>Use</th><th>Security concern</th></tr></thead><tbody>
+<tr><td>0x10</td><td>DiagnosticSessionControl</td><td>Change diagnostic session</td><td>Unlocks different capabilities</td></tr>
+<tr><td>0x11</td><td>ECUReset</td><td>Request ECU reset</td><td>Availability and unsafe timing</td></tr>
+<tr><td>0x22</td><td>ReadDataByIdentifier</td><td>Read identifiers or measurements</td><td>Sensitive data exposure</td></tr>
+<tr><td>0x27</td><td>SecurityAccess</td><td>Challenge-response style access</td><td>Weak secrets/algorithms or brute force</td></tr>
+<tr><td>0x2E</td><td>WriteDataByIdentifier</td><td>Modify configured data</td><td>Unauthorized configuration change</td></tr>
+<tr><td>0x31</td><td>RoutineControl</td><td>Start/stop/request routine results</td><td>Powerful maintenance operations</td></tr>
+<tr><td>0x34</td><td>RequestDownload</td><td>Begin data/software download</td><td>Firmware integrity and authorization</td></tr>
+<tr><td>0x3E</td><td>TesterPresent</td><td>Keep a diagnostic session alive</td><td>Session abuse or resource holding</td></tr>
+</tbody></table></div></div>
+<div class="card span-5"><h4>DoIP journey</h4>
+<div class="flowline"><span class="box">Workshop tester</span><span class="arr">→</span><span class="protocol-badge">UDP discovery</span></div>
+<div class="flowline"><span class="box">Vehicle / DoIP entity</span><span class="arr">→</span><span class="protocol-badge">TCP connection</span></div>
+<div class="flowline"><span class="box">Routing activation</span><span class="arr">→</span><span class="box">Target ECU</span></div>
+<div class="callout bad"><strong>Bad design:</strong> successful network connection grants unrestricted access to every ECU.</div>
+<div class="callout good"><strong>Better design:</strong> authenticate the tester/workflow, validate vehicle state, activate only permitted routes and audit the session.</div></div>
+</div>
+<div class="technical-detail callout warn"><strong>Teaching boundary:</strong> UDS service availability, sub-functions, timing parameters and negative response codes are ECU/program-specific. DoIP transport security can include TLS depending on implementation and profile; do not assume every deployed DoIP link is encrypted.</div>
+</div>
+</section>
+
+<section id="secoc" class="reveal">
+<div class="inner">
+<h3>AUTOSAR SecOC: authenticity, integrity and freshness</h3>
+<p>SecOC protects selected Protocol Data Units (PDUs) using an authenticator and freshness information. It is designed to make critical onboard messages verifiable, not to provide confidentiality by default.</p>
+<div class="grid">
+<div class="card span-4"><h4>1. Authentic payload</h4><p>The application data that must be protected, such as a status or command PDU.</p></div>
+<div class="card span-4"><h4>2. Freshness value</h4><p>A counter, trip value, timer-derived value or managed combination helps receivers identify stale/replayed traffic.</p></div>
+<div class="card span-4"><h4>3. Authenticator</h4><p>A message authentication code is computed from configured inputs, usually including protected data and freshness.</p></div>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="card span-7">
+<svg viewBox="0 0 880 355" width="100%" role="img" aria-label="SecOC sender and receiver flow">
+  <rect x="20" y="35" width="350" height="275" rx="20" fill="rgba(79,216,255,.08)" stroke="#4fd8ff" stroke-width="2"/>
+  <text x="128" y="70" fill="#f4f8ff" font-size="23" font-weight="800">Sending ECU</text>
+  <rect x="55" y="95" width="130" height="55" rx="12" fill="rgba(255,255,255,.06)" stroke="#91a8c7"/>
+  <text x="78" y="128" fill="#f4f8ff">Payload</text>
+  <rect x="205" y="95" width="130" height="55" rx="12" fill="rgba(109,242,177,.10)" stroke="#6df2b1"/>
+  <text x="226" y="128" fill="#f4f8ff">Freshness</text>
+  <path d="M120 150 L180 205M270 150 L220 205" stroke="#91a8c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="125" y="205" width="150" height="60" rx="12" fill="rgba(170,140,255,.12)" stroke="#aa8cff"/>
+  <text x="155" y="241" fill="#f4f8ff">MAC generate</text>
+  <rect x="410" y="130" width="120" height="85" rx="15" fill="rgba(255,209,102,.10)" stroke="#ffd166"/>
+  <text x="430" y="163" fill="#f4f8ff">Secured</text><text x="438" y="188" fill="#f4f8ff">PDU</text>
+  <path d="M275 235 H410" stroke="#ffd166" stroke-width="3" marker-end="url(#arrow)" class="dash"/>
+  <rect x="570" y="35" width="290" height="275" rx="20" fill="rgba(109,242,177,.07)" stroke="#6df2b1" stroke-width="2"/>
+  <text x="656" y="70" fill="#f4f8ff" font-size="23" font-weight="800">Receiving ECU</text>
+  <path d="M530 172 H610" stroke="#ffd166" stroke-width="3" marker-end="url(#arrow)" class="dash"/>
+  <rect x="610" y="100" width="210" height="62" rx="12" fill="rgba(255,255,255,.06)" stroke="#91a8c7"/>
+  <text x="644" y="137" fill="#f4f8ff">Freshness check</text>
+  <rect x="610" y="190" width="210" height="62" rx="12" fill="rgba(170,140,255,.12)" stroke="#aa8cff"/>
+  <text x="648" y="227" fill="#f4f8ff">MAC verify</text>
+  <path d="M715 162 V190" stroke="#91a8c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="651" y="285" fill="#6df2b1" font-size="17">Accept or reject PDU</text>
+</svg>
+</div>
+<div class="card span-5">
+<h4>Attack/defence simulator</h4>
+<div class="actions"><button class="btn" onclick="secocRun('fresh')">Fresh valid</button>
+<button class="btn secondary" onclick="secocRun('replay')">Replay old</button>
+<button class="btn danger" onclick="secocRun('tamper')">Tampered</button></div>
+<div class="output" id="secocOut" style="margin-top:12px">Receiver is waiting.</div>
+<div class="callout bad"><strong>Do not teach:</strong> “SecOC encrypts CAN traffic.” SecOC primarily addresses authenticity, integrity and freshness; confidentiality requires other measures.</div>
+</div>
+</div>
+</div>
+</section>
+
+
+<section id="attacks" class="reveal">
+<div class="inner">
+<h3>Attack-path explorer: entry, movement, control and evidence</h3>
+<p>Select a scenario. Each path shows the architectural controls that should interrupt it and the evidence defenders should collect.</p>
+<div class="attack-grid">
+<div class="attack-menu" id="attackMenu">
+<button class="attack-btn active" data-attack="0">Bluetooth / media parser</button><button class="attack-btn" data-attack="1">Rogue diagnostic tool</button>
+<button class="attack-btn" data-attack="2">Fake SOME/IP provider</button><button class="attack-btn" data-attack="3">Manipulated OTA package</button>
+<button class="attack-btn" data-attack="4">CAN replay / injection</button>
+</div>
+<div class="attack-stage" id="attackStage"></div>
+</div>
+</div>
+</section>
+
+<section id="trustchain" class="reveal">
+<div class="inner">
+<h3>Secure boot, OTA updates and vehicle-state-aware policy</h3>
+<div class="grid">
+<div class="card span-6"><h4>Secure boot trust chain</h4>
+<div class="flowline"><span class="box">Immutable root of trust</span><span class="arr">→ verifies</span><span class="box">Bootloader</span><span class="arr">→ verifies</span><span class="box">OS / platform</span><span class="arr">→ verifies</span><span class="box">Application</span></div>
+<p>Network segmentation limits movement between ECUs; secure boot reduces the chance that an ECU starts unauthorized software. Both layers are needed.</p></div>
+<div class="card span-6"><h4>Secure OTA workflow</h4>
+<ol><li>OEM/update authority creates a signed package and manifest.</li><li>Telematics transports it; transport alone does not establish package trust.</li><li>Update manager validates signature, target, dependencies and version.</li><li>Vehicle-state policy decides whether installation may proceed.</li><li>Target installs with rollback/recovery protection.</li><li>Health status and result are reported and audited.</li></ol></div>
+</div>
+<h4 style="margin-top:18px">Example vehicle-state policy</h4>
+<div style="overflow:auto"><table class="state-table"><thead><tr><th>Operation</th><th>Parked / secured</th><th>Moving</th><th>Workshop mode</th><th>Charging</th></tr></thead><tbody>
+<tr><td>Powertrain firmware flash</td><td class="conditional">Conditional</td><td class="block">Block</td><td class="allow">Allow with authorization</td><td class="conditional">Depends on update</td></tr>
+<tr><td>Read basic DTCs</td><td class="allow">Allow controlled</td><td class="conditional">Limited</td><td class="allow">Allow</td><td class="allow">Allow controlled</td></tr>
+<tr><td>ECU reset</td><td class="conditional">Conditional</td><td class="block">Block</td><td class="conditional">Authorized</td><td class="block">Usually block for charging ECUs</td></tr>
+<tr><td>Infotainment content update</td><td class="allow">Allow</td><td class="conditional">Download only / defer install</td><td class="allow">Allow</td><td class="allow">Allow</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong>Regulatory context:</strong> UN R155 addresses cyber security and cyber security management systems; UN R156 addresses software updates and software update management systems. This training is conceptual and is not evidence of regulatory compliance.</div>
+</div>
+</section>
+
+<section id="ids" class="reveal">
+<div class="inner">
+<h3>In-vehicle IDS and monitoring</h3>
+<p>Detection complements prevention. Useful telemetry includes gateway decisions, diagnostic attempts, new services, message rates, invalid authenticators and vehicle-state mismatches.</p>
+<div class="grid">
+<div class="card span-5"><h4>What can be monitored?</h4><ul>
+<li>Unknown or unexpected CAN identifiers</li><li>Abnormal frequency or timing</li><li>Impossible signal values or state transitions</li>
+<li>Repeated UDS SecurityAccess failures</li><li>Unexpected SOME/IP providers or subscription floods</li>
+<li>SecOC MAC/freshness failures</li><li>Blocked cross-zone flows</li><li>Update verification or rollback events</li></ul></div>
+<div class="card span-7"><h4>Interactive incident timeline</h4><div class="timeline" id="incidentTimeline"></div>
+<div class="actions" style="margin-top:12px"><button class="btn" onclick="generateIncident()">Generate scenario</button><button class="btn secondary" onclick="showIncidentAnswer()">Reveal interpretation</button></div>
+<div class="output" id="incidentAnswer" style="margin-top:10px">Generate a scenario, then decide whether it is normal, suspicious or high risk.</div></div>
+</div>
+<div class="callout bad"><strong>False-positive warning:</strong> automotive traffic is highly state-dependent. A frequency or service that is suspicious while driving may be normal during manufacturing, software update or workshop operations.</div>
+</div>
+</section>
+
+<section id="labs" class="reveal">
+<div class="inner">
+<h3>Technical labs with expected outputs</h3>
+<p>Target host: Ubuntu 24.04 or a similar Linux distribution. Run in a disposable VM where possible. Commands that modify networking require root privileges.</p>
+
+<div class="lab">
+<button class="labhead"><span>Lab 1 — Build and test three vehicle zones with network namespaces<br><span class="labmeta">Hands-on • 35–45 min • Linux networking + nftables</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<h4>Objective</h4><p>Represent infotainment, a security gateway and powertrain as isolated network stacks. Verify routing, then apply a default-deny forwarding policy.</p>
+<div class="callout warn"><strong>Design note:</strong> nftables rules are applied inside the gateway namespace, so the lab does not alter the host firewall.</div>
+<h4>1. Create the lab</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns add infotainment
+sudo ip netns add gateway
+sudo ip netns add powertrain
+
+sudo ip link add info0 type veth peer name gw-info
+sudo ip link add pt0 type veth peer name gw-pt
+
+sudo ip link set info0 netns infotainment
+sudo ip link set gw-info netns gateway
+sudo ip link set pt0 netns powertrain
+sudo ip link set gw-pt netns gateway
+
+sudo ip -n infotainment addr add 10.10.1.2/24 dev info0
+sudo ip -n gateway addr add 10.10.1.1/24 dev gw-info
+sudo ip -n powertrain addr add 10.10.2.2/24 dev pt0
+sudo ip -n gateway addr add 10.10.2.1/24 dev gw-pt
+
+for ns in infotainment gateway powertrain; do
+  sudo ip -n "$ns" link set lo up
+done
+sudo ip -n infotainment link set info0 up
+sudo ip -n gateway link set gw-info up
+sudo ip -n powertrain link set pt0 up
+sudo ip -n gateway link set gw-pt up
+
+sudo ip -n infotainment route add default via 10.10.1.1
+sudo ip -n powertrain route add default via 10.10.2.1
+sudo ip netns exec gateway sysctl -w net.ipv4.ip_forward=1</pre></div>
+<h4>Expected setup output</h4><div class="output">net.ipv4.ip_forward = 1</div>
+<h4>2. Verify addresses</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip -br -n infotainment addr
+sudo ip -br -n gateway addr
+sudo ip -br -n powertrain addr</pre></div>
+<div class="output">lo               UNKNOWN        127.0.0.1/8 ::1/128
+info0@if...      UP             10.10.1.2/24
+
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+gw-info@if...    UP             10.10.1.1/24
+gw-pt@if...      UP             10.10.2.1/24
+
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+pt0@if...        UP             10.10.2.2/24</div>
+<p class="footer">The interface index after <code>@if</code> varies and is not an error.</p>
+<h4>3. Prove routed reachability before filtering</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns exec infotainment ping -c 2 10.10.2.2</pre></div>
+<div class="output">PING 10.10.2.2 (10.10.2.2) 56(84) bytes of data.
+64 bytes from 10.10.2.2: icmp_seq=1 ttl=63 time=... ms
+64 bytes from 10.10.2.2: icmp_seq=2 ttl=63 time=... ms
+
+--- 10.10.2.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time ...ms</div>
+<h4>4. Install default-deny gateway policy</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns exec gateway nft -f - &lt;&lt;'NFT'
+flush ruleset
+table inet vehicle_fw {
+  chain forward {
+    type filter hook forward priority 0; policy drop;
+    ct state established,related accept
+    iifname "gw-pt" oifname "gw-info" ip protocol icmp accept
+    counter log prefix "VEHICLE-DROP " drop
+  }
+}
+NFT
+
+sudo ip netns exec gateway nft list ruleset</pre></div>
+<div class="output">table inet vehicle_fw {
+        chain forward {
+                type filter hook forward priority filter; policy drop;
+                ct state established,related accept
+                iifname "gw-pt" oifname "gw-info" ip protocol icmp accept
+                counter packets 0 bytes 0 log prefix "VEHICLE-DROP " drop
+        }
+}</div>
+<h4>5. Confirm infotainment → powertrain is blocked</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns exec infotainment ping -c 2 -W 1 10.10.2.2
+sudo ip netns exec gateway nft list chain inet vehicle_fw forward</pre></div>
+<div class="output">PING 10.10.2.2 (10.10.2.2) 56(84) bytes of data.
+
+--- 10.10.2.2 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time ...ms
+
+# The final nftables counter should now be greater than zero.</div>
+<h4>6. Confirm permitted reverse diagnostic-style probe</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns exec powertrain ping -c 2 10.10.1.2</pre></div>
+<div class="output">2 packets transmitted, 2 received, 0% packet loss</div>
+<div class="callout good"><strong>Learning result:</strong> routing connects networks; policy decides which flows may cross the gateway.</div>
+<h4>Troubleshooting</h4>
+<ul><li><strong>“Operation not permitted”:</strong> use sudo and ensure the VM allows network namespaces.</li>
+<li><strong>First ping still fails:</strong> recheck routes and <code>net.ipv4.ip_forward</code> inside the gateway namespace.</li>
+<li><strong>nft command missing:</strong> install with <code>sudo apt install nftables</code>.</li></ul>
+<div class="checklist"><label><input type="checkbox" data-progress="lab1a"> I verified pre-filter reachability.</label>
+<label><input type="checkbox" data-progress="lab1b"> I observed the default-deny drop counter increasing.</label></div>
+<h4>Cleanup</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns del infotainment
+sudo ip netns del gateway
+sudo ip netns del powertrain</pre></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 2 — Observe and generate CAN frames using SocketCAN vcan<br><span class="labmeta">Hands-on • 20–30 min • can-utils</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<h4>Install and create the virtual bus</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo apt update
+sudo apt install -y can-utils
+sudo modprobe vcan
+sudo ip link add vcan0 type vcan
+sudo ip link set vcan0 up
+ip -details link show vcan0</pre></div>
+<div class="output">vcan0: &lt;NOARP,UP,LOWER_UP&gt; mtu 72 ... state UNKNOWN mode DEFAULT ...
+    vcan</div>
+<h4>Terminal A — listen</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>candump -L vcan0</pre></div>
+<h4>Terminal B — transmit</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cansend vcan0 123#11223344
+cansend vcan0 080#AABBCCDD
+cansend vcan0 300#DEADBEEF</pre></div>
+<h4>Expected listener output</h4><div class="output">(timestamp) vcan0 123#11223344
+(timestamp) vcan0 080#AABBCCDD
+(timestamp) vcan0 300#DEADBEEF</div>
+<p>The exact timestamps differ. Because the commands were sent sequentially, this output does <em>not</em> demonstrate physical-bus arbitration; it demonstrates frame format and capture.</p>
+<h4>Generate continuous traffic</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cangen vcan0 -g 100 -I i -L 8
+# Press Ctrl+C after a few seconds.</pre></div>
+<div class="callout warn"><strong>Important limitation:</strong> a virtual CAN interface is excellent for software testing but does not reproduce physical-layer voltage, termination faults or exact arbitration timing.</div>
+<div class="checklist"><label><input type="checkbox" data-progress="lab2a"> I captured three known frames.</label>
+<label><input type="checkbox" data-progress="lab2b"> I explained why lower ID means higher arbitration priority.</label></div>
+<h4>Cleanup</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip link del vcan0</pre></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 3 — Detect an unexpected CAN ID with a simple allowlist monitor<br><span class="labmeta">Hands-on • 25–35 min • Python + SocketCAN</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<p><strong>Prerequisite:</strong> keep <code>vcan0</code> from Lab 2 or recreate it.</p>
+<h4>Create the monitor</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cat &gt; can_allowlist_monitor.py &lt;&lt;'PY'
+#!/usr/bin/env python3
+import socket
+import struct
+
+ALLOWED = {0x080, 0x123, 0x300}
+CAN_FRAME_FMT = "=IB3x8s"
+CAN_FRAME_SIZE = struct.calcsize(CAN_FRAME_FMT)
+
+sock = socket.socket(socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
+sock.bind(("vcan0",))
+print("Monitoring vcan0. Allowed IDs:", ", ".join(hex(x) for x in sorted(ALLOWED)))
+
+while True:
+    frame = sock.recv(CAN_FRAME_SIZE)
+    can_id, dlc, data = struct.unpack(CAN_FRAME_FMT, frame)
+    arbitration_id = can_id &amp; 0x1FFFFFFF
+    payload = data[:dlc].hex().upper()
+    verdict = "ALLOW" if arbitration_id in ALLOWED else "ALERT"
+    print(f"{verdict:5} ID=0x{arbitration_id:03X} DLC={dlc} DATA={payload}")
+PY
+chmod +x can_allowlist_monitor.py
+sudo ./can_allowlist_monitor.py</pre></div>
+<h4>In another terminal</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cansend vcan0 123#11223344
+cansend vcan0 555#01020304</pre></div>
+<h4>Expected monitor output</h4><div class="output">Monitoring vcan0. Allowed IDs: 0x80, 0x123, 0x300
+ALLOW ID=0x123 DLC=4 DATA=11223344
+ALERT ID=0x555 DLC=4 DATA=01020304</div>
+<div class="callout bad"><strong>Do not confuse detection with prevention:</strong> this script only observes. A production in-vehicle IDS needs signal context, timing models, ECU identity assumptions and carefully managed false positives.</div>
+<div class="checklist"><label><input type="checkbox" data-progress="lab3a"> I generated both an allowed and unexpected ID.</label>
+<label><input type="checkbox" data-progress="lab3b"> I can explain why an ID allowlist alone is insufficient.</label></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 4 — Run a SOME/IP-SD teaching emulator over UDP multicast<br><span class="labmeta">Hands-on • 35–45 min • Python standard library</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<div class="callout warn"><strong>Scope:</strong> this is a learning emulator, not a wire-compatible implementation of the AUTOSAR SOME/IP-SD binary protocol. It teaches Offer, Find and Subscribe behavior safely with readable JSON.</div>
+<h4>Create provider.py</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cat &gt; provider.py &lt;&lt;'PY'
+#!/usr/bin/env python3
+import json, socket, struct, time
+
+GROUP, PORT = "239.10.10.10", 30501
+service = {"type":"OfferService","service_id":"0x1234","instance_id":"0x0001",
+           "ttl":3,"endpoint":"127.0.0.1:30502"}
+
+tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+tx.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+
+print("Provider started: VehicleStatusService")
+for seq in range(1, 6):
+    msg = dict(service, sequence=seq)
+    tx.sendto(json.dumps(msg).encode(), (GROUP, PORT))
+    print("TX", msg)
+    time.sleep(1)
+PY
+chmod +x provider.py</pre></div>
+<h4>Create consumer.py</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cat &gt; consumer.py &lt;&lt;'PY'
+#!/usr/bin/env python3
+import json, socket, struct
+
+GROUP, PORT = "239.10.10.10", 30501
+rx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+rx.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+rx.bind(("", PORT))
+membership = struct.pack("4s4s", socket.inet_aton(GROUP), socket.inet_aton("0.0.0.0"))
+rx.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
+
+print("Consumer listening for service offers...")
+seen = set()
+while True:
+    data, peer = rx.recvfrom(2048)
+    msg = json.loads(data.decode())
+    key = (msg["service_id"], msg["instance_id"])
+    if key not in seen:
+        seen.add(key)
+        print(f"DISCOVERED service={key[0]} instance={key[1]} endpoint={msg['endpoint']}")
+        print("ACTION: subscribe to VehicleState eventgroup (simulated)")
+    else:
+        print(f"REFRESH ttl={msg['ttl']} sequence={msg['sequence']}")
+PY
+chmod +x consumer.py</pre></div>
+<h4>Run</h4><p>Start the consumer first, then the provider in a second terminal.</p>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>./consumer.py
+# second terminal:
+./provider.py</pre></div>
+<h4>Expected provider output</h4><div class="output">Provider started: VehicleStatusService
+TX {'type': 'OfferService', 'service_id': '0x1234', ... 'sequence': 1}
+...
+TX {'type': 'OfferService', 'service_id': '0x1234', ... 'sequence': 5}</div>
+<h4>Expected consumer output</h4><div class="output">Consumer listening for service offers...
+DISCOVERED service=0x1234 instance=0x0001 endpoint=127.0.0.1:30502
+ACTION: subscribe to VehicleState eventgroup (simulated)
+REFRESH ttl=3 sequence=2
+REFRESH ttl=3 sequence=3
+...</div>
+<h4>Capture the multicast announcements</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo tcpdump -ni any udp port 30501 -A</pre></div>
+<div class="output">IP ... &gt; 239.10.10.10.30501: UDP, length ...
+{"type": "OfferService", "service_id": "0x1234", ...}</div>
+<h4>Troubleshooting</h4>
+<ul><li><strong>No consumer output:</strong> verify multicast is permitted in the VM/container environment and run both processes on the same host first.</li>
+<li><strong>Address already in use:</strong> stop old consumer processes or change the port in both scripts.</li>
+<li><strong>tcpdump sees nothing:</strong> use <code>-i any</code>, not an assumed interface name.</li></ul>
+<div class="checklist"><label><input type="checkbox" data-progress="lab4a"> I observed initial discovery and TTL refreshes.</label>
+<label><input type="checkbox" data-progress="lab4b"> I can distinguish discovery from authorization.</label></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 5 — Demonstrate SecOC concepts with HMAC and freshness counters<br><span class="labmeta">Hands-on • 30–40 min • Python standard library</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<div class="callout"><strong>Scope:</strong> this demo illustrates MAC verification and anti-replay logic. It is not an AUTOSAR-compliant SecOC stack or profile.</div>
+<h4>Create secoc_demo.py</h4>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cat &gt; secoc_demo.py &lt;&lt;'PY'
+#!/usr/bin/env python3
+import hmac, hashlib, json
+
+KEY = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
+last_accepted = 100
+
+def make_pdu(payload: str, freshness: int):
+    authenticated = f"{payload}|{freshness}".encode()
+    mac = hmac.new(KEY, authenticated, hashlib.sha256).hexdigest()[:16]
+    return {"payload": payload, "freshness": freshness, "mac": mac}
+
+def verify(pdu):
+    global last_accepted
+    authenticated = f"{pdu['payload']}|{pdu['freshness']}".encode()
+    expected = hmac.new(KEY, authenticated, hashlib.sha256).hexdigest()[:16]
+    if not hmac.compare_digest(expected, pdu["mac"]):
+        return "REJECT: authentication/integrity failure"
+    if pdu["freshness"] &lt;= last_accepted:
+        return f"REJECT: stale freshness {pdu['freshness']} &lt;= {last_accepted}"
+    last_accepted = pdu["freshness"]
+    return f"ACCEPT: payload={pdu['payload']} freshness={pdu['freshness']}"
+
+fresh = make_pdu("TorqueRequest=12", 101)
+print("FRESH  ", json.dumps(fresh), "=&gt;", verify(fresh))
+
+print("REPLAY ", json.dumps(fresh), "=&gt;", verify(fresh))
+
+tampered = dict(make_pdu("TorqueRequest=12", 102))
+tampered["payload"] = "TorqueRequest=99"
+print("TAMPER ", json.dumps(tampered), "=&gt;", verify(tampered))
+PY
+chmod +x secoc_demo.py
+./secoc_demo.py</pre></div>
+<h4>Expected output</h4><div class="output">FRESH   {... "freshness": 101, ...} =&gt; ACCEPT: payload=TorqueRequest=12 freshness=101
+REPLAY  {... "freshness": 101, ...} =&gt; REJECT: stale freshness 101 &lt;= 101
+TAMPER  {... "payload": "TorqueRequest=99", ...} =&gt; REJECT: authentication/integrity failure</div>
+<h4>Discussion</h4><ul><li>Why is the replay MAC still valid? Because it is an exact copy of a previously authentic message.</li>
+<li>What stops it? The receiver’s freshness acceptance rule.</li><li>What happens after ECU reset or counter loss? Freshness synchronization and persistence become design concerns.</li></ul>
+<div class="checklist"><label><input type="checkbox" data-progress="lab5a"> I observed fresh, replay and tampered verdicts.</label>
+<label><input type="checkbox" data-progress="lab5b"> I can explain why MAC verification alone does not stop replay.</label></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 6 — Capstone: write a segmented vehicle policy and threat map<br><span class="labmeta">Design lab • 45–60 min • Team or individual</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<h4>Scenario</h4><p>A connected vehicle contains an infotainment head unit, TCU, ADAS compute platform, powertrain CAN, diagnostics connector and central gateway.</p>
+<h4>Deliverables</h4>
+<ol><li>Draw zone boundaries and trust levels.</li><li>List permitted flows with business/safety justification.</li>
+<li>List blocked flows and the enforcement point.</li><li>Select which high-value messages need authenticity and replay protection.</li>
+<li>Define monitoring signals for the gateway and CAN domains.</li></ol>
+<h4>Starter policy matrix</h4>
+<div style="overflow:auto"><table>
+<thead><tr><th>Source</th><th>Destination</th><th>Default</th><th>Exception / condition</th><th>Control</th></tr></thead>
+<tbody>
+<tr><td>Infotainment</td><td>Powertrain</td><td>Block</td><td>Read-only curated vehicle status</td><td>Gateway allowlist + translation</td></tr>
+<tr><td>Telematics</td><td>Diagnostics</td><td>Block</td><td>Authenticated remote service session</td><td>Backend identity + vehicle-state policy</td></tr>
+<tr><td>ADAS</td><td>Powertrain</td><td>Constrained allow</td><td>Defined assistance messages only</td><td>Signal validation + SecOC where designed</td></tr>
+<tr><td>Diagnostics</td><td>ECUs</td><td>Block when not in service state</td><td>Authorized workshop / secure session</td><td>Diagnostic access control + audit</td></tr>
+</tbody></table></div>
+<h4>Assessment rubric</h4><ul><li>30% — boundaries and trust assumptions</li><li>25% — least-privilege flow policy</li>
+<li>20% — protection of critical messages</li><li>15% — operational/diagnostic practicality</li><li>10% — monitoring and incident evidence</li></ul>
+<div class="checklist"><label><input type="checkbox" data-progress="lab6a"> I completed a policy matrix with justification.</label>
+<label><input type="checkbox" data-progress="lab6b"> I identified at least three telemetry/detection signals.</label></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 7 — Demonstrate Layer-2 isolation with Linux bridge VLAN filtering<br><span class="labmeta">Hands-on • 30–40 min • Automotive Ethernet concept</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<h4>Objective</h4><p>Place two simulated ECUs on different access VLANs. Even with addresses in the same IP subnet, they cannot exchange frames until the switch ports are assigned to the same VLAN.</p>
+<div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns add info_ecu
+sudo ip netns add adas_ecu
+sudo ip link add info0 type veth peer name sw-info
+sudo ip link add adas0 type veth peer name sw-adas
+sudo ip link set info0 netns info_ecu
+sudo ip link set adas0 netns adas_ecu
+
+sudo ip link add brveh type bridge vlan_filtering 1
+sudo ip link set brveh up
+sudo ip link set sw-info master brveh
+sudo ip link set sw-adas master brveh
+sudo ip link set sw-info up
+sudo ip link set sw-adas up
+
+sudo ip -n info_ecu addr add 192.168.50.10/24 dev info0
+sudo ip -n adas_ecu addr add 192.168.50.30/24 dev adas0
+sudo ip -n info_ecu link set lo up
+sudo ip -n adas_ecu link set lo up
+sudo ip -n info_ecu link set info0 up
+sudo ip -n adas_ecu link set adas0 up
+
+sudo bridge vlan del dev sw-info vid 1
+sudo bridge vlan del dev sw-adas vid 1
+sudo bridge vlan add dev sw-info vid 10 pvid untagged
+sudo bridge vlan add dev sw-adas vid 30 pvid untagged
+bridge vlan show</pre></div>
+<h4>Expected VLAN view</h4><div class="output">port              vlan-id
+sw-info           10 PVID Egress Untagged
+sw-adas           30 PVID Egress Untagged</div>
+<h4>Test isolation</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns exec info_ecu ping -c 2 -W 1 192.168.50.30</pre></div>
+<div class="output">2 packets transmitted, 0 received, 100% packet loss</div>
+<h4>Move ADAS access port into VLAN 10 and retest</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo bridge vlan del dev sw-adas vid 30
+sudo bridge vlan add dev sw-adas vid 10 pvid untagged
+sudo ip netns exec info_ecu ping -c 2 192.168.50.30</pre></div>
+<div class="output">2 packets transmitted, 2 received, 0% packet loss</div>
+<div class="callout warn"><strong>Interpretation:</strong> VLAN membership controls the Layer-2 broadcast domain. To allow controlled communication between different VLANs, add a router/security gateway and explicit policy; do not simply merge the VLANs.</div>
+<div class="checklist"><label><input type="checkbox" data-progress="lab7a"> I proved that separate VLANs block direct Layer-2 communication.</label>
+<label><input type="checkbox" data-progress="lab7b"> I can explain why VLANs do not replace authentication or a firewall.</label></div>
+<h4>Cleanup</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>sudo ip netns del info_ecu
+sudo ip netns del adas_ecu
+sudo ip link del brveh</pre></div>
+</div>
+</div>
+
+<div class="lab">
+<button class="labhead"><span>Lab 8 — Detect a CAN message-rate anomaly<br><span class="labmeta">Hands-on • 30–40 min • Defensive monitoring</span></span><span class="chev">⌄</span></button>
+<div class="labbody">
+<p><strong>Prerequisite:</strong> create <code>vcan0</code> as shown in Lab 2.</p>
+<h4>Create the rate monitor</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cat &gt; can_rate_monitor.py &lt;&lt;'PYCODE'
+#!/usr/bin/env python3
+import socket, struct, time
+from collections import Counter
+
+THRESHOLD = 25
+FMT = "=IB3x8s"
+SIZE = struct.calcsize(FMT)
+sock = socket.socket(socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
+sock.bind(("vcan0",))
+counts = Counter()
+window = time.monotonic()
+print(f"Monitoring vcan0; alert threshold={THRESHOLD} frames/sec per ID")
+
+while True:
+    frame = sock.recv(SIZE)
+    can_id, dlc, data = struct.unpack(FMT, frame)
+    arbitration_id = can_id &amp; 0x1FFFFFFF
+    counts[arbitration_id] += 1
+    now = time.monotonic()
+    if now - window &gt;= 1.0:
+        for ident, rate in sorted(counts.items()):
+            verdict = "ALERT" if rate &gt; THRESHOLD else "OK"
+            print(f"{verdict:5} ID=0x{ident:03X} rate={rate}/s")
+        counts.clear()
+        window = now
+PYCODE
+chmod +x can_rate_monitor.py
+sudo ./can_rate_monitor.py</pre></div>
+<h4>Generate normal and anomalous traffic in another terminal</h4><div class="codewrap"><button class="btn secondary small copy">Copy</button><pre>cangen vcan0 -g 100 -I 123 -L 8 -n 30
+cangen vcan0 -g 5 -I 555 -L 8 -n 200</pre></div>
+<h4>Representative output</h4><div class="output">OK    ID=0x123 rate=10/s
+ALERT ID=0x555 rate=190/s</div>
+<p>Exact rates depend on scheduling and host load. The expected result is that the high-rate ID exceeds the configured threshold.</p>
+<div class="callout bad"><strong>Production caution:</strong> a single global threshold is not adequate. Baselines should be message-specific, state-aware and tolerant of legitimate bursts.</div>
+<div class="checklist"><label><input type="checkbox" data-progress="lab8a"> I generated normal and high-rate CAN traffic.</label>
+<label><input type="checkbox" data-progress="lab8b"> I explained two reasons a static threshold may create false positives.</label></div>
+</div>
+</div>
+
+</div>
+</section>
+
+
+<section id="dashboard" class="reveal">
+<div class="inner">
+<h3>Progress dashboard and trainee lab report</h3>
+<div class="progress-panel">
+<div class="card"><h4>Your progress</h4><div class="ring" id="progressRing"><strong id="progressPct">0%</strong></div>
+<p id="progressSummary" style="text-align:center">Complete lab checkpoints and the assessment to update this dashboard.</p>
+<div class="meter"><span id="overallMeter"></span></div></div>
+<div class="card"><h4>Recommended next action</h4><div class="output" id="nextAction">Start with the attack story and vehicle-zone explorer.</div>
+<h4 style="margin-top:14px">Completion signals</h4><ul><li>Lab checkpoints</li><li>Visited learning sections</li><li>Assessment score</li></ul></div>
+</div>
+<div class="card" style="margin-top:16px"><h4>Generate a trainee report</h4>
+<div class="report-grid"><label class="smalllabel">Trainee name<input id="reportName" type="text" placeholder="Name"></label>
+<label class="smalllabel">Environment<input id="reportEnv" type="text" placeholder="Ubuntu 24.04 VM / lab host"></label>
+<label class="smalllabel">Session date<input id="reportDate" type="date"></label>
+<label class="smalllabel">Trainer / cohort<input id="reportCohort" type="text" placeholder="Optional"></label>
+<textarea id="reportNotes" placeholder="Key observations, troubleshooting performed, capstone decisions and follow-up topics"></textarea></div>
+<div class="actions" style="margin-top:12px"><button class="btn" onclick="downloadReport()">Download text report</button><button class="btn secondary" onclick="window.print()">Print / Save as PDF</button></div>
+</div>
+</div>
+</section>
+
+<section id="assessment" class="reveal">
+<div class="inner">
+<h3>Knowledge assessment</h3>
+<div id="quiz">
+<div class="quizq"><strong>1. The strongest reason to isolate infotainment from powertrain is:</strong>
+<label><input type="radio" name="q1" value="1"> Different exposure and safety impact</label><label><input type="radio" name="q1" value="0"> Different screen sizes</label></div>
+<div class="quizq"><strong>2. A gateway primarily provides:</strong>
+<label><input type="radio" name="q2" value="1"> Controlled inter-zone routing and policy enforcement</label><label><input type="radio" name="q2" value="0"> Unlimited broadcast forwarding</label></div>
+<div class="quizq"><strong>3. In CAN arbitration, higher priority normally means:</strong>
+<label><input type="radio" name="q3" value="1"> Lower numerical identifier</label><label><input type="radio" name="q3" value="0"> Larger payload</label></div>
+<div class="quizq"><strong>4. vcan can accurately reproduce physical CAN voltage faults:</strong>
+<label><input type="radio" name="q4" value="0"> True</label><label><input type="radio" name="q4" value="1"> False</label></div>
+<div class="quizq"><strong>5. FlexRay’s static segment is useful because it:</strong>
+<label><input type="radio" name="q5" value="1"> Provides scheduled deterministic opportunities</label><label><input type="radio" name="q5" value="0"> Encrypts every frame automatically</label></div>
+<div class="quizq"><strong>6. SOME/IP-SD discovery automatically authorizes service access:</strong>
+<label><input type="radio" name="q6" value="0"> True</label><label><input type="radio" name="q6" value="1"> False</label></div>
+<div class="quizq"><strong>7. An Eventgroup is associated with:</strong>
+<label><input type="radio" name="q7" value="1"> Subscription to related events</label><label><input type="radio" name="q7" value="0"> CAN electrical termination</label></div>
+<div class="quizq"><strong>8. SecOC’s freshness mechanism primarily helps detect:</strong>
+<label><input type="radio" name="q8" value="1"> Replay of old authentic messages</label><label><input type="radio" name="q8" value="0"> Weak Wi-Fi signal</label></div>
+<div class="quizq"><strong>9. SecOC provides confidentiality by default:</strong>
+<label><input type="radio" name="q9" value="0"> True</label><label><input type="radio" name="q9" value="1"> False</label></div>
+<div class="quizq"><strong>10. A valid MAC alone is enough to reject replay:</strong>
+<label><input type="radio" name="q10" value="0"> True</label><label><input type="radio" name="q10" value="1"> False</label></div>
+<div class="quizq"><strong>11. Diagnostics should usually be:</strong>
+<label><input type="radio" name="q11" value="1"> Privileged, state-aware and audited</label><label><input type="radio" name="q11" value="0"> Permanently open to every zone</label></div>
+<div class="quizq"><strong>12. Best segmentation principle:</strong>
+<label><input type="radio" name="q12" value="1"> Allow justified flows and deny unnecessary paths</label><label><input type="radio" name="q12" value="0"> Connect everything first and investigate later</label></div>
+
+<div class="quizq"><strong>13. A VLAN alone provides:</strong>
+<label><input type="radio" name="q13" value="1"> Layer-2 logical separation, not complete application authorization</label><label><input type="radio" name="q13" value="0"> Cryptographic ECU identity and secure boot</label></div>
+<div class="quizq"><strong>14. DoIP routing activation should ideally be:</strong>
+<label><input type="radio" name="q14" value="1"> Controlled by tester identity, vehicle state and permitted target routes</label><label><input type="radio" name="q14" value="0"> Automatically unrestricted after IP connectivity</label></div>
+<div class="quizq"><strong>15. A signed OTA package should be verified:</strong>
+<label><input type="radio" name="q15" value="1"> Before installation, with version/target and rollback policy checks</label><label><input type="radio" name="q15" value="0"> Only after the ECU has installed and rebooted</label></div>
+
+</div>
+<button class="btn" onclick="grade()">Grade assessment</button>
+<div class="score" id="score"></div>
+</div>
+</section>
+
+<section id="references" class="reveal">
+<div class="inner">
+<h3>Technical references and validation notes</h3>
+<p>The concepts were checked against current primary standards pages and AUTOSAR Foundation R25-11 specifications available in July 2026.</p>
+<div style="overflow:auto"><table><thead><tr><th>Topic</th><th>Primary reference</th><th>Training use</th></tr></thead><tbody>
+<tr><td>SOME/IP</td><td><a href="https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_SOMEIPProtocol.pdf">AUTOSAR FO R25-11 SOME/IP Protocol Specification</a></td><td>Methods, events, fields and message semantics</td></tr>
+<tr><td>SOME/IP-SD</td><td><a href="https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_SOMEIPServiceDiscoveryProtocol.pdf">AUTOSAR FO R25-11 SOME/IP Service Discovery Protocol</a></td><td>Offer/find, TTL and eventgroup subscription concepts</td></tr>
+<tr><td>SecOC</td><td><a href="https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_SecOCProtocol.pdf">AUTOSAR FO R25-11 SecOC Protocol</a></td><td>Authenticity, integrity and freshness model</td></tr>
+<tr><td>UDS</td><td><a href="https://www.iso.org/standard/87962.html">ISO 14229-1:2026</a></td><td>Data-link-independent diagnostic communication services</td></tr>
+<tr><td>DoIP</td><td>ISO 13400-2:2025</td><td>Discovery, connection, routing and IP-based diagnostic transport</td></tr>
+<tr><td>Cybersecurity management</td><td><a href="https://unece.org/transport/documents/2021/03/standards/un-regulation-no-155-cyber-security-and-cyber-security">UN Regulation No. 155</a></td><td>Regulatory context for CSMS and vehicle cybersecurity</td></tr>
+<tr><td>Software updates</td><td><a href="https://unece.org/transport/documents/2021/03/standards/un-regulation-no-156-software-update-and-software-update">UN Regulation No. 156</a></td><td>Regulatory context for SUMS and software updates</td></tr>
+<tr><td>CAN / FlexRay</td><td>ISO 11898 family; ISO 17458 family; CAN in Automation technical material</td><td>Bus access, identifiers and deterministic communication concepts</td></tr>
+</tbody></table></div>
+<div class="callout good"><strong>Accuracy boundaries:</strong> exact ECU groupings, VLANs, UDS service permissions, DoIP activation, cryptographic profiles, freshness management, diagnostic authorization and gateway policies are vehicle-program-specific.</div>
+<div class="callout warn"><strong>Lab boundaries:</strong> the SOME/IP-SD JSON lab and HMAC SecOC lab are teaching emulators. They demonstrate concepts but are not wire-compatible or compliance-test implementations.</div>
+<h4>Instructor debrief questions</h4><ul><li>How does physical zonal architecture change trust-boundary design?</li><li>Why is a VLAN not a service authorization mechanism?</li>
+<li>Which UDS services deserve the strongest state and identity checks?</li><li>Why does service discovery need policy enforcement?</li>
+<li>Why can a replayed message still have a valid authenticator?</li><li>What evidence should a gateway preserve for incident response?</li></ul>
+<p class="footer">Version 3 • Offline single-file HTML • No external JavaScript, fonts or image dependencies • Updated July 2026.</p>
+</div>
+</section>
+</main>
+</div>
+
+<div class="presenter-strip" id="presenterStrip"><button class="btn secondary small" onclick="presentMove(-1)">← Previous</button><button class="btn secondary small" onclick="exitTrainer()">Exit</button><button class="btn small" onclick="presentMove(1)">Next →</button></div>
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const storeGet=k=>{try{return localStorage.getItem(k)}catch{return null}};
+const storeSet=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+const storeRemove=k=>{try{localStorage.removeItem(k)}catch{}};
+const scrollbar=$("#scrollbar");
+addEventListener("scroll",()=>{const m=document.documentElement.scrollHeight-innerHeight;scrollbar.style.width=(m?scrollY/m*100:0)+"%"});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add("visible")}),{threshold:.08});
+$$(".reveal").forEach(x=>io.observe(x));
+
+const navLinks=$$("#nav a"), sections=$$("main section");
+addEventListener("scroll",()=>{let id=sections[0].id;sections.forEach(s=>{if(scrollY>=s.offsetTop-100)id=s.id});
+navLinks.forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+id))});
+
+$("#themeBtn").onclick=()=>{const light=document.documentElement.dataset.theme==="light";
+document.documentElement.dataset.theme=light?"dark":"light";storeSet("iv-theme",light?"dark":"light")};
+document.documentElement.dataset.theme=storeGet("iv-theme")||"dark";
+
+const stories=[
+{title:"1. External input arrives",body:`<p>A phone, USB file or radio data reaches the infotainment environment. This is normal functionality, but every parser increases exposure.</p><div class="callout"><strong>Lesson:</strong> externally supplied data should enter a lower-trust zone.</div>`},
+{title:"2. Infotainment is compromised",body:`<p>Assume a vulnerable component gives an attacker code execution in the head unit. The attacker now controls one ECU, not the whole vehicle.</p><div class="callout bad"><strong>Key assumption:</strong> compromise resistance is valuable, but containment is also required.</div>`},
+{title:"3. Flat network creates danger",body:`<p>On a poorly segmented architecture, the compromised ECU might discover or inject traffic toward critical domains.</p><p><strong>Blast radius grows</strong> when trust boundaries are missing.</p>`},
+{title:"4. Gateway evaluates the flow",body:`<p>The security gateway checks source zone, destination, protocol, service, vehicle state and configured policy.</p><div class="output">SOURCE=Infotainment  DEST=Powertrain  ACTION=DROP  REASON=No approved flow</div>`},
+{title:"5. Incident is contained",body:`<p>The head unit still needs remediation, but critical domains remain protected. Logs and anomaly signals support investigation.</p><div class="callout good"><strong>Segmentation does not prevent every compromise. It limits consequences.</strong></div>`}
+];
+let storyIndex=0;
+function renderStory(){ $("#storyStage").innerHTML=`<h4>${stories[storyIndex].title}</h4>${stories[storyIndex].body}`;
+$$("[data-story]").forEach((b,i)=>b.classList.toggle("active",i===storyIndex))}
+function storyMove(n){storyIndex=(storyIndex+n+stories.length)%stories.length;renderStory()}
+$$("[data-story]").forEach(b=>b.onclick=()=>{storyIndex=+b.dataset.story;renderStory()});renderStory();
+
+$$("[data-tab]").forEach(b=>b.onclick=()=>{const container=b.closest("section");$$(".tab",container).forEach(x=>x.classList.remove("active"));
+$$(".tabpane",container).forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")});
+
+function policyCheck(){
+ const s=$("#srcZone").value,d=$("#dstZone").value,o=$("#policyOut");
+ let verdict="GATEWAY REVIEW",reason="No blanket rule; permit only a defined service or signal set.";
+ if(s===d){verdict="LOCAL ZONE";reason="No inter-zone crossing is required."}
+ else if(s==="Infotainment"&&(d==="Powertrain"||d==="ADAS")){verdict="BLOCK BY DEFAULT";reason="Low-trust user-facing zone must not directly control safety-critical functions."}
+ else if(s==="Telematics"&&(d==="Powertrain"||d==="ADAS")){verdict="BLOCK / BROKER";reason="Remote-facing traffic requires an authenticated, narrowly scoped intermediary workflow."}
+ else if(s==="Diagnostics"){verdict="CONDITIONAL ALLOW";reason="Require authorized diagnostic session, vehicle-state checks and audit logging."}
+ else if(s==="ADAS"&&d==="Powertrain"){verdict="CONSTRAINED ALLOW";reason="Only explicitly engineered assistance/control messages, with validation and integrity protection."}
+ else if(s==="Powertrain"&&d==="Infotainment"){verdict="CURATED READ-ONLY";reason="Expose selected status data through gateway translation; do not expose raw control interfaces."}
+ o.textContent=`${verdict}\n${s} → ${d}\n${reason}`;
+}
+
+function runCan(){
+ const vals=[["A",$("#canA").value],["B",$("#canB").value],["C",$("#canC").value]].map(([n,v])=>[n,parseInt(v.replace(/^0x/i,""),16)]);
+ if(vals.some(x=>Number.isNaN(x[1]))){$("#canOut").textContent="Enter valid hexadecimal IDs, for example 080, 120 and 300.";return}
+ vals.sort((a,b)=>a[1]-b[1]);
+ $("#canOut").textContent=`Winner: ECU ${vals[0][0]} with ID 0x${vals[0][1].toString(16).toUpperCase().padStart(3,"0")}\nPriority order: `+
+ vals.map(x=>`ECU ${x[0]} (0x${x[1].toString(16).toUpperCase().padStart(3,"0")})`).join(" → ");
+}
+function updateLoad(){const v=+$("#loadSlider").value;$("#loadMeter").style.width=v+"%";const t=$("#loadText");
+ t.className="callout "+(v<50?"good":v<75?"warn":"bad");
+ t.innerHTML=v<50?`<strong>${v}%:</strong> comfortable teaching example; timing margin remains.`
+ :v<75?`<strong>${v}%:</strong> monitor latency and lower-priority message delay.`
+ :`<strong>${v}%:</strong> high utilization; bursts and retransmissions can threaten timing assumptions.`}
+updateLoad();
+
+const sd=[
+{t:"1. Startup delay",b:"A provider waits for a randomized initial delay. This helps avoid many ECUs transmitting discovery messages at exactly the same moment."},
+{t:"2. OfferService",b:"The provider announces that a Service ID and Instance ID are available for a defined TTL."},
+{t:"3. SubscribeEventgroup",b:"A consumer requests event delivery for an Eventgroup. Network reachability is not the same as authorization."},
+{t:"4. Event updates",b:"After acknowledgement, the provider sends event notifications according to application behavior."},
+{t:"5. StopOffer / expiry",b:"A StopOffer or TTL expiry tells consumers that the service is no longer available. Consumers must handle service loss safely."}
+];
+let sdIndex=0;function renderSd(){ $("#sdStage").innerHTML=`<h4>${sd[sdIndex].t}</h4><p>${sd[sdIndex].b}</p>`;
+$$("[data-sd]").forEach((b,i)=>b.classList.toggle("active",i===sdIndex))}
+$$("[data-sd]").forEach(b=>b.onclick=()=>{sdIndex=+b.dataset.sd;renderSd()});renderSd();
+
+function secocRun(x){const o=$("#secocOut");
+ if(x==="fresh")o.textContent="MAC verification: PASS\nFreshness: 101 > last accepted 100\nVERDICT: ACCEPT";
+ if(x==="replay")o.textContent="MAC verification: PASS (old frame was authentic)\nFreshness: 101 <= last accepted 101\nVERDICT: REJECT — REPLAY";
+ if(x==="tamper")o.textContent="MAC verification: FAIL\nPayload no longer matches authenticator\nVERDICT: REJECT — INTEGRITY/AUTHENTICITY FAILURE";
+ o.classList.remove("shake");void o.offsetWidth;o.classList.add("shake")}
+
+$$(".labhead").forEach(h=>h.onclick=()=>h.closest(".lab").classList.toggle("open"));
+$$(".copy").forEach(b=>b.onclick=async e=>{e.stopPropagation();const text=b.nextElementSibling.innerText;
+ try{await navigator.clipboard.writeText(text);const old=b.textContent;b.textContent="Copied";setTimeout(()=>b.textContent=old,1200)}
+ catch{b.textContent="Select manually"}});
+
+const progressBoxes=$$("[data-progress]");
+progressBoxes.forEach(c=>{c.checked=storeGet("iv-"+c.dataset.progress)==="1";
+ c.onchange=()=>storeSet("iv-"+c.dataset.progress,c.checked?"1":"0")});
+
+// Learning lens
+const lensText={mixed:"Focus: connect architecture, protocols, security controls and practical evidence.",beginner:"Focus: analogies, diagrams and the simple explanation blocks before technical details.",network:"Focus: VLANs, multicast, routing, gateways, packet capture and service flows.",auto:"Focus: ECU roles, vehicle states, UDS, timing, SecOC and architecture trade-offs.",security:"Focus: attack paths, least privilege, update trust, logging, anomaly detection and incident evidence."};
+function setLens(){const v=$("#lensSelect").value;$("#lensResult").textContent=lensText[v];storeSet("iv-lens",v)}
+$("#lensSelect").value=storeGet("iv-lens")||"mixed";setLens();
+
+// Simple / technical mode
+$("#simpleBtn").onclick=()=>{document.body.classList.toggle("simple-mode");const on=document.body.classList.contains("simple-mode");$("#simpleBtn").textContent=on?"◑ Technical":"◐ Simple";storeSet("iv-simple",on?"1":"0")};
+if(storeGet("iv-simple")==="1"){document.body.classList.add("simple-mode");$("#simpleBtn").textContent="◑ Technical"}
+
+// Trainer presentation mode
+let presentIndex=0;const presentSections=()=>$$("main > section");
+function showPresent(){presentSections().forEach((el,i)=>el.classList.toggle("presenter-current",i===presentIndex));presentSections()[presentIndex]?.scrollIntoView({block:"start"})}
+async function enterTrainer(){document.body.classList.add("trainer-mode");presentIndex=Math.max(0,presentSections().findIndex(el=>el.getBoundingClientRect().top>=-50));showPresent();try{await document.documentElement.requestFullscreen?.()}catch{}}
+function exitTrainer(){document.body.classList.remove("trainer-mode");presentSections().forEach(el=>el.classList.remove("presenter-current"));if(document.fullscreenElement)document.exitFullscreen?.()}
+function presentMove(n){presentIndex=(presentIndex+n+presentSections().length)%presentSections().length;showPresent()}
+$("#trainerBtn").onclick=()=>document.body.classList.contains("trainer-mode")?exitTrainer():enterTrainer();
+addEventListener("keydown",e=>{if(!document.body.classList.contains("trainer-mode"))return;if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();presentMove(1)}if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();presentMove(-1)}if(e.key==="Escape")exitTrainer()});
+
+// Attack path explorer
+const attacks=[
+{title:"Bluetooth / media parser compromise",path:["Phone or media","Infotainment process","Compromised head unit","Gateway boundary","Critical zone"],result:"Contain at the gateway: block raw control traffic and expose only curated status/services.",controls:["Input hardening and sandboxing","Least-privilege head-unit services","Gateway allowlists","Anomaly logs and software attestation"],evidence:"Parser crash, process launch, unexpected service attempts, gateway drops and ECU software version."},
+{title:"Rogue diagnostic tool",path:["Untrusted tester","OBD / Ethernet","Diagnostic gateway","UDS privileged service","Target ECU"],result:"Require authorized session, vehicle-state checks, rate limits and route activation only for approved targets.",controls:["Tester identity","UDS access controls","DoIP routing policy","Workshop-mode audit"],evidence:"Tester identity, routing activation, session changes, SecurityAccess attempts and requested service IDs."},
+{title:"Fake SOME/IP service provider",path:["Compromised ECU","OfferService","Consumer discovery","Subscription","False data"],result:"Discovery must not equal trust. Bind approved services to expected identities/segments and validate application data.",controls:["Network segmentation","Provider allowlists or identity controls","Service/version policy","E2E/SecOC protections where designed"],evidence:"New provider address, duplicate Service ID, unusual offer rate and consumer failover behavior."},
+{title:"Manipulated OTA package",path:["Package source","Telematics transport","Update manager","Target ECU","Reboot"],result:"Reject before installation when signature, target, dependency, version or anti-rollback checks fail.",controls:["Signed manifests","Secure key handling","Vehicle-state policy","A/B or recovery strategy"],evidence:"Manifest hash, signer, verification result, target version, rollback decision and health check."},
+{title:"CAN replay / injection",path:["Captured frame","Injection interface","CAN segment","Receiving ECU","Unsafe action"],result:"Use gateway filtering, signal validation, timing/rate detection and freshness/authentication for selected critical messages.",controls:["Network boundaries","SecOC where engineered","State-aware plausibility checks","CAN IDS"],evidence:"ID, timestamp, frequency, payload changes, source segment and freshness/MAC verification result."}
+];
+let attackIndex=0;
+function renderAttack(){const a=attacks[attackIndex];$("#attackStage").innerHTML=`<h4>${a.title}</h4><div class="attack-path">${a.path.map((x,i)=>`<span class="attack-hop">${x}</span>${i<a.path.length-1?"<span>→</span>":""}`).join("")}</div><div class="callout bad"><strong>Risk path:</strong> ${a.result}</div><div class="grid"><div class="card span-6"><h4>Controls</h4><ul>${a.controls.map(x=>`<li>${x}</li>`).join("")}</ul></div><div class="card span-6"><h4>Evidence</h4><p>${a.evidence}</p></div></div>`;$$("[data-attack]").forEach((b,i)=>b.classList.toggle("active",i===attackIndex))}
+$$("[data-attack]").forEach(b=>b.onclick=()=>{attackIndex=+b.dataset.attack;renderAttack()});renderAttack();
+
+// IDS incident generator
+const incidents=[
+{events:[["10:15:01","CAN ID 0x123 at 10 frames/s","low"],["10:15:02","CAN ID 0x555 appears at 190 frames/s","high"],["10:15:03","Gateway records source from infotainment bridge","high"]],answer:"High risk: a new high-rate ID is associated with an unexpected source zone. Investigate injection, test mode and mapping accuracy."},
+{events:[["14:05:00","DoIP vehicle discovery","low"],["14:05:02","Routing activation from approved workshop tester","low"],["14:05:04","UDS RequestDownload while workshop mode active","med"]],answer:"Potentially legitimate maintenance. Verify authorization, target ECU, package signature and audit trail rather than alerting solely on RequestDownload."},
+{events:[["08:44:10","New SOME/IP provider for existing Service ID","med"],["08:44:11","Consumers switch provider unexpectedly","high"],["08:44:12","Provider sends implausible vehicle-state events","high"]],answer:"High risk: possible rogue or misconfigured provider. Isolate the source, verify service-instance policy and validate downstream decisions."},
+{events:[["06:20:10","SecOC MAC PASS, freshness 900","low"],["06:20:11","Same PDU and freshness 900 repeated","high"],["06:20:11","Receiver rejects stale freshness","low"]],answer:"Replay attempt or duplicate delivery was correctly rejected. Preserve source/timing evidence and check whether duplicates are a network fault or malicious action."}
+];
+let incidentCurrent=null;
+function generateIncident(){incidentCurrent=incidents[Math.floor(Math.random()*incidents.length)];$("#incidentTimeline").innerHTML=incidentCurrent.events.map(e=>`<div class="event"><strong>${e[0]}</strong><span>${e[1]}</span><span class="sev ${e[2]}">${e[2].toUpperCase()}</span></div>`).join("");$("#incidentAnswer").textContent="Classify this timeline before revealing the interpretation."}
+function showIncidentAnswer(){$("#incidentAnswer").textContent=incidentCurrent?incidentCurrent.answer:"Generate a scenario first."}
+generateIncident();
+
+// Visited sections and progress dashboard
+const visited=new Set(JSON.parse(storeGet("iv-visited")||"[]"));
+const visitObserver=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){visited.add(e.target.id);storeSet("iv-visited",JSON.stringify([...visited]));updateDashboard()}}),{threshold:.35});
+sections.forEach(el=>visitObserver.observe(el));
+function updateDashboard(){
+ const checked=progressBoxes.filter(c=>c.checked).length,totalChecks=progressBoxes.length;
+ const visitCount=visited.size,totalSections=sections.length;
+ const quiz=+(storeGet("iv-score")||0),quizPart=quiz?quiz/15:0;
+ const pct=Math.round(((checked/Math.max(totalChecks,1))*0.55+(visitCount/Math.max(totalSections,1))*0.25+quizPart*0.20)*100),deg=pct*3.6;
+ if($("#progressRing")){
+  $("#progressRing").style.background=`conic-gradient(var(--green) ${deg}deg,rgba(255,255,255,.08) ${deg}deg)`;
+  $("#progressPct").textContent=pct+"%";$("#overallMeter").style.width=pct+"%";
+  $("#progressSummary").textContent=`${checked}/${totalChecks} lab checkpoints • ${visitCount}/${totalSections} sections visited • assessment ${quiz||"not graded"}/15`;
+  $("#nextAction").textContent=pct<30?"Complete the concepts and run Labs 1–2.":pct<65?"Continue with Ethernet, diagnostics, SecOC and Labs 4–7.":quiz<12?"Complete or repeat the assessment; target at least 12/15.":"Complete the capstone policy and download your trainee report.";
+ }}
+progressBoxes.forEach(c=>c.addEventListener("change",updateDashboard));
+
+function downloadReport(){
+ const name=$("#reportName").value||"Trainee",env=$("#reportEnv").value||"Not specified";
+ const date=$("#reportDate").value||new Date().toISOString().slice(0,10),cohort=$("#reportCohort").value||"Not specified";
+ const notes=$("#reportNotes").value||"None",completed=progressBoxes.filter(c=>c.checked).map(c=>c.dataset.progress);
+ const score=storeGet("iv-score")||"Not graded";
+ const text=`IN-VEHICLE NETWORK SEGMENTATION — TRAINEE REPORT
+
+Name: ${name}
+Date: ${date}
+Environment: ${env}
+Trainer/Cohort: ${cohort}
+Assessment: ${score}/15
+Completed checkpoints: ${completed.length}/${progressBoxes.length}
+Checkpoint IDs: ${completed.join(", ")||"None"}
+Visited sections: ${[...visited].join(", ")||"None"}
+
+Observations and decisions:
+${notes}
+`;
+ const blob=new Blob([text],{type:"text/plain"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download=`vehicle-segmentation-report-${name.replace(/[^a-z0-9]+/gi,"-").toLowerCase()}.txt`;
+ a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$("#reportDate").value=new Date().toISOString().slice(0,10);
+
+
+function resetProgress(){progressBoxes.forEach(c=>{c.checked=false;storeRemove("iv-"+c.dataset.progress)});$("#score").textContent="";storeRemove("iv-score");storeRemove("iv-visited");visited.clear();updateDashboard()}
+
+function grade(){let s=0;for(let i=1;i<=15;i++){const x=$(`input[name=q${i}]:checked`);if(x)s+=+x.value}
+ const pct=Math.round(s/15*100);$("#score").textContent=`Score: ${s}/15 (${pct}%). `+
+ (s>=13?"Ready for the capstone.":s>=11?"Review diagnostics, VLAN and SecOC boundaries.":"Repeat the concepts and labs before the capstone.");storeSet("iv-score",s);updateDashboard()}
+const savedScore=storeGet("iv-score");if(savedScore){const sv=+savedScore;$("#score").textContent=`Saved score: ${sv}/15 (${Math.round(sv/15*100)}%).`}updateDashboard();
+</script>
+</body>
+</html>
