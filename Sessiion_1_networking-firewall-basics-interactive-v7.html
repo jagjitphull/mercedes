@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Animated, interactive trainer-led reference for networking and Linux firewall fundamentals.">
+<title>Session 1 — Networking and Firewall Basics · v7</title>
+<style>
+:root{
+  --bg:#07111f; --panel:#0d1b2d; --panel2:#12243a; --ink:#e8f1fb; --muted:#9fb3c8;
+  --accent:#5eead4; --accent2:#60a5fa; --warn:#fbbf24; --danger:#fb7185; --ok:#86efac;
+  --line:#29415d; --shadow:0 18px 50px rgba(0,0,0,.28); --radius:18px;
+  --code:#050b14; --chip:#18304d;
+}
+body.light{
+  --bg:#eef5fb; --panel:#ffffff; --panel2:#f6f9fc; --ink:#132235; --muted:#53687f;
+  --accent:#0f766e; --accent2:#2563eb; --warn:#a16207; --danger:#be123c; --ok:#15803d;
+  --line:#c9d7e5; --shadow:0 14px 35px rgba(28,55,82,.12); --code:#15202d; --chip:#e1edf8;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 20% -10%,rgba(96,165,250,.18),transparent 35%),var(--bg);color:var(--ink);font:16px/1.62 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--accent)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:50;display:flex;gap:12px;align-items:center;padding:10px 18px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;letter-spacing:.2px;white-space:nowrap}.brand span{color:var(--accent)}
+.progress-shell{height:8px;flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden}.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .3s}
+.icon-btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:7px 10px}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr);max-width:1500px;margin:auto}
+aside{position:sticky;top:55px;height:calc(100vh - 55px);overflow:auto;padding:18px;border-right:1px solid var(--line)}
+.nav-title{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.13em;margin:10px 8px}
+nav a{display:block;text-decoration:none;color:var(--muted);padding:9px 11px;border-radius:10px;margin:2px 0;font-size:.92rem}
+nav a:hover,nav a.active{background:var(--chip);color:var(--ink)}
+main{min-width:0;padding:28px clamp(18px,4vw,58px) 80px}
+.hero{min-height:75vh;display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center}
+.eyebrow{color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:.78rem}
+h1{font-size:clamp(2.5rem,6vw,5.6rem);line-height:.98;margin:.15em 0 .22em;max-width:900px}
+.lead{font-size:clamp(1.05rem,2vw,1.3rem);color:var(--muted);max-width:760px}
+.hero-card,.card,.lab,.quiz,.simulator,.callout{background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 97%,white 3%),var(--panel));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero-card{padding:20px}.hero-card svg{width:100%;height:auto}
+.pulse-dot{animation:pulse 1.8s infinite}.packet{animation:travel 4s linear infinite}
+@keyframes pulse{50%{opacity:.3;transform:scale(.75)}}
+@keyframes travel{0%{transform:translateX(0)}45%{transform:translateX(220px)}55%{transform:translateX(220px)}100%{transform:translateX(0)}}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.btn{border:0;border-radius:12px;padding:11px 15px;font-weight:750;background:var(--accent);color:#05231f}.btn.secondary{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+section{scroll-margin-top:75px;padding:58px 0 12px;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+h2{font-size:clamp(1.85rem,4vw,3rem);line-height:1.12;margin:0 0 12px}h3{margin-top:0}h4{margin-bottom:6px}.section-intro{color:var(--muted);max-width:900px;font-size:1.08rem}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:24px 0}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.card,.simulator,.quiz{padding:20px}.card p:last-child{margin-bottom:0}.muted{color:var(--muted)}
+.badge,.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:.8rem;border:1px solid var(--line)}
+.analogy{border-left:4px solid var(--accent);padding-left:15px}.analogy strong{color:var(--accent)}
+.layer-stack{display:flex;flex-direction:column-reverse;gap:8px}.layer{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);transition:.2s}.layer:hover,.layer.selected{transform:translateX(8px);border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}.layer-num{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--chip);font-weight:900}.layer small{color:var(--muted)}
+.mapping{display:grid;grid-template-columns:1fr 90px 1fr;gap:10px;align-items:center}.map-col{display:grid;gap:8px}.map-box{padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);text-align:center}.map-arrow{text-align:center;color:var(--accent);font-size:1.6rem}
+/* High-legibility teaching canvas for the OSI and TCP/IP section.
+   It intentionally stays light even when the rest of the document uses dark mode. */
+#models{
+  color:#14273b;
+  background:linear-gradient(150deg,#f8fbff 0%,#edf6ff 58%,#f7fcfb 100%);
+  border:1px solid #b8cde0;
+  border-radius:24px;
+  padding:38px clamp(18px,3vw,34px) 26px;
+  margin:30px 0 20px;
+  box-shadow:0 20px 52px rgba(4,25,48,.18);
+}
+#models .eyebrow{color:#0f766e}
+#models h2,#models h3,#models b,#models strong{color:#14273b}
+#models .section-intro,#models .muted,#models .layer small{color:#49647d}
+#models .card{
+  color:#14273b;
+  background:rgba(255,255,255,.94);
+  border-color:#b7cadc;
+  box-shadow:0 10px 28px rgba(29,67,101,.11);
+}
+#models .layer{
+  color:#14273b;
+  background:#f6faff;
+  border-color:#adc4d8;
+  box-shadow:0 2px 7px rgba(31,69,101,.06);
+}
+#models .layer:hover,#models .layer.selected{
+  background:#e9f8f5;
+  border-color:#0f8b7e;
+  box-shadow:0 0 0 4px rgba(15,139,126,.13),0 7px 16px rgba(28,82,105,.10);
+}
+#models .layer-num{
+  color:#16324d;
+  background:#dcecff;
+  border:1px solid #aac6e1;
+}
+#models .layer.selected .layer-num{background:#c9f1e9;border-color:#68bbae}
+#models .result{
+  color:#18324a;
+  background:#eef6ff;
+  border-color:#abc4dc;
+}
+#models .analogy{
+  color:#26445e;
+  background:#f0faf8;
+  border:1px solid #b8ddd6;
+  border-left:5px solid #0f8b7e;
+  border-radius:10px;
+  padding:14px 15px;
+}
+#models .analogy strong{color:#0f766e}
+#models .callout{
+  color:#263f56;
+  background:#fff8e8;
+  border-color:#e6c979;
+  box-shadow:none;
+}
+#models .mapping{gap:16px}
+#models .map-box{
+  color:#17334d;
+  background:#ffffff;
+  border-color:#a9c1d7;
+  box-shadow:0 3px 10px rgba(31,69,101,.07);
+  font-weight:700;
+}
+#models .map-arrow{color:#0f766e;font-weight:900}
+#models code{color:#153e62;background:#e5f0fa;padding:.08em .32em;border-radius:5px}
+@media(max-width:720px){#models{padding:28px 15px 18px;border-radius:18px}#models .mapping{grid-template-columns:1fr 42px 1fr;gap:6px}#models .map-box{padding:9px 5px;font-size:.84rem}}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab{border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:8px 12px;border-radius:10px}.tab.active{background:var(--accent2);color:white;border-color:transparent}.tab-panel{display:none}.tab-panel.active{display:block;animation:fade .28s}@keyframes fade{from{opacity:0;transform:translateY(5px)}}
+.packet-stage{position:relative;min-height:260px;overflow:hidden;border:1px dashed var(--line);border-radius:16px;background:linear-gradient(180deg,color-mix(in srgb,var(--panel2) 90%,transparent),transparent)}
+.node{position:absolute;width:110px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel);text-align:center}.node.a{left:5%;top:85px}.node.b{right:5%;top:85px}.wire{position:absolute;left:18%;right:18%;top:130px;height:4px;background:var(--line)}.moving-packet{position:absolute;top:112px;left:18%;width:42px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--accent);color:#05231f;font-weight:900;transition:transform 1.5s ease}.moving-packet.go{transform:translateX(calc(64vw - 290px))}
+.bits{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}.bit{padding:7px 2px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--panel2);font-family:ui-monospace,monospace;font-size:.85rem}.bit.net{background:color-mix(in srgb,var(--accent2) 30%,var(--panel2))}.bit.host{background:color-mix(in srgb,var(--accent) 23%,var(--panel2))}
+.form-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.field{display:grid;gap:5px}.field label{font-size:.82rem;color:var(--muted)}input,select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 10px}input:focus,select:focus{outline:2px solid var(--accent)}
+.result{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px}.comparison .card{height:100%}.good{color:var(--ok)}.bad{color:var(--danger)}.warn{color:var(--warn)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0}.flow-step{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);transition:.2s}.flow-step.current{background:var(--accent2);color:white;transform:scale(1.06)}.arrow{color:var(--muted)}
+.nat-table{width:100%;border-collapse:collapse;font-size:.9rem}.nat-table th,.nat-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left}.nat-table th{color:var(--muted)}
+.conn-row{display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:8px;padding:9px;border-bottom:1px solid var(--line);font-family:ui-monospace,monospace;font-size:.84rem}.state-new{color:var(--warn)}.state-est{color:var(--ok)}
+.lab{margin:24px 0;overflow:hidden}.lab-head{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:18px 20px;background:var(--panel2);border-bottom:1px solid var(--line)}.lab-body{padding:20px}.lab-meta{display:flex;gap:8px;flex-wrap:wrap}.objective{padding:13px 15px;background:color-mix(in srgb,var(--accent2) 12%,var(--panel2));border-left:4px solid var(--accent2);border-radius:10px}
+pre{position:relative;overflow:auto;background:var(--code);color:#dbeafe;padding:16px;border-radius:13px;border:1px solid #243249;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}.copy{position:absolute;right:9px;top:9px;border:1px solid #41516a;background:#152238;color:#dbeafe;border-radius:8px;padding:5px 8px;font-size:.75rem}
+.checklist{display:grid;gap:9px}.checkitem{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}.checkitem input{margin-top:5px}.checkitem.done{opacity:.65;text-decoration:line-through}
+.callout{padding:16px 18px;margin:16px 0}.callout.warning{border-left:5px solid var(--warn)}.callout.danger{border-left:5px solid var(--danger)}.callout.success{border-left:5px solid var(--ok)}
+.quiz-question{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}.options{display:grid;gap:8px}.option{padding:9px;border:1px solid var(--line);border-radius:9px}.feedback{margin-top:8px;font-weight:700}.score{font-size:1.15rem;font-weight:850}
+.timeline{display:grid;grid-template-columns:120px 1fr;gap:8px}.timeline div{padding:10px;border-bottom:1px solid var(--line)}.timeline .time{color:var(--accent);font-weight:800}
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin:10px 0;padding:0 14px}summary{cursor:pointer;font-weight:750;padding:13px 0}
+.expected-output{margin:16px 0;padding:16px 18px;border:1px solid color-mix(in srgb,var(--ok) 52%,var(--line));border-left:5px solid var(--ok);border-radius:14px;background:color-mix(in srgb,var(--ok) 7%,var(--panel2))}
+.expected-output h4{margin:0 0 5px;color:var(--ok)}.expected-output p{margin:7px 0}.expected-output pre{margin:11px 0;background:color-mix(in srgb,var(--code) 94%,var(--ok) 6%)}
+.expected-output .compare-points{display:grid;gap:7px;margin:10px 0 0;padding-left:20px}.expected-output .variable-note{color:var(--muted);font-size:.92rem}.expected-output code{overflow-wrap:anywhere}
+.diagram-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:20px 0}.diagram-figure{grid-column:span 6;margin:0;padding:17px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel2) 96%,white 4%),var(--panel2));overflow:hidden}.diagram-figure.wide{grid-column:span 12}.diagram-figure h3,.diagram-figure h4{margin:0 0 5px}.diagram-figure>p{margin:4px 0 14px;color:var(--muted)}.diagram-svg{display:block;width:100%;height:auto;min-height:260px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:14px;background:radial-gradient(circle at 50% 10%,color-mix(in srgb,var(--accent2) 8%,transparent),transparent 42%),color-mix(in srgb,var(--panel) 92%,transparent)}.diagram-svg .zone{fill:color-mix(in srgb,var(--panel2) 92%,transparent);stroke:var(--line);stroke-width:2}.diagram-svg .nodebox{fill:var(--panel);stroke:var(--line);stroke-width:2}.diagram-svg .firewallbox{fill:color-mix(in srgb,var(--accent2) 11%,var(--panel));stroke:var(--accent);stroke-width:2.5}.diagram-svg .internetbox{fill:color-mix(in srgb,var(--warn) 8%,var(--panel));stroke:color-mix(in srgb,var(--warn) 72%,var(--line));stroke-width:2}.diagram-svg .serverbox{fill:color-mix(in srgb,var(--ok) 8%,var(--panel));stroke:color-mix(in srgb,var(--ok) 70%,var(--line));stroke-width:2}.diagram-svg .link{fill:none;stroke:var(--accent2);stroke-width:5}.diagram-svg .return-link{fill:none;stroke:var(--ok);stroke-width:3;stroke-dasharray:10 8}.diagram-svg .trunk{fill:none;stroke:var(--warn);stroke-width:10;stroke-dasharray:15 7}.diagram-svg .access10{stroke:#60a5fa;stroke-width:6;fill:none}.diagram-svg .access20{stroke:#5eead4;stroke-width:6;fill:none}.diagram-svg .boundary{stroke:var(--line);stroke-width:2;stroke-dasharray:8 7;fill:none}.diagram-svg .label{fill:var(--ink);font:700 18px/1.2 Inter,system-ui,sans-serif}.diagram-svg .small{fill:var(--muted);font:14px/1.2 Inter,system-ui,sans-serif}.diagram-svg .tiny{fill:var(--muted);font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}.diagram-svg .packet-text{fill:#06111f;font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.diagram-svg .packet-blue{fill:#93c5fd;stroke:#2563eb;stroke-width:1.5}.diagram-svg .packet-green{fill:#86efac;stroke:#15803d;stroke-width:1.5}.diagram-svg .packet-yellow{fill:#fde68a;stroke:#a16207;stroke-width:1.5}.diagram-svg .packet-pink{fill:#f0abfc;stroke:#a21caf;stroke-width:1.5}.diagram-svg .hook{fill:color-mix(in srgb,var(--accent) 13%,var(--panel));stroke:var(--accent);stroke-width:2}.diagram-svg .tag10{fill:#bfdbfe;stroke:#2563eb}.diagram-svg .tag20{fill:#99f6e4;stroke:#0f766e}.diagram-svg .frame-field{stroke:var(--line);stroke-width:1.5}.diagram-svg .moving-dot{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent) 70%,transparent))}.diagram-caption{margin-top:12px;padding:12px 14px;border-left:4px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 7%,var(--panel))}.diagram-caption b{color:var(--accent)}.diagram-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:11px;font-size:.84rem;color:var(--muted)}.legend-item{display:inline-flex;align-items:center;gap:7px}.swatch{width:18px;height:7px;border-radius:99px;background:var(--accent2)}.swatch.green{background:var(--ok)}.swatch.yellow{background:var(--warn)}.swatch.dashed{height:0;border-top:3px dashed var(--ok);background:none;border-radius:0}.visual-checks{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.visual-checks div{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.87rem}.visual-checks b{display:block;color:var(--accent);margin-bottom:3px}
+.glossary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.term{padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.term b{color:var(--accent)}
+footer{margin-top:50px;padding-top:30px;border-top:1px solid var(--line);color:var(--muted)}
+/* Fail-open rendering: content remains visible even if local-file JavaScript is restricted. */
+.reveal{opacity:1;transform:none}.reveal.visible{animation:sectionReveal .55s ease both}@keyframes sectionReveal{from{opacity:.25;transform:translateY(16px)}to{opacity:1;transform:none}}
+.encap-sim{overflow:hidden}.encap-purpose{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0 18px}.encap-purpose div{padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);font-size:.9rem}.encap-purpose b{display:block;color:var(--accent);margin-bottom:3px}
+.encap-layout{display:grid;grid-template-columns:minmax(175px,.72fr) minmax(390px,1.8fr) minmax(175px,.72fr);gap:15px;align-items:stretch;margin-top:18px}.encap-endpoint,.encap-center{border:1px solid var(--line);border-radius:15px;background:var(--panel2);padding:14px}.encap-endpoint h4,.encap-center h4{margin:0 0 10px}.endpoint-address{font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);margin-bottom:10px}.mini-stack{display:grid;gap:6px}.mini-layer{padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:.82rem;transition:.25s}.mini-layer small{display:block;color:var(--muted)}.mini-layer.active{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);transform:translateX(4px)}.mini-layer.complete{background:color-mix(in srgb,var(--ok) 10%,var(--panel));border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.packet-builder{min-height:86px;display:flex;align-items:stretch;justify-content:center;overflow:auto;border:1px dashed var(--line);border-radius:13px;background:var(--code);padding:15px;margin:10px 0}.packet-piece{min-width:80px;padding:10px 8px;display:grid;place-items:center;text-align:center;border-right:1px solid rgba(255,255,255,.22);font:700 11px/1.25 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#06111f}.packet-piece:last-child{border-right:0;border-radius:0 9px 9px 0}.packet-piece:first-child{border-radius:9px 0 0 9px}.piece-eth{background:#93c5fd}.piece-ip{background:#86efac}.piece-l4{background:#fde68a}.piece-data{background:#f0abfc}.piece-bits{background:#cbd5e1;min-width:100%}
+.transit-track{position:relative;height:94px;margin:12px 0 4px}.transit-line{position:absolute;left:7%;right:7%;top:47px;height:4px;background:var(--line)}.transit-node{position:absolute;top:8px;transform:translateX(-50%);width:84px;text-align:center;font-size:.74rem;color:var(--muted)}.transit-node::after{content:'';display:block;width:18px;height:18px;margin:8px auto 0;border-radius:50%;background:var(--panel);border:3px solid var(--line)}.transit-node.client{left:7%}.transit-node.router{left:50%}.transit-node.server{left:93%}.transit-node.active{color:var(--accent);font-weight:800}.transit-node.active::after{border-color:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 15%,transparent)}.encap-mover{position:absolute;top:39px;left:7%;width:31px;height:22px;border-radius:7px;background:var(--accent);color:#05231f;font:900 9px/22px ui-monospace,monospace;text-align:center;transform:translateX(-50%);transition:left .55s ease,background .25s}
+.encap-status{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}.encap-status .chip{font-family:ui-monospace,monospace}.encap-explain{min-height:150px}.encap-explain h4{color:var(--accent)}.encap-fields td:first-child{width:30%;font-weight:750;color:var(--muted)}.notice-box{margin-top:14px;padding:14px;border-radius:12px;background:color-mix(in srgb,var(--accent2) 10%,var(--panel2));border-left:4px solid var(--accent2)}
+@media(max-width:1050px){.diagram-figure,.diagram-figure.wide{grid-column:span 12}.visual-checks{grid-template-columns:1fr}.layout{grid-template-columns:1fr}aside{display:none}.hero{grid-template-columns:1fr;min-height:auto;padding-top:35px}.grid{grid-template-columns:1fr}.span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:1}.comparison{grid-template-columns:1fr}.glossary{grid-template-columns:1fr 1fr}.moving-packet.go{transform:translateX(55vw)}.encap-layout{grid-template-columns:1fr}.encap-purpose{grid-template-columns:1fr 1fr}.mini-stack{grid-template-columns:repeat(5,1fr)}.mini-layer.active{transform:translateY(-3px)}}
+@media(max-width:650px){.diagram-figure{padding:11px}.diagram-svg{min-height:210px}.diagram-svg .label{font-size:15px}.diagram-svg .small{font-size:12px}.diagram-svg .tiny{font-size:10px}main{padding:20px 14px 60px}.encap-purpose{grid-template-columns:1fr}.mini-stack{grid-template-columns:1fr}.packet-piece{min-width:72px;font-size:10px}.topbar{padding:8px}.brand{font-size:.82rem}.mapping{grid-template-columns:1fr}.map-arrow{transform:rotate(90deg)}.glossary{grid-template-columns:1fr}.timeline{grid-template-columns:90px 1fr}.conn-row{grid-template-columns:1fr}.nat-table{font-size:.76rem}.moving-packet.go{transform:translateX(46vw)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+@media print{.topbar,aside,.actions,.copy,.tab,.btn{display:none!important}.layout{display:block}body{background:white;color:black}main{padding:0}.card,.lab,.quiz,.simulator,.hero-card{box-shadow:none;break-inside:avoid;border:1px solid #bbb}.tab-panel{display:block!important}section{padding-top:28px}.reveal{opacity:1;transform:none}pre{white-space:pre-wrap;color:#111;background:#f6f6f6}}
+
+/* Version 7: trainer controls, readiness analysis and diagnostic practice */
+.topbar .present-only{display:none}
+body.presentation .topbar .present-only{display:inline-flex}
+body.presentation .layout{grid-template-columns:1fr;max-width:none}
+body.presentation aside{display:none}
+body.presentation main{max-width:1500px;margin:auto;font-size:1.08rem;padding-left:clamp(20px,4vw,70px);padding-right:clamp(20px,4vw,70px)}
+body.presentation section{min-height:86vh}
+body.presentation #start{min-height:92vh;display:grid}
+body.large-code pre{font-size:1rem;line-height:1.65}
+body.projector{--bg:#020812;--panel:#0b1727;--panel2:#122a45;--ink:#ffffff;--muted:#c4d5e8;--line:#4d6c8e;--accent:#69f7df;--accent2:#77b7ff;--code:#00040a}
+body.hide-expected .expected-output{display:none!important}
+body.hide-answers .answer-key,body.hide-answers .feedback{display:none!important}
+.trainer-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.trainer-toolbar .toggle-state[aria-pressed="true"]{background:var(--accent);color:#05231f;border-color:transparent}
+.timer-display{font:800 1.2rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:var(--code);color:var(--accent)}
+.readiness-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:18px;align-items:start}
+textarea{width:100%;min-height:180px;resize:vertical;background:var(--code);color:#e8f1fb;border:1px solid var(--line);border-radius:12px;padding:13px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+textarea:focus{outline:2px solid var(--accent)}
+.readiness-summary{display:grid;gap:9px;margin-top:14px}.readiness-row{display:grid;grid-template-columns:30px 130px 1fr;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}
+.readiness-row .status-icon{font-weight:900;text-align:center}.readiness-row.pass .status-icon{color:var(--ok)}.readiness-row.warn .status-icon{color:var(--warn)}.readiness-row.fail .status-icon{color:var(--danger)}
+.readiness-score{font-size:2rem;font-weight:900}.readiness-score.pass{color:var(--ok)}.readiness-score.warn{color:var(--warn)}.readiness-score.fail{color:var(--danger)}
+.decoder-layout{display:grid;grid-template-columns:minmax(340px,1fr) minmax(360px,1fr);gap:18px}.sample-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.sample-buttons button{padding:6px 9px}
+.decode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.decode-field{padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}.decode-field small{display:block;color:var(--muted);margin-bottom:4px}.decode-field b,.decode-field code{overflow-wrap:anywhere}
+.packet-meaning{margin-top:12px;padding:14px;border-left:4px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
+.decision-form{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px}.decision-form .field{min-width:0}.decision-form input,.decision-form select{width:100%}
+.decision-track{display:grid;gap:10px;margin-top:18px}.decision-step{display:grid;grid-template-columns:46px minmax(130px,.8fr) minmax(220px,1.5fr) minmax(180px,1fr);gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel2);opacity:.55;transform:translateY(4px);transition:.25s}.decision-step.visible{opacity:1;transform:none}.decision-step.accept{border-color:color-mix(in srgb,var(--ok) 60%,var(--line))}.decision-step.drop{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--panel2))}.decision-num{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;font-weight:900;background:var(--chip)}.tuple{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}.counter-hit{color:var(--warn);font-weight:800}
+.breakfix-console{display:grid;grid-template-columns:minmax(0,.9fr) minmax(360px,1.1fr);gap:16px}.challenge-card{padding:15px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}.challenge-secret{display:none}.challenge-secret.revealed{display:block;animation:fade .25s}.symptom-banner{padding:13px;border-left:4px solid var(--danger);border-radius:10px;background:color-mix(in srgb,var(--danger) 9%,var(--panel2));margin:12px 0}.hypothesis-list label{display:block;padding:7px 0}.challenge-seed{font:800 1.1rem ui-monospace,monospace;color:var(--accent)}
+.diagram-focus-mode .diagram-figure{cursor:zoom-in}.diagram-figure.diagram-zoomed{position:fixed;inset:18px;z-index:1000;overflow:auto;background:var(--bg);padding:22px;box-shadow:0 0 0 100vmax rgba(0,0,0,.82);cursor:zoom-out}.diagram-figure.diagram-zoomed .diagram-svg{max-height:none}
+.control-note{font-size:.88rem;color:var(--muted)}
+.kbd{display:inline-block;padding:.08em .42em;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;background:var(--panel2);font:12px ui-monospace,monospace}
+@media(max-width:1050px){.readiness-grid,.decoder-layout,.breakfix-console{grid-template-columns:1fr}.decision-form{grid-template-columns:repeat(2,minmax(0,1fr))}.decision-step{grid-template-columns:42px 1fr}.decision-step>div:nth-child(3),.decision-step>div:nth-child(4){grid-column:2}}
+@media(max-width:650px){.decision-form{grid-template-columns:1fr}.decode-grid{grid-template-columns:1fr}.readiness-row{grid-template-columns:28px 1fr}.readiness-row>div:last-child{grid-column:2}.diagram-figure.diagram-zoomed{inset:6px;padding:10px}}
+@media print{#toolkit .trainer-toolbar,.sample-buttons,#runReadiness,#runDecision,#breakInject,#breakReveal,.present-only{display:none!important}.challenge-secret{display:block!important}}
+
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">NET<span>LAB</span> · Session 1</div>
+  <div class="progress-shell" aria-label="Reading progress"><div id="progressBar" class="progress-bar"></div></div>
+  <span id="sessionClock" class="timer-display present-only" aria-live="polite">00:00:00</span>
+  <button class="icon-btn present-only" id="prevSectionBtn" title="Previous section" aria-label="Previous section">←</button>
+  <button class="icon-btn present-only" id="nextSectionBtn" title="Next section" aria-label="Next section">→</button>
+  <button class="icon-btn" id="presentBtn" title="Toggle trainer presentation mode" aria-label="Toggle presentation mode">▣</button>
+  <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
+  <button class="icon-btn" onclick="window.print()" title="Print or save as PDF">⎙</button>
+</div>
+<div class="layout">
+<aside>
+  <div class="nav-title">Navigate</div>
+  <nav id="sideNav">
+    <a href="#start">Start</a><a href="#trainer">Trainer plan</a><a href="#models">OSI & TCP/IP</a>
+    <a href="#fundamentals">Ethernet, IP, TCP, UDP, ICMP</a><a href="#segmentation">VLANs & subnetting</a>
+    <a href="#routing">Routing & gateways</a><a href="#firewalls">Stateful vs stateless</a>
+    <a href="#nat">NAT family</a><a href="#conntrack">Conntrack</a><a href="#packetflow">Packet decision flow</a>
+    <a href="#toolkit">Readiness & trainer tools</a><a href="#diagnostics">Diagnostic simulators</a>
+    <a href="#labs">Hands-on labs</a><a href="#assessment">Assessment</a><a href="#reference">Reference</a>
+  </nav>
+  <div class="nav-title">Session status</div>
+  <div class="card" style="padding:13px">
+    <div class="muted" style="font-size:.8rem">Lab completion</div>
+    <div id="labProgress" style="font-size:1.6rem;font-weight:900">0%</div>
+    <button class="btn secondary" style="width:100%;margin-top:8px" id="resetBtn">Reset progress</button>
+  </div>
+</aside>
+<main>
+<section id="start" class="hero" style="border-top:0;padding-top:10px">
+  <div>
+    <div class="eyebrow">Professional networking depth · trainer-led</div>
+    <h1>Networking & Firewall Basics</h1>
+    <p class="lead">Follow one packet from an application, across Ethernet and IP networks, through a stateful Linux firewall, into NAT, and back again—then build the entire path in isolated Ubuntu network namespaces.</p>
+    <div class="actions">
+      <a class="btn" href="#models" style="text-decoration:none">Begin packet journey →</a>
+      <a class="btn secondary" href="#labs" style="text-decoration:none">Jump to labs</a>
+    </div>
+    <p class="muted"><span class="badge">4-hour core</span> <span class="badge">+2-hour extension</span> <span class="badge">Offline single file</span></p>
+  </div>
+  <div class="hero-card" aria-label="Animated packet journey illustration">
+    <svg viewBox="0 0 520 390" role="img" aria-labelledby="heroSvgTitle">
+      <title id="heroSvgTitle">Packet travelling from client through firewall to server</title>
+      <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#5eead4"/></linearGradient></defs>
+      <rect x="22" y="55" width="145" height="110" rx="18" fill="#12243a" stroke="#29415d"/>
+      <rect x="353" y="55" width="145" height="110" rx="18" fill="#12243a" stroke="#29415d"/>
+      <path d="M167 110 H353" stroke="#29415d" stroke-width="7"/>
+      <g class="packet"><rect x="185" y="89" width="54" height="42" rx="9" fill="url(#g)"/><text x="212" y="115" text-anchor="middle" fill="#05231f" font-weight="900">DATA</text></g>
+      <text x="94" y="105" text-anchor="middle" fill="#e8f1fb" font-size="23">Client</text><text x="94" y="132" text-anchor="middle" fill="#9fb3c8">10.10.1.10</text>
+      <text x="425" y="105" text-anchor="middle" fill="#e8f1fb" font-size="23">Server</text><text x="425" y="132" text-anchor="middle" fill="#9fb3c8">10.10.2.20</text>
+      <path d="M260 44 L312 74 V136 L260 168 L208 136 V74Z" fill="#0d1b2d" stroke="#5eead4" stroke-width="3"/>
+      <text x="260" y="103" text-anchor="middle" fill="#5eead4" font-size="19" font-weight="800">FIREWALL</text><text x="260" y="126" text-anchor="middle" fill="#9fb3c8">route · filter · NAT</text>
+      <g transform="translate(22 220)"><rect width="476" height="120" rx="18" fill="#0d1b2d" stroke="#29415d"/><text x="22" y="35" fill="#9fb3c8">Connection state</text><circle class="pulse-dot" cx="44" cy="70" r="10" fill="#fbbf24"/><text x="65" y="76" fill="#e8f1fb">NEW</text><path d="M130 70 H245" stroke="#29415d" stroke-width="4"/><circle cx="260" cy="70" r="10" fill="#86efac"/><text x="281" y="76" fill="#e8f1fb">ESTABLISHED</text></g>
+    </svg>
+  </div>
+</section>
+
+<section id="trainer" class="reveal">
+  <div class="eyebrow">Delivery blueprint</div><h2>Trainer plan and learning outcomes</h2>
+  <p class="section-intro">The core sequence fits a half-day. The extension adds deeper namespace, VLAN, NAT, and troubleshooting work without changing the conceptual storyline.</p>
+  <div class="grid">
+    <div class="card span-7">
+      <h3>Suggested agenda</h3>
+      <div class="timeline">
+        <div class="time">00:00–00:20</div><div>Pre-check, packet-story setup, vocabulary calibration</div>
+        <div class="time">00:20–01:05</div><div>OSI/TCP-IP models and protocol fundamentals</div>
+        <div class="time">01:05–01:50</div><div>VLANs, addressing, subnetting, routing and gateways</div>
+        <div class="time">01:50–02:00</div><div>Break</div>
+        <div class="time">02:00–02:45</div><div>Stateful filtering, NAT types, conntrack and packet flow</div>
+        <div class="time">02:45–03:50</div><div>Guided Linux namespace firewall lab</div>
+        <div class="time">03:50–04:00</div><div>Assessment and debrief</div>
+        <div class="time">Extension</div><div>VLAN trunk, DNAT publishing, packet capture and fault injection</div>
+      </div>
+    </div>
+    <div class="card span-5">
+      <h3>By the end, trainees can</h3>
+      <ul><li>Map application data to frames, packets, segments and signals.</li><li>Predict whether a destination is local or requires a gateway.</li><li>Calculate common IPv4 subnets and usable ranges.</li><li>Explain why stateful return traffic works.</li><li>Distinguish SNAT, DNAT and MASQUERADE.</li><li>Trace local, forwarded and NATed traffic through Netfilter hooks.</li><li>Build and verify a small routed firewall with native nftables.</li></ul>
+      <div class="callout warning"><b>Safety:</b> Run destructive firewall commands only inside the provided network namespace. Do not flush the host ruleset on a remote machine.</div>
+    </div>
+    <div class="card span-12">
+      <h3>Lab prerequisites</h3>
+      <p>One Ubuntu 24.04 VM per trainee is preferred. Minimum: 2 vCPU, 4 GB RAM, 15 GB free disk, sudo access. Packages: <code>iproute2</code>, <code>nftables</code>, <code>conntrack</code>, <code>tcpdump</code>, <code>curl</code>, <code>python3</code>, and optionally <code>ipcalc</code>.</p>
+      <pre><button class="copy">Copy</button>sudo apt update
+sudo apt install -y iproute2 nftables conntrack tcpdump curl python3 ipcalc
+nft --version && conntrack --version && ip -Version</pre>
+    </div>
+  </div>
+</section>
+
+<section id="models" class="reveal">
+  <div class="eyebrow">Mental model 1</div><h2>OSI and TCP/IP models</h2>
+  <p class="section-intro">The models are maps, not physical conveyor belts. They divide responsibilities so engineers can reason about faults, interoperability and controls.</p>
+  <div class="grid">
+    <div class="card span-6">
+      <h3>Interactive OSI stack</h3><p class="muted">Select a layer to inspect what it contributes.</p>
+      <div class="layer-stack" id="osiStack">
+        <button class="layer" data-layer="1"><span class="layer-num">1</span><span><b>Physical</b><br><small>Signals, cabling, radio, optics</small></span><span>bits</span></button>
+        <button class="layer" data-layer="2"><span class="layer-num">2</span><span><b>Data Link</b><br><small>Ethernet, MAC, switching, VLAN</small></span><span>frames</span></button>
+        <button class="layer" data-layer="3"><span class="layer-num">3</span><span><b>Network</b><br><small>IPv4/IPv6, routing, ICMP</small></span><span>packets</span></button>
+        <button class="layer" data-layer="4"><span class="layer-num">4</span><span><b>Transport</b><br><small>TCP, UDP, ports</small></span><span>segments/datagrams</span></button>
+        <button class="layer" data-layer="5"><span class="layer-num">5</span><span><b>Session</b><br><small>Conversation coordination</small></span><span>sessions</span></button>
+        <button class="layer" data-layer="6"><span class="layer-num">6</span><span><b>Presentation</b><br><small>Encoding, compression, cryptographic format</small></span><span>data</span></button>
+        <button class="layer" data-layer="7"><span class="layer-num">7</span><span><b>Application</b><br><small>HTTP, DNS, SSH and user-facing protocols</small></span><span>data</span></button>
+      </div>
+    </div>
+    <div class="card span-6">
+      <h3 id="layerTitle">Select a layer</h3><div id="layerDetail" class="result">Click any layer. A troubleshooting example and firewall relevance will appear here.</div>
+      <div class="analogy" style="margin-top:18px"><strong>Real-world analogy:</strong> Sending a parcel. The application creates the contents, transport chooses delivery behavior, IP chooses the destination address, Ethernet handles the next local hop, and the physical layer moves signals.</div>
+      <div class="callout"><b>Key caution:</b> TLS does not belong neatly to one OSI layer in real implementations. Use the model for reasoning, not dogma.</div>
+    </div>
+    <div class="card span-12">
+      <h3>OSI ↔ TCP/IP mapping</h3>
+      <div class="mapping">
+        <div class="map-col"><div class="map-box">7 Application</div><div class="map-box">6 Presentation</div><div class="map-box">5 Session</div><div class="map-box">4 Transport</div><div class="map-box">3 Network</div><div class="map-box">2 Data Link</div><div class="map-box">1 Physical</div></div>
+        <div class="map-arrow">⇄</div>
+        <div class="map-col"><div class="map-box" style="min-height:139px;display:grid;place-items:center">Application</div><div class="map-box">Transport</div><div class="map-box">Internet</div><div class="map-box" style="min-height:88px;display:grid;place-items:center">Link / Network access</div></div>
+      </div>
+      <p class="muted">In practice, engineers usually troubleshoot with a hybrid vocabulary: “Layer 2 VLAN issue,” “Layer 3 route,” “Layer 4 port,” and “application response.”</p>
+    </div>
+  </div>
+</section>
+
+<section id="fundamentals" class="reveal">
+  <div class="eyebrow">Mental model 2</div><h2>Ethernet, IP, TCP, UDP and ICMP</h2>
+  <p class="section-intro">These protocols cooperate. Ethernet reaches the next local device, IP reaches the end network, transport identifies the conversation, and ICMP reports network conditions.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="eth">Ethernet</button><button class="tab" data-tab="ip">IP</button><button class="tab" data-tab="tcp">TCP</button><button class="tab" data-tab="udp">UDP</button><button class="tab" data-tab="icmp">ICMP</button>
+  </div>
+  <div id="eth" class="tab-panel active card">
+    <div class="grid"><div class="span-7"><h3>Ethernet: delivery on the local link</h3><p>Ethernet frames carry source and destination MAC addresses. A switch learns which source MAC appears on which port, then forwards known unicast frames toward the learned destination port. Broadcasts and unknown unicasts may be flooded within the VLAN.</p><p class="analogy"><strong>Analogy:</strong> An office mailroom delivers envelopes to desks on the same floor. The desk label is the MAC address; the floor is the VLAN.</p><p><b>Typical operational clue:</b> Correct IP configuration cannot compensate for the wrong VLAN, a down link, or unresolved ARP/neighbor information.</p></div><div class="span-5"><svg viewBox="0 0 460 260" width="100%" aria-label="Ethernet switched network"><rect x="165" y="90" width="130" height="80" rx="14" fill="#12243a" stroke="#5eead4"/><text x="230" y="136" fill="#e8f1fb" text-anchor="middle" font-size="24">Switch</text><g fill="#12243a" stroke="#29415d"><rect x="12" y="22" width="120" height="60" rx="12"/><rect x="328" y="22" width="120" height="60" rx="12"/><rect x="12" y="188" width="120" height="60" rx="12"/><rect x="328" y="188" width="120" height="60" rx="12"/></g><g stroke="#60a5fa" stroke-width="4"><path d="M132 52 L165 110"/><path d="M328 52 L295 110"/><path d="M132 218 L165 150"/><path d="M328 218 L295 150"/></g><g fill="#e8f1fb" text-anchor="middle"><text x="72" y="58">PC A</text><text x="388" y="58">PC B</text><text x="72" y="224">Printer</text><text x="388" y="224">AP</text></g></svg></div></div>
+  </div>
+  <div id="ip" class="tab-panel card"><h3>IP: best-effort delivery across networks</h3><p>IP provides logical addressing and routing. Routers examine the destination address and choose a next hop using the most specific matching route. IP itself does not guarantee delivery, order, uniqueness or application success.</p><p class="analogy"><strong>Analogy:</strong> A postal address gets a parcel across cities. Each sorting center only needs the next direction, not the full physical path.</p><div class="callout"><b>IPv4 essentials:</b> source, destination, TTL, protocol number and fragmentation-related fields. <b>IPv6 essentials:</b> a larger address space, hop limit and extension-header model; routers do not fragment transit packets.</div></div>
+  <div id="tcp" class="tab-panel card"><h3>TCP: reliable ordered byte stream</h3><p>TCP establishes state, numbers bytes, acknowledges delivery, retransmits loss, controls flow and reacts to congestion. Applications see a byte stream—not preserved message boundaries.</p><div class="flow"><span class="flow-step">Client: SYN</span><span class="arrow">→</span><span class="flow-step">Server: SYN-ACK</span><span class="arrow">→</span><span class="flow-step">Client: ACK</span><span class="arrow">→</span><span class="flow-step">ESTABLISHED</span></div><p class="analogy"><strong>Analogy:</strong> A courier obtains confirmation, numbers multi-box shipments and resends missing boxes.</p></div>
+  <div id="udp" class="tab-panel card"><h3>UDP: independent datagrams with low protocol overhead</h3><p>UDP sends discrete datagrams without a transport-layer handshake, retransmission or ordering. The application may add reliability when needed. It is common for DNS, telemetry, real-time media and protocols such as QUIC.</p><p class="analogy"><strong>Analogy:</strong> A live announcer keeps speaking even if one listener misses a sentence. Timeliness can matter more than retransmitting old audio.</p><div class="callout warning"><b>Do not say “UDP is always faster.”</b> It has less built-in machinery, but application design, congestion behavior, packet loss and path conditions determine performance.</div></div>
+  <div id="icmp" class="tab-panel card"><h3>ICMP: control and error reporting for IP</h3><p>ICMP reports conditions such as unreachable destinations, TTL expiry and packet-too-big. The familiar <code>ping</code> tool uses Echo Request and Echo Reply, but ICMP is much broader than ping.</p><p class="analogy"><strong>Analogy:</strong> Road signs and delivery-failure notices. Blocking all notices can hide broken routes and interfere with path MTU discovery.</p><pre><button class="copy">Copy</button>ping -c 3 1.1.1.1
+tracepath 1.1.1.1
+sudo tcpdump -ni any 'icmp or icmp6'</pre></div>
+
+  <div class="simulator encap-sim" style="margin-top:18px">
+    <div class="eyebrow">Interactive packet anatomy</div>
+    <h3>Encapsulation and decapsulation simulator</h3>
+    <p class="section-intro"><b>Purpose:</b> follow one application message from a client, through a router, to a server. The simulator shows which header each layer adds, which device reads it, what changes at a routed hop, and how the receiver removes the headers in reverse.</p>
+    <div class="encap-purpose">
+      <div><b>1 · What is added?</b>Application data becomes a segment/datagram, then an IP packet, then an Ethernet frame.</div>
+      <div><b>2 · Who reads it?</b>Applications use data, transport uses ports, routers use IP, and switches/NICs use Ethernet.</div>
+      <div><b>3 · What stays end-to-end?</b>IP addresses and transport ports normally stay the same unless NAT or a proxy changes them.</div>
+      <div><b>4 · What changes per hop?</b>Ethernet MAC addresses are rebuilt for each link, while a router decrements TTL.</div>
+    </div>
+
+    <div class="form-row">
+      <div class="field"><label>Traffic example</label><select id="encapScenario"><option value="http">HTTP request over TCP</option><option value="dns">DNS query over UDP</option></select></div>
+      <button class="btn secondary" id="encapPrev">← Previous</button>
+      <button class="btn" id="encapNext">Next step →</button>
+      <button class="btn secondary" id="encapAuto">Auto play</button>
+      <button class="btn secondary" id="encapReset">Reset</button>
+    </div>
+
+    <div class="encap-layout">
+      <div class="encap-endpoint">
+        <h4>Sender · Client</h4>
+        <div class="endpoint-address" id="senderAddress"></div>
+        <div class="mini-stack" id="senderStack">
+          <div class="mini-layer" data-layer="4"><b>Application</b><small>Creates the message</small></div>
+          <div class="mini-layer" data-layer="3"><b>Transport</b><small>Ports and TCP/UDP</small></div>
+          <div class="mini-layer" data-layer="2"><b>Internet</b><small>Source/destination IP</small></div>
+          <div class="mini-layer" data-layer="1"><b>Link</b><small>Next-hop MAC addresses</small></div>
+          <div class="mini-layer" data-layer="0"><b>Physical</b><small>Bits/signals on media</small></div>
+        </div>
+      </div>
+
+      <div class="encap-center">
+        <h4 id="encapJourneyLabel">Sender builds the protocol data unit</h4>
+        <div class="packet-builder" id="packetBuilder" aria-live="polite"></div>
+        <div class="transit-track" aria-label="Packet journey from client through router to server">
+          <div class="transit-line"></div>
+          <div class="transit-node client" id="encapClientNode">Client</div>
+          <div class="transit-node router" id="encapRouterNode">Router / firewall</div>
+          <div class="transit-node server" id="encapServerNode">Server</div>
+          <div class="encap-mover" id="encapMover">PDU</div>
+        </div>
+        <div class="encap-status"><span class="chip" id="encapStepCount">Step 1 of 11</span><span class="chip" id="encapPdu">PDU: Data</span><span class="chip" id="encapDevice">Processed by: Application</span></div>
+      </div>
+
+      <div class="encap-endpoint">
+        <h4>Receiver · Server</h4>
+        <div class="endpoint-address" id="receiverAddress"></div>
+        <div class="mini-stack" id="receiverStack">
+          <div class="mini-layer" data-layer="4"><b>Application</b><small>Consumes the message</small></div>
+          <div class="mini-layer" data-layer="3"><b>Transport</b><small>Finds the service port</small></div>
+          <div class="mini-layer" data-layer="2"><b>Internet</b><small>Confirms destination IP</small></div>
+          <div class="mini-layer" data-layer="1"><b>Link</b><small>Accepts local frame</small></div>
+          <div class="mini-layer" data-layer="0"><b>Physical</b><small>Receives bits/signals</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card span-5 encap-explain"><h4 id="encapTitle">Application creates data</h4><div id="encapExplanation"></div><div class="notice-box" id="encapNotice"></div></div>
+      <div class="card span-7"><h4>Current fields and scope</h4><table class="nat-table encap-fields"><tbody id="encapFields"></tbody></table></div>
+    </div>
+
+    <details><summary>How this appears in a real packet capture</summary><p>A capture on the client-facing link and another on the server-facing link normally show the same source/destination IP addresses and transport ports. The Ethernet source/destination MAC addresses differ because each link has a different local sender and next hop. The second capture also shows a TTL reduced by one. With DNAT/SNAT, the relevant IP address or port also changes.</p></details>
+    <details><summary>PDU names trainees should use</summary><ul><li><b>Application data:</b> the message, such as an HTTP request or DNS query.</li><li><b>TCP segment / UDP datagram:</b> transport header plus application data.</li><li><b>IP packet:</b> IP header plus the transport unit.</li><li><b>Ethernet frame:</b> Ethernet header and trailer around the IP packet.</li><li><b>Bits/signals:</b> the encoded representation transmitted over copper, fibre or radio.</li></ul></details>
+  </div>
+</section>
+
+<section id="segmentation" class="reveal">
+  <div class="eyebrow">Boundaries and address plans</div><h2>VLANs and subnetting</h2>
+  <div class="grid">
+    <div class="card span-6">
+      <h3>VLAN: one switch, multiple Layer-2 broadcast domains</h3><p>A VLAN separates Ethernet forwarding domains. Access ports carry one VLAN untagged for endpoints. Trunks commonly carry multiple VLANs with IEEE 802.1Q tags between switches, routers, hypervisors or firewalls.</p><p class="analogy"><strong>Analogy:</strong> People wear colored event wristbands in the same building. Staff forward them only into rooms assigned to that color.</p>
+      <svg viewBox="0 0 600 250" width="100%" aria-label="VLAN separation diagram"><rect x="220" y="75" width="160" height="100" rx="16" fill="#12243a" stroke="#e8f1fb"/><text x="300" y="116" text-anchor="middle" fill="#e8f1fb" font-size="22">Managed switch</text><text x="300" y="143" text-anchor="middle" fill="#9fb3c8">802.1Q trunk</text><g fill="#12243a"><rect x="20" y="30" width="130" height="60" rx="12" stroke="#60a5fa"/><rect x="20" y="160" width="130" height="60" rx="12" stroke="#60a5fa"/><rect x="450" y="30" width="130" height="60" rx="12" stroke="#5eead4"/><rect x="450" y="160" width="130" height="60" rx="12" stroke="#5eead4"/></g><g fill="#e8f1fb" text-anchor="middle"><text x="85" y="66">Finance · VLAN 10</text><text x="85" y="196">Finance · VLAN 10</text><text x="515" y="66">Guest · VLAN 20</text><text x="515" y="196">Guest · VLAN 20</text></g><g stroke-width="4"><path d="M150 60 L220 100" stroke="#60a5fa"/><path d="M150 190 L220 150" stroke="#60a5fa"/><path d="M450 60 L380 100" stroke="#5eead4"/><path d="M450 190 L380 150" stroke="#5eead4"/></g></svg>
+      <div class="callout"><b>Boundary rule:</b> Hosts in different VLANs need a Layer-3 device to communicate, and that routed boundary is where policy is commonly enforced.</div>
+    </div>
+    <div class="card span-6">
+      <h3>Subnetting: divide an IP space into routing domains</h3><p>A prefix such as <code>192.168.10.0/24</code> says the first 24 bits identify the network. Longer prefixes mean smaller networks; shorter prefixes mean larger networks.</p>
+      <div class="bits" aria-label="32 address bits"><span class="bit net">11000000</span><span class="bit net">10101000</span><span class="bit net">00001010</span><span class="bit host">00000000</span></div>
+      <p class="muted">/24: 24 network bits + 8 host bits. Conventionally 254 usable IPv4 host addresses; /31 and /32 are special cases.</p>
+      <div class="simulator" style="box-shadow:none;margin-top:16px">
+        <h4>IPv4 subnet calculator</h4><div class="form-row"><div class="field"><label>IPv4 address</label><input id="ipInput" value="192.168.10.37" inputmode="decimal"></div><div class="field"><label>Prefix</label><input id="prefixInput" type="number" min="0" max="32" value="27"></div><button class="btn" id="calcSubnet">Calculate</button></div><div class="result" id="subnetResult">Enter an address and prefix.</div>
+      </div>
+    </div>
+
+    <figure class="diagram-figure wide" aria-labelledby="dot1qDiagramTitle">
+      <h3 id="dot1qDiagramTitle">802.1Q image · access ports, tagged trunk and frame format</h3>
+      <p>Endpoints usually send ordinary untagged Ethernet frames on access ports. The switch associates the port with a VLAN, inserts a four-byte 802.1Q tag on the trunk, and removes it again before delivery to another access port.</p>
+      <svg class="diagram-svg" viewBox="0 0 1160 660" role="img" aria-labelledby="dot1qSvgTitle dot1qSvgDesc">
+        <title id="dot1qSvgTitle">802.1Q VLAN trunk and tagged Ethernet frame</title>
+        <desc id="dot1qSvgDesc">Two switches connect over a tagged trunk carrying VLAN 10 and VLAN 20. Access devices send untagged traffic. The lower part shows the 802.1Q tag inserted between source MAC and EtherType.</desc>
+        <defs>
+          <marker id="vlanBlueArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#60a5fa"/></marker>
+          <marker id="vlanGreenArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#5eead4"/></marker>
+        </defs>
+        <rect class="nodebox" x="25" y="45" width="190" height="82" rx="15"/>
+        <text class="label" x="120" y="77" text-anchor="middle">Finance PC</text>
+        <text class="tiny" x="120" y="104" text-anchor="middle">access VLAN 10 · untagged</text>
+        <rect class="nodebox" x="25" y="205" width="190" height="82" rx="15"/>
+        <text class="label" x="120" y="237" text-anchor="middle">Guest PC</text>
+        <text class="tiny" x="120" y="264" text-anchor="middle">access VLAN 20 · untagged</text>
+
+        <rect class="firewallbox" x="300" y="68" width="195" height="190" rx="20"/>
+        <text class="label" x="397" y="111" text-anchor="middle">Switch A</text>
+        <text class="small" x="397" y="145" text-anchor="middle">maps access port to VLAN</text>
+        <text class="tiny" x="397" y="178" text-anchor="middle">adds tag when frame</text>
+        <text class="tiny" x="397" y="199" text-anchor="middle">leaves the trunk port</text>
+
+        <rect class="firewallbox" x="665" y="68" width="195" height="190" rx="20"/>
+        <text class="label" x="762" y="111" text-anchor="middle">Switch B</text>
+        <text class="small" x="762" y="145" text-anchor="middle">reads the VLAN ID</text>
+        <text class="tiny" x="762" y="178" text-anchor="middle">removes tag when frame</text>
+        <text class="tiny" x="762" y="199" text-anchor="middle">leaves an access port</text>
+
+        <rect class="nodebox" x="945" y="45" width="190" height="82" rx="15"/>
+        <text class="label" x="1040" y="77" text-anchor="middle">Finance PC</text>
+        <text class="tiny" x="1040" y="104" text-anchor="middle">access VLAN 10 · untagged</text>
+        <rect class="nodebox" x="945" y="205" width="190" height="82" rx="15"/>
+        <text class="label" x="1040" y="237" text-anchor="middle">Guest PC</text>
+        <text class="tiny" x="1040" y="264" text-anchor="middle">access VLAN 20 · untagged</text>
+
+        <path class="access10" d="M215 86 H300" marker-end="url(#vlanBlueArrow)"/>
+        <path class="access20" d="M215 246 H300" marker-end="url(#vlanGreenArrow)"/>
+        <path class="access10" d="M860 86 H945" marker-end="url(#vlanBlueArrow)"/>
+        <path class="access20" d="M860 246 H945" marker-end="url(#vlanGreenArrow)"/>
+        <text class="tiny" x="257" y="70" text-anchor="middle">untagged</text>
+        <text class="tiny" x="257" y="230" text-anchor="middle">untagged</text>
+        <text class="tiny" x="902" y="70" text-anchor="middle">untagged</text>
+        <text class="tiny" x="902" y="230" text-anchor="middle">untagged</text>
+
+        <path class="trunk" d="M495 164 H665"/>
+        <text class="label" x="580" y="126" text-anchor="middle">802.1Q trunk</text>
+        <rect class="tag10" x="505" y="185" width="66" height="34" rx="8"/>
+        <text class="packet-text" x="538" y="207" text-anchor="middle">VID 10</text>
+        <rect class="tag20" x="589" y="185" width="66" height="34" rx="8"/>
+        <text class="packet-text" x="622" y="207" text-anchor="middle">VID 20</text>
+        <text class="small" x="580" y="286" text-anchor="middle">One cable carries both VLANs, but frames remain in separate Layer-2 broadcast domains</text>
+
+        <text class="label" x="55" y="354">Ethernet frame before trunk tagging</text>
+        <g transform="translate(55 374)">
+          <rect class="frame-field packet-blue" x="0" y="0" width="150" height="64"/>
+          <rect class="frame-field packet-green" x="150" y="0" width="150" height="64"/>
+          <rect class="frame-field packet-yellow" x="300" y="0" width="105" height="64"/>
+          <rect class="frame-field packet-pink" x="405" y="0" width="425" height="64"/>
+          <rect class="frame-field packet-blue" x="830" y="0" width="100" height="64"/>
+          <g class="packet-text" text-anchor="middle"><text x="75" y="29">Destination MAC</text><text x="75" y="47">6 bytes</text><text x="225" y="29">Source MAC</text><text x="225" y="47">6 bytes</text><text x="352" y="29">EtherType</text><text x="352" y="47">2 bytes</text><text x="617" y="38">Payload</text><text x="880" y="29">FCS</text><text x="880" y="47">4 bytes</text></g>
+        </g>
+
+        <text class="label" x="55" y="500">Ethernet frame on the 802.1Q trunk</text>
+        <g transform="translate(55 520)">
+          <rect class="frame-field packet-blue" x="0" y="0" width="130" height="76"/>
+          <rect class="frame-field packet-green" x="130" y="0" width="130" height="76"/>
+          <rect class="frame-field packet-yellow" x="260" y="0" width="180" height="76"/>
+          <rect class="frame-field packet-yellow" x="440" y="0" width="92" height="76"/>
+          <rect class="frame-field packet-pink" x="532" y="0" width="310" height="76"/>
+          <rect class="frame-field packet-blue" x="842" y="0" width="88" height="76"/>
+          <g class="packet-text" text-anchor="middle"><text x="65" y="31">Destination MAC</text><text x="65" y="51">6 bytes</text><text x="195" y="31">Source MAC</text><text x="195" y="51">6 bytes</text><text x="350" y="22">802.1Q tag · 4 bytes</text><text x="350" y="43">TPID 0x8100</text><text x="350" y="64">PCP · DEI · VID 12-bit</text><text x="486" y="31">EtherType</text><text x="486" y="51">2 bytes</text><text x="687" y="44">Payload</text><text x="886" y="31">FCS</text><text x="886" y="51">4 bytes</text></g>
+        </g>
+      </svg>
+      <div class="diagram-legend"><span class="legend-item"><span class="swatch"></span>VLAN 10 path</span><span class="legend-item"><span class="swatch green"></span>VLAN 20 path</span><span class="legend-item"><span class="swatch yellow"></span>Tagged trunk</span></div>
+      <figcaption class="diagram-caption"><b>What to imagine:</b> the VLAN tag is a colored wristband attached only while the frame crosses shared infrastructure. The 12-bit VLAN ID identifies the logical LAN; it does not encrypt or authenticate the frame.</figcaption>
+    </figure>
+    <div class="card span-12">
+      <h3>Fast subnet reference</h3>
+      <table class="nat-table"><thead><tr><th>Prefix</th><th>Mask</th><th>Total addresses</th><th>Conventional usable hosts</th><th>Common use</th></tr></thead><tbody><tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td><td>Small LAN</td></tr><tr><td>/25</td><td>255.255.255.128</td><td>128</td><td>126</td><td>Split a /24 in half</td></tr><tr><td>/26</td><td>255.255.255.192</td><td>64</td><td>62</td><td>Department segment</td></tr><tr><td>/27</td><td>255.255.255.224</td><td>32</td><td>30</td><td>Small server zone</td></tr><tr><td>/28</td><td>255.255.255.240</td><td>16</td><td>14</td><td>Appliance/management segment</td></tr><tr><td>/30</td><td>255.255.255.252</td><td>4</td><td>2</td><td>Legacy point-to-point</td></tr><tr><td>/31</td><td>255.255.255.254</td><td>2</td><td>2 on point-to-point</td><td>Efficient routed link</td></tr></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="routing" class="reveal">
+  <div class="eyebrow">Choosing the next hop</div><h2>Routing and gateways</h2>
+  <p class="section-intro">A host first determines whether the destination is on-link. If not, it sends the frame to a next-hop router—usually its default gateway—while the IP destination remains the final endpoint.</p>
+  <div class="grid">
+    <div class="card span-7">
+      <h3>Route selection: longest prefix match</h3><p>Given routes for <code>10.0.0.0/8</code>, <code>10.20.0.0/16</code>, and <code>10.20.30.0/24</code>, a packet for <code>10.20.30.55</code> uses the /24 route because it is the most specific.</p>
+      <div class="flow" id="routeFlow"><span class="flow-step">Destination IP</span><span class="arrow">→</span><span class="flow-step">Policy rules</span><span class="arrow">→</span><span class="flow-step">Route table lookup</span><span class="arrow">→</span><span class="flow-step">Next hop + egress</span><span class="arrow">→</span><span class="flow-step">Neighbor resolution</span></div>
+      <button class="btn" id="animateRoute">Animate decision</button>
+      <pre><button class="copy">Copy</button>ip address show
+ip route show
+ip route get 10.20.30.55
+ip neigh show</pre>
+    </div>
+    <div class="card span-5"><h3>Gateway analogy</h3><p class="analogy"><strong>Analogy:</strong> Your apartment number works inside the complex. To reach another city, the parcel goes through the complex exit gate. The gateway is not “the internet”; it is simply the next router.</p><h4>Common failure patterns</h4><ul><li><b>Wrong mask:</b> host thinks a remote address is local and ARPs for it.</li><li><b>Missing default:</b> local subnet works, remote networks fail.</li><li><b>Asymmetric routing:</b> return traffic takes a different path; stateful devices may drop it.</li><li><b>Neighbor failure:</b> route exists, but next-hop MAC resolution fails.</li></ul></div>
+    <div class="card span-12"><h3>Decision exercise</h3><p>Host: <code>192.168.50.20/24</code>, gateway: <code>192.168.50.1</code>.</p><div class="form-row"><div class="field"><label>Destination</label><select id="destSelect"><option>192.168.50.99</option><option>192.168.51.99</option><option>8.8.8.8</option></select></div><button class="btn" id="decideRoute">Decide</button></div><div class="result" id="routeResult">Choose a destination.</div></div>
+  </div>
+</section>
+
+<section id="firewalls" class="reveal">
+  <div class="eyebrow">Policy enforcement</div><h2>Stateful vs stateless firewalling</h2>
+  <p class="section-intro">Both approaches inspect packet fields. The difference is whether the decision can use remembered connection context.</p>
+  <div class="comparison">
+    <div class="card"><h3>Stateless</h3><p>Each packet is evaluated independently against fields such as source, destination, protocol, ports and interface.</p><ul><li class="good">Simple and predictable per packet</li><li class="good">Useful for coarse filtering and some high-speed paths</li><li class="bad">Return traffic needs explicit reverse-direction rules</li><li class="bad">Cannot distinguish a legitimate reply from an unsolicited packet by state alone</li></ul><p class="analogy"><strong>Analogy:</strong> A guard checks every visitor’s visible details but keeps no visitor log.</p></div>
+    <div class="card"><h3>Stateful</h3><p>The firewall uses connection tracking metadata such as <code>new</code>, <code>established</code>, <code>related</code> and <code>invalid</code>.</p><ul><li class="good">Return traffic can be permitted with one state rule</li><li class="good">Supports NAT mappings and richer policy</li><li class="warn">Consumes memory and requires state-table capacity planning</li><li class="warn">Asymmetric paths can break assumptions</li></ul><p class="analogy"><strong>Analogy:</strong> The guard records visitors and recognizes their authorized return path.</p></div>
+  </div>
+  <div class="simulator" style="margin-top:18px"><h3>Firewall decision simulator</h3><div class="form-row"><div class="field"><label>Packet direction</label><select id="fwDirection"><option value="out">Client → Web server</option><option value="reply">Web server → Client reply</option><option value="unsolicited">Internet → Client unsolicited</option></select></div><div class="field"><label>Mode</label><select id="fwMode"><option value="stateful">Stateful</option><option value="stateless">Stateless, outbound rule only</option></select></div><button class="btn" id="runFirewall">Evaluate</button></div><div class="result" id="fwResult">Select a scenario.</div></div>
+  <div class="callout warning"><b>Operational reality:</b> Stateful does not mean “secure by default.” Rule direction, default policy, application exposure, state exhaustion, logging and change control still matter.</div>
+</section>
+
+<section id="nat" class="reveal">
+  <div class="eyebrow">Address translation</div><h2>NAT, SNAT, DNAT and MASQUERADE</h2>
+  <p class="section-intro">NAT rewrites address and sometimes port fields. It solves addressing and publishing problems; it is not a substitute for an explicit filtering policy.</p>
+  <div class="grid">
+    <div class="card span-4"><h3>SNAT</h3><p>Changes the <b>source</b> address, usually as traffic leaves a routed boundary. A fixed translated address is common.</p><p class="analogy"><strong>Analogy:</strong> Employees send mail through one corporate return address.</p><span class="badge">Common hook: postrouting</span></div>
+    <div class="card span-4"><h3>DNAT</h3><p>Changes the <b>destination</b> address or port, commonly to publish an internal service behind a public or gateway address.</p><p class="analogy"><strong>Analogy:</strong> Reception redirects the company’s main number to the correct internal extension.</p><span class="badge">Common hook: prerouting</span></div>
+    <div class="card span-4"><h3>MASQUERADE</h3><p>A dynamic-address form of source NAT that uses the current egress-interface address. Convenient for changing addresses; fixed SNAT is preferred when the address is stable.</p><p class="analogy"><strong>Analogy:</strong> The return address automatically changes to whichever branch office dispatches the parcel.</p><span class="badge">Source NAT behavior</span></div>
+
+    <figure class="diagram-figure" aria-labelledby="snatDiagramTitle">
+      <h3 id="snatDiagramTitle">SNAT image · many private clients share a public source</h3>
+      <p>The firewall changes the source tuple in <b>postrouting</b>, after the route and egress interface are known.</p>
+      <svg class="diagram-svg" viewBox="0 0 920 500" role="img" aria-labelledby="snatSvgTitle snatSvgDesc">
+        <title id="snatSvgTitle">Source NAT packet transformation</title>
+        <desc id="snatSvgDesc">A private client sends to a public web server. The firewall rewrites the private source address to its public address and remembers the mapping for the reply.</desc>
+        <defs>
+          <marker id="snatArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#60a5fa"/></marker>
+          <marker id="snatReplyArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#86efac"/></marker>
+        </defs>
+        <rect class="zone" x="25" y="35" width="245" height="350" rx="20"/>
+        <text class="label" x="147" y="73" text-anchor="middle">Private LAN</text>
+        <rect class="nodebox" x="67" y="112" width="162" height="94" rx="16"/>
+        <text class="label" x="148" y="147" text-anchor="middle">Client</text>
+        <text class="tiny" x="148" y="173" text-anchor="middle">10.10.1.10:51514</text>
+
+        <rect class="firewallbox" x="355" y="72" width="220" height="300" rx="22"/>
+        <text class="label" x="465" y="112" text-anchor="middle">Firewall / NAT</text>
+        <text class="tiny" x="465" y="141" text-anchor="middle">LAN: 10.10.1.1</text>
+        <text class="tiny" x="465" y="163" text-anchor="middle">WAN: 198.51.100.10</text>
+        <rect class="hook" x="390" y="224" width="150" height="61" rx="12"/>
+        <text class="label" x="465" y="249" text-anchor="middle" font-size="15">POSTROUTING</text>
+        <text class="tiny" x="465" y="272" text-anchor="middle">rewrite source</text>
+
+        <rect class="internetbox" x="665" y="112" width="205" height="94" rx="16"/>
+        <text class="label" x="768" y="147" text-anchor="middle">Web server</text>
+        <text class="tiny" x="768" y="173" text-anchor="middle">203.0.113.80:443</text>
+
+        <path class="link" d="M229 159 H355" marker-end="url(#snatArrow)"/>
+        <path class="link" d="M575 159 H665" marker-end="url(#snatArrow)"/>
+        <rect class="packet-blue" x="238" y="91" width="112" height="50" rx="10"/>
+        <text class="packet-text" x="294" y="111" text-anchor="middle">BEFORE</text>
+        <text class="packet-text" x="294" y="130" text-anchor="middle">src 10.10.1.10</text>
+        <rect class="packet-green" x="580" y="91" width="140" height="50" rx="10"/>
+        <text class="packet-text" x="650" y="111" text-anchor="middle">AFTER SNAT</text>
+        <text class="packet-text" x="650" y="130" text-anchor="middle">src 198.51.100.10</text>
+
+        <text class="small" x="760" y="314" text-anchor="middle">Reply targets 198.51.100.10:40001</text>
+        <path class="return-link" d="M830 332 H465 H95" marker-end="url(#snatReplyArrow)"/>
+        <text class="small" x="286" y="365" text-anchor="middle">conntrack restores destination 10.10.1.10:51514</text>
+
+        <rect class="packet-yellow" x="70" y="415" width="760" height="48" rx="11"/>
+        <text class="packet-text" x="450" y="444" text-anchor="middle">Changes: source IP and often source port · Destination service stays 203.0.113.80:443</text>
+      </svg>
+      <figcaption class="diagram-caption"><b>What to notice:</b> the public server never sees <code>10.10.1.10</code>. It sees the firewall’s public source and replies there; conntrack restores the private destination on the way back.</figcaption>
+    </figure>
+
+    <figure class="diagram-figure" aria-labelledby="dnatDiagramTitle">
+      <h3 id="dnatDiagramTitle">DNAT image · publish an internal service</h3>
+      <p>The firewall changes the destination tuple in <b>prerouting</b>, before route selection sends the packet to the internal server.</p>
+      <svg class="diagram-svg" viewBox="0 0 920 500" role="img" aria-labelledby="dnatSvgTitle dnatSvgDesc">
+        <title id="dnatSvgTitle">Destination NAT packet transformation</title>
+        <desc id="dnatSvgDesc">An external client connects to a public address. The firewall rewrites the destination to an internal server and performs reverse translation on replies.</desc>
+        <defs>
+          <marker id="dnatArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#60a5fa"/></marker>
+          <marker id="dnatReplyArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#86efac"/></marker>
+        </defs>
+        <rect class="internetbox" x="50" y="112" width="205" height="94" rx="16"/>
+        <text class="label" x="152" y="147" text-anchor="middle">External client</text>
+        <text class="tiny" x="152" y="173" text-anchor="middle">198.51.100.44:53000</text>
+
+        <rect class="firewallbox" x="350" y="62" width="225" height="310" rx="22"/>
+        <text class="label" x="463" y="102" text-anchor="middle">Firewall / NAT</text>
+        <text class="tiny" x="463" y="194" text-anchor="middle">published endpoint: 203.0.113.10:443</text>
+        <rect class="hook" x="388" y="218" width="150" height="61" rx="12"/>
+        <text class="label" x="463" y="243" text-anchor="middle" font-size="15">PREROUTING</text>
+        <text class="tiny" x="463" y="266" text-anchor="middle">rewrite destination</text>
+        <text class="small" x="463" y="315" text-anchor="middle">then route + FORWARD policy</text>
+
+        <rect class="zone" x="650" y="35" width="235" height="350" rx="20"/>
+        <text class="label" x="768" y="73" text-anchor="middle">Internal server zone</text>
+        <rect class="serverbox" x="685" y="112" width="165" height="94" rx="16"/>
+        <text class="label" x="768" y="147" text-anchor="middle">App server</text>
+        <text class="tiny" x="768" y="173" text-anchor="middle">10.20.30.40:8443</text>
+
+        <path class="link" d="M255 159 H350" marker-end="url(#dnatArrow)"/>
+        <path class="link" d="M575 159 H685" marker-end="url(#dnatArrow)"/>
+        <rect class="packet-blue" x="244" y="91" width="144" height="50" rx="10"/>
+        <text class="packet-text" x="316" y="111" text-anchor="middle">BEFORE</text>
+        <text class="packet-text" x="316" y="130" text-anchor="middle">dst 203.0.113.10:443</text>
+        <rect class="packet-green" x="570" y="91" width="150" height="50" rx="10"/>
+        <text class="packet-text" x="645" y="111" text-anchor="middle">AFTER DNAT</text>
+        <text class="packet-text" x="645" y="130" text-anchor="middle">dst 10.20.30.40:8443</text>
+
+        <text class="small" x="750" y="316" text-anchor="middle">Reply starts at 10.20.30.40:8443</text>
+        <path class="return-link" d="M830 332 H463 H95" marker-end="url(#dnatReplyArrow)"/>
+        <text class="small" x="250" y="359" text-anchor="middle">client sees source 203.0.113.10:443</text>
+
+        <rect class="packet-yellow" x="70" y="415" width="760" height="48" rx="11"/>
+        <text class="packet-text" x="450" y="444" text-anchor="middle">Changes: destination IP/port · Route uses translated destination · Filter must allow the forward</text>
+      </svg>
+      <figcaption class="diagram-caption"><b>What to notice:</b> DNAT decides where the packet should go, but it does not automatically permit access. A matching FORWARD rule and a listening internal service are still required.</figcaption>
+    </figure>
+    <div class="simulator span-12"><h3>NAT translation visualizer</h3><div class="form-row"><div class="field"><label>Translation</label><select id="natType"><option value="snat">SNAT</option><option value="dnat">DNAT</option><option value="masq">MASQUERADE</option></select></div><button class="btn" id="natGo">Translate first packet</button></div><table class="nat-table" style="margin-top:15px"><thead><tr><th>Stage</th><th>Source</th><th>Destination</th><th>Meaning</th></tr></thead><tbody id="natBody"><tr><td>Original</td><td>10.10.1.10:51514</td><td>203.0.113.80:443</td><td>Private client accesses a service</td></tr></tbody></table><div class="result" id="natNote">Choose a translation.</div></div>
+  </div>
+  <div class="callout danger"><b>Frequent misconception:</b> NAT alone is not an access-control policy. A translation can exist while filtering permits or denies the flow independently.</div>
+</section>
+
+<section id="conntrack" class="reveal">
+  <div class="eyebrow">Remembering flows</div><h2>Conntrack: the state table behind stateful filtering and NAT</h2>
+  <p class="section-intro">Linux Netfilter associates packets with tracked flows. For TCP, flags and direction help determine state; for UDP and ICMP, tracking uses protocol-specific tuples and timeouts even though UDP itself has no connection handshake.</p>
+  <div class="grid">
+    <div class="card span-7">
+      <h3>Simulated connection lifecycle</h3>
+      <div id="connTable"><div class="conn-row muted"><span>Tuple</span><span>Protocol</span><span>State</span><span>Timeout</span></div><div class="conn-row"><span>10.10.1.10:51514 → 10.10.2.20:8080</span><span>TCP</span><span id="ctState" class="state-new">NONE</span><span id="ctTimeout">—</span></div></div>
+      <div class="actions"><button class="btn" id="ctNext">Send SYN</button><button class="btn secondary" id="ctReset">Reset flow</button></div><div class="result" id="ctExplain">No tracked flow yet.</div>
+    </div>
+    <div class="card span-5"><h3>Useful commands</h3><pre><button class="copy">Copy</button>sudo conntrack -L
+sudo conntrack -E
+sudo conntrack -L -p tcp --dport 8080
+sudo sysctl net.netfilter.nf_conntrack_count
+sudo sysctl net.netfilter.nf_conntrack_max</pre><p class="muted">Exact timeout values are kernel/configuration dependent. Inspect rather than memorise a universal number.</p></div>
+    <div class="card span-12"><h3>Core state labels</h3><div class="grid"><div class="span-3"><b class="warn">NEW</b><p>Packet starts or belongs to a flow not yet seen bidirectionally.</p></div><div class="span-3"><b class="good">ESTABLISHED</b><p>Traffic is associated with a flow that has seen valid communication context.</p></div><div class="span-3"><b>RELATED</b><p>A distinct flow is associated with an existing one, such as certain control/error traffic.</p></div><div class="span-3"><b class="bad">INVALID</b><p>Packet cannot be associated reliably with a valid tracked flow.</p></div></div></div>
+  </div>
+</section>
+
+<section id="packetflow" class="reveal">
+  <div class="eyebrow">Linux Netfilter path</div><h2>Firewall packet decision flow</h2>
+  <p class="section-intro">The route decision determines which hook path is relevant. Rules are attached to base chains at hooks; table and chain names are administrator-defined.</p>
+  <div class="card">
+    <svg viewBox="0 0 1000 430" width="100%" aria-label="Netfilter packet flow diagram">
+      <defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#60a5fa"/></marker></defs>
+      <g fill="#12243a" stroke="#29415d" stroke-width="2"><rect x="30" y="170" width="120" height="58" rx="12"/><rect x="205" y="170" width="130" height="58" rx="12"/><rect x="390" y="170" width="145" height="58" rx="12"/><rect x="590" y="80" width="130" height="58" rx="12"/><rect x="590" y="260" width="130" height="58" rx="12"/><rect x="775" y="260" width="150" height="58" rx="12"/><rect x="775" y="80" width="150" height="58" rx="12"/><rect x="390" y="350" width="145" height="58" rx="12"/></g>
+      <g fill="#e8f1fb" text-anchor="middle" font-size="17"><text x="90" y="205">Ingress</text><text x="270" y="205">PREROUTING</text><text x="462" y="205">Route decision</text><text x="655" y="115">INPUT</text><text x="655" y="295">FORWARD</text><text x="850" y="295">POSTROUTING</text><text x="850" y="115">Local process</text><text x="462" y="385">OUTPUT</text></g>
+      <g stroke="#60a5fa" stroke-width="4" marker-end="url(#arrowhead)" fill="none"><path d="M150 199 H205"/><path d="M335 199 H390"/><path d="M535 190 C565 170 565 112 590 110"/><path d="M720 109 H775"/><path d="M535 210 C565 230 565 287 590 289"/><path d="M720 289 H775"/><path d="M925 289 H970"/><path d="M850 138 V350 H535"/><path d="M390 379 H350"/></g>
+      <g fill="#9fb3c8" font-size="14"><text x="548" y="145">local destination</text><text x="546" y="260">forwarded</text><text x="902" y="235">egress</text><text x="676" y="369">locally generated traffic</text></g>
+    </svg>
+    <div class="tabs"><button class="tab path-tab active" data-path="localin">Packet to this host</button><button class="tab path-tab" data-path="forward">Packet through router</button><button class="tab path-tab" data-path="localout">Locally generated</button></div>
+    <div class="flow" id="hookFlow"></div><div class="result" id="hookExplain"></div>
+  </div>
+  <div class="grid"><div class="card span-6"><h3>Filtering chains</h3><ul><li><b>input:</b> traffic delivered to a local process.</li><li><b>forward:</b> traffic routed through the host.</li><li><b>output:</b> traffic created by a local process.</li></ul></div><div class="card span-6"><h3>NAT placement</h3><ul><li><b>prerouting:</b> destination translation before route selection.</li><li><b>output:</b> destination translation for locally generated traffic when required.</li><li><b>postrouting:</b> source translation after egress selection.</li></ul></div></div>
+  <div class="callout"><b>nftables design note:</b> Unlike legacy fixed table/chain names, nftables lets you create named tables and chains. A chain participates in packet processing only when configured as a base chain with a hook, type and priority.</div>
+</section>
+
+
+<section id="toolkit" class="reveal">
+  <div class="eyebrow">Before trainees begin</div><h2>Lab readiness and trainer controls</h2>
+  <p class="section-intro">An offline browser cannot execute privileged Linux commands. This checker therefore uses a browser-safe workflow: run one probe in the Ubuntu terminal, paste its output, and receive an immediate pass/warn/fail analysis.</p>
+  <div class="readiness-grid">
+    <div class="card">
+      <h3>1 · Run this readiness probe</h3>
+      <pre><button class="copy">Copy</button>bash &lt;&lt;'NETLAB'
+set +e
+printf 'NETLAB_READINESS_V1\n'
+if [ -r /etc/os-release ]; then
+  . /etc/os-release
+  printf 'OS:%s\n' "${PRETTY_NAME:-unknown}"
+else
+  printf 'OS:unknown\n'
+fi
+for cmd in ip nft tcpdump conntrack curl python3 ss timeout; do
+  if command -v "$cmd" &gt;/dev/null 2&gt;&amp;1; then
+    printf 'CMD:%s:OK:%s\n' "$cmd" "$(command -v "$cmd")"
+  else
+    printf 'CMD:%s:MISSING\n' "$cmd"
+  fi
+done
+if sudo -n true 2&gt;/dev/null; then
+  printf 'SUDO:NONINTERACTIVE_OK\n'
+else
+  printf 'SUDO:PROMPT_OR_DENIED\n'
+fi
+probe="netlab-probe-$$"
+if sudo ip netns add "$probe" 2&gt;/tmp/netlab-probe.err; then
+  printf 'NETNS:OK\n'
+  sudo ip netns del "$probe" 2&gt;/dev/null
+else
+  printf 'NETNS:FAIL:%s\n' "$(tr '\n' ' ' &lt;/tmp/netlab-probe.err)"
+fi
+printf 'HOST_FORWARD:%s\n' "$(sysctl -n net.ipv4.ip_forward 2&gt;/dev/null || echo unknown)"
+printf 'EXISTING_NS:%s\n' "$(ip netns list 2&gt;/dev/null | tr '\n' ';')"
+printf 'NFT_LINES:%s\n' "$(sudo nft list ruleset 2&gt;/dev/null | wc -l)"
+printf 'PROXY_HTTP:%s\n' "${http_proxy:-${HTTP_PROXY:-none}}"
+printf 'PROXY_HTTPS:%s\n' "${https_proxy:-${HTTPS_PROXY:-none}}"
+printf 'NETLAB_READINESS_END\n'
+NETLAB</pre>
+      <div class="callout"><b>Missing packages:</b> on Ubuntu, install the lab tools with:<pre><button class="copy">Copy</button>sudo apt update
+sudo apt install -y iproute2 nftables tcpdump conntrack curl python3</pre></div>
+    </div>
+    <div class="card">
+      <h3>2 · Paste and analyse</h3>
+      <textarea id="readinessInput" spellcheck="false" placeholder="Paste output beginning with NETLAB_READINESS_V1 here..."></textarea>
+      <div class="actions"><button class="btn" id="runReadiness">Check my lab system</button><button class="btn secondary" id="readinessSample">Load sample</button></div>
+      <div id="readinessResult" class="result" aria-live="polite">No readiness output analysed yet.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <h3>Trainer presentation mode</h3>
+    <p>Use these controls during delivery. Keyboard shortcuts: <span class="kbd">P</span> presentation, <span class="kbd">←</span>/<span class="kbd">→</span> section navigation, <span class="kbd">Esc</span> close a focused diagram.</p>
+    <div class="trainer-toolbar">
+      <button class="btn secondary toggle-state" id="presentationToggle" aria-pressed="false">Presentation mode</button>
+      <button class="btn secondary toggle-state" id="expectedToggle" aria-pressed="false">Hide expected outputs</button>
+      <button class="btn secondary toggle-state" id="answersToggle" aria-pressed="false">Hide answers</button>
+      <button class="btn secondary toggle-state" id="largeCodeToggle" aria-pressed="false">Large command text</button>
+      <button class="btn secondary toggle-state" id="projectorToggle" aria-pressed="false">Projector contrast</button>
+      <button class="btn secondary toggle-state" id="diagramToggle" aria-pressed="false">Click diagrams to focus</button>
+    </div>
+    <div class="trainer-toolbar" style="margin-top:12px">
+      <span class="timer-display" id="trainerTimer">00:00:00</span>
+      <button class="btn" id="timerStart">Start / pause timer</button>
+      <button class="btn secondary" id="timerReset">Reset timer</button>
+      <button class="btn secondary" id="trainerResetProgress">Reset trainee progress</button>
+    </div>
+    <p class="control-note">Presentation controls alter only the current browser view. Lab commands and saved HTML content are unchanged.</p>
+  </div>
+</section>
+
+<section id="diagnostics" class="reveal">
+  <div class="eyebrow">Think like a troubleshooter</div><h2>Packet decoder and firewall decision simulator</h2>
+  <p class="section-intro">These tools connect command-line evidence to the packet journey: first decode what <code>tcpdump</code> printed, then trace the same tuple through routing, NAT, conntrack and filtering.</p>
+  <div class="simulator">
+    <h3>Interactive tcpdump line decoder</h3>
+    <div class="decoder-layout">
+      <div>
+        <textarea id="tcpdumpInput" spellcheck="false">12:10:01.100001 02:aa:aa:aa:aa:10 &gt; 02:ff:ff:ff:01:01, ethertype IPv4 (0x0800), length 74: 10.10.1.10.49514 &gt; 10.10.2.20.8080: Flags [S], seq 12345, win 64240, options [mss 1460], length 0</textarea>
+        <div class="sample-buttons">
+          <button class="btn secondary tcp-sample" data-sample="syn">TCP SYN</button>
+          <button class="btn secondary tcp-sample" data-sample="synack">SYN-ACK</button>
+          <button class="btn secondary tcp-sample" data-sample="vlan">802.1Q ICMP</button>
+          <button class="btn secondary tcp-sample" data-sample="reset">TCP reset</button>
+        </div>
+        <button class="btn" id="decodeTcpdump">Decode capture line</button>
+      </div>
+      <div id="tcpdumpDecoded" class="result" aria-live="polite">Choose a sample or paste one line from <code>tcpdump -enn -vv</code>.</div>
+    </div>
+    <div class="notice-box"><b>Scope:</b> this teaching decoder recognises common Ethernet, 802.1Q, IPv4, TCP, UDP and ICMP output. It is not a replacement for Wireshark or a full packet parser.</div>
+  </div>
+
+  <div class="simulator" style="margin-top:20px">
+    <h3>End-to-end firewall decision simulator</h3>
+    <p class="muted">Load a preset or edit the fields. The simulator shows the tuple seen at each hook, which rule counter increments, and where capture evidence should appear.</p>
+    <div class="form-row" style="margin-bottom:12px"><div class="field"><label>Preset</label><select id="decisionPreset"><option value="dnat">DNAT published service</option><option value="direct">Direct stateful HTTP</option><option value="reply">Established reply</option><option value="localin">Unsolicited traffic to firewall</option><option value="snat">Outbound SNAT</option></select></div><button class="btn secondary" id="loadDecisionPreset">Load preset</button></div>
+    <div class="decision-form">
+      <div class="field"><label>Path</label><select id="decisionPath"><option value="forward">Forwarded</option><option value="localin">To firewall itself</option><option value="localout">Generated by firewall</option></select></div>
+      <div class="field"><label>Protocol</label><select id="decisionProto"><option>TCP</option><option>UDP</option><option>ICMP</option></select></div>
+      <div class="field"><label>Conntrack state</label><select id="decisionState"><option>NEW</option><option>ESTABLISHED</option><option>RELATED</option><option>INVALID</option></select></div>
+      <div class="field"><label>Rule outcome</label><select id="decisionRule"><option value="new-http">Permit new service</option><option value="established">Permit established/related</option><option value="invalid">Drop invalid</option><option value="none">No matching allow rule</option></select></div>
+      <div class="field"><label>Source IP</label><input id="decisionSrcIp" value="10.10.1.10"></div>
+      <div class="field"><label>Source port</label><input id="decisionSrcPort" value="49514"></div>
+      <div class="field"><label>Destination IP</label><input id="decisionDstIp" value="10.10.1.1"></div>
+      <div class="field"><label>Destination port</label><input id="decisionDstPort" value="8088"></div>
+      <div class="field"><label>NAT action</label><select id="decisionNat"><option value="dnat">DNAT</option><option value="none">None</option><option value="snat">SNAT</option><option value="masq">MASQUERADE</option></select></div>
+      <div class="field"><label>Translated IP</label><input id="decisionNatIp" value="10.10.2.20"></div>
+      <div class="field"><label>Translated port</label><input id="decisionNatPort" value="8080"></div>
+      <div class="field"><label>Ingress interface</label><input id="decisionIngress" value="veth-fw-c"></div>
+    </div>
+    <div class="actions"><button class="btn" id="runDecision">Trace packet decision</button><button class="btn secondary" id="decisionReset">Reset to DNAT</button></div>
+    <div id="decisionSummary" class="result">Ready to trace the DNAT preset.</div>
+    <div id="decisionTrack" class="decision-track" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="labs" class="reveal">
+  <div class="eyebrow">Trainer-led practical</div><h2>Hands-on Ubuntu labs</h2>
+  <p class="section-intro">The labs create isolated network namespaces on one VM. This makes routing and firewall behavior visible while protecting the host’s primary network path. Every lab now includes representative expected output and comparison guidance.</p>
+  <div class="callout warning"><b>Important:</b> Keep the namespace name <code>fw</code> in every <code>nft</code> command. Running <code>sudo nft flush ruleset</code> without <code>ip netns exec fw</code> would affect the host firewall.</div>
+
+  <figure class="diagram-figure wide" aria-labelledby="labTopologyTitle">
+    <h3 id="labTopologyTitle">Lab topology image · one VM, three isolated network namespaces</h3>
+    <p>Use this picture as the shared mental model for Labs 2–5. The Ubuntu host remains outside the experiment; all routing, nftables, conntrack and NAT work happens inside namespace <code>fw</code>.</p>
+    <svg class="diagram-svg" viewBox="0 0 1120 500" role="img" aria-labelledby="labTopoSvgTitle labTopoSvgDesc">
+      <title id="labTopoSvgTitle">Client, firewall and server namespaces connected with two veth pairs</title>
+      <desc id="labTopoSvgDesc">The client namespace at 10.10.1.10 connects to firewall interface 10.10.1.1. The firewall interface 10.10.2.1 connects to server 10.10.2.20. The client and server use the firewall as their default gateway.</desc>
+      <defs>
+        <marker id="labArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#60a5fa"/></marker>
+        <marker id="labReturnArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#86efac"/></marker>
+      </defs>
+      <rect class="zone" x="20" y="25" width="1080" height="440" rx="22"/>
+      <text class="label" x="50" y="62">Ubuntu 24.04 trainee VM</text>
+      <text class="small" x="50" y="86">Host namespace and primary network are not modified by the lab ruleset</text>
+
+      <rect class="nodebox" x="55" y="125" width="260" height="250" rx="20"/>
+      <text class="label" x="185" y="165" text-anchor="middle">namespace: client</text>
+      <text class="small" x="185" y="194" text-anchor="middle">Application / curl / ping</text>
+      <rect class="packet-blue" x="92" y="223" width="186" height="54" rx="12"/>
+      <text class="packet-text" x="185" y="245" text-anchor="middle">veth-client</text>
+      <text class="packet-text" x="185" y="263" text-anchor="middle">10.10.1.10/24</text>
+      <text class="tiny" x="185" y="311" text-anchor="middle">default via 10.10.1.1</text>
+      <text class="small" x="185" y="345" text-anchor="middle">LAN A · 10.10.1.0/24</text>
+
+      <rect class="firewallbox" x="420" y="95" width="280" height="310" rx="22"/>
+      <text class="label" x="560" y="138" text-anchor="middle">namespace: fw</text>
+      <text class="small" x="560" y="165" text-anchor="middle">router + nftables + conntrack + NAT</text>
+      <rect class="packet-blue" x="450" y="209" width="112" height="57" rx="11"/>
+      <text class="packet-text" x="506" y="231" text-anchor="middle">veth-fw-c</text>
+      <text class="packet-text" x="506" y="250" text-anchor="middle">10.10.1.1</text>
+      <rect class="packet-green" x="558" y="209" width="112" height="57" rx="11"/>
+      <text class="packet-text" x="614" y="231" text-anchor="middle">veth-fw-s</text>
+      <text class="packet-text" x="614" y="250" text-anchor="middle">10.10.2.1</text>
+      <rect class="hook" x="470" y="302" width="180" height="54" rx="12"/>
+      <text class="label" x="560" y="326" text-anchor="middle" font-size="15">IP forwarding = 1</text>
+      <text class="tiny" x="560" y="346" text-anchor="middle">FORWARD · PREROUTING · POSTROUTING</text>
+
+      <rect class="serverbox" x="805" y="125" width="260" height="250" rx="20"/>
+      <text class="label" x="935" y="165" text-anchor="middle">namespace: server</text>
+      <text class="small" x="935" y="194" text-anchor="middle">Python HTTP service :8080</text>
+      <rect class="packet-green" x="842" y="223" width="186" height="54" rx="12"/>
+      <text class="packet-text" x="935" y="245" text-anchor="middle">veth-server</text>
+      <text class="packet-text" x="935" y="263" text-anchor="middle">10.10.2.20/24</text>
+      <text class="tiny" x="935" y="311" text-anchor="middle">default via 10.10.2.1</text>
+      <text class="small" x="935" y="345" text-anchor="middle">LAN B · 10.10.2.0/24</text>
+
+      <path class="link" d="M315 250 H420" marker-end="url(#labArrow)"/>
+      <path class="link" d="M700 250 H805" marker-end="url(#labArrow)"/>
+      <text class="tiny" x="368" y="232" text-anchor="middle">veth pair 1</text>
+      <text class="tiny" x="752" y="232" text-anchor="middle">veth pair 2</text>
+      <path class="return-link" d="M805 288 H700 M420 288 H315" marker-end="url(#labReturnArrow)"/>
+
+      <g class="moving-dot">
+        <circle r="8" fill="#5eead4"><animateMotion dur="5.5s" repeatCount="indefinite" path="M185 393 L560 393 L935 393 L560 393 L185 393"/></circle>
+      </g>
+      <text class="tiny" x="560" y="431" text-anchor="middle">Animated dot represents the request and reply path</text>
+    </svg>
+    <div class="visual-checks">
+      <div><b>Routing proof</b>Client reaches 10.10.2.20 only through gateway 10.10.1.1.</div>
+      <div><b>Firewall proof</b>Only namespace <code>fw</code> evaluates the FORWARD chain.</div>
+      <div><b>NAT proof</b>Lab 5 rewrites 10.10.1.1:8088 to 10.10.2.20:8080.</div>
+    </div>
+    <figcaption class="diagram-caption"><b>What to imagine:</b> three small computers are simulated inside one Ubuntu VM. The veth pairs behave like short Ethernet cables; the <code>fw</code> namespace behaves like a two-interface router/firewall.</figcaption>
+  </figure>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Lab 1 · Observe the host network</h3><div class="lab-meta"><span class="badge">20 min</span><span class="badge">Read-only</span></div></div><span>🔎</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> Identify interfaces, addresses, routes, neighbors, listening sockets and packet path clues.</p><pre><button class="copy">Copy</button>ip -br link
+ip -br address
+ip route
+ip route get 1.1.1.1
+ip neigh
+ss -lntup
+sudo nft list ruleset
+sudo conntrack -S 2>/dev/null || true</pre>
+<div class="expected-output"><h4>Expected output — representative host example</h4><p>Your interface names and addresses will differ. Compare the <b>structure and decisions</b>, not every character.</p><pre>$ ip -br link
+lo               UNKNOWN        00:00:00:00:00:00
+ens33            UP             00:0c:29:aa:bb:cc
+
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+ens33            UP             192.168.1.50/24 fe80::20c:29ff:feaa:bbcc/64
+
+$ ip route
+default via 192.168.1.1 dev ens33 proto dhcp src 192.168.1.50 metric 100
+192.168.1.0/24 dev ens33 proto kernel scope link src 192.168.1.50
+
+$ ip route get 1.1.1.1
+1.1.1.1 via 192.168.1.1 dev ens33 src 192.168.1.50 uid 1000
+    cache
+
+$ ip neigh
+192.168.1.1 dev ens33 lladdr 00:50:56:11:22:33 REACHABLE
+
+$ ss -lntup
+Netid State  Recv-Q Send-Q Local Address:Port  Peer Address:Port Process
+tcp   LISTEN 0      4096   127.0.0.53:53      0.0.0.0:*
+
+$ sudo nft list ruleset
+# Either an existing table/ruleset is printed, or no rules are printed.
+
+$ sudo conntrack -S
+cpu=0 found=0 invalid=0 insert=0 insert_failed=0 drop=0 early_drop=0 ...</pre><ul class="compare-points"><li><b>Default route:</b> contains <code>default via GATEWAY dev INTERFACE</code>.</li><li><b>Route prediction:</b> <code>ip route get</code> should name the same egress interface and a usable source IP.</li><li><b>Neighbor:</b> the gateway normally has a MAC and a state such as <code>REACHABLE</code>, <code>STALE</code> or <code>DELAY</code>.</li><li><b>Socket:</b> <code>LISTEN</code> proves a process is accepting connections; it does not prove a firewall permits access.</li></ul><p class="variable-note"><b>Acceptable variations:</b> <code>ens33</code>, <code>enp0s3</code>, <code>eth0</code>, addresses, MACs, PIDs, socket ports, neighbor state and conntrack statistics are system-specific.</p></div><div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">I identified the default route and egress interface.</label><label class="checkitem"><input class="lab-check" type="checkbox">I explained the difference between a listening socket and a firewall rule.</label><label class="checkitem"><input class="lab-check" type="checkbox">I used <code>ip route get</code> to predict one packet path.</label></div></div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Lab 2 · Build a routed three-node topology</h3><div class="lab-meta"><span class="badge">35 min</span><span class="badge">Namespaces</span></div></div><span>🧱</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> Create client → firewall/router → server, configure addressing and prove routing before filtering.</p><pre><button class="copy">Copy</button># Create namespaces
+sudo ip netns add client
+sudo ip netns add fw
+sudo ip netns add server
+
+# Create two point-to-point Ethernet links
+sudo ip link add veth-client type veth peer name veth-fw-c
+sudo ip link add veth-server type veth peer name veth-fw-s
+sudo ip link set veth-client netns client
+sudo ip link set veth-fw-c netns fw
+sudo ip link set veth-server netns server
+sudo ip link set veth-fw-s netns fw
+
+# Configure client
+sudo ip -n client link set lo up
+sudo ip -n client link set veth-client up
+sudo ip -n client addr add 10.10.1.10/24 dev veth-client
+sudo ip -n client route add default via 10.10.1.1
+
+# Configure firewall/router
+sudo ip -n fw link set lo up
+sudo ip -n fw link set veth-fw-c up
+sudo ip -n fw link set veth-fw-s up
+sudo ip -n fw addr add 10.10.1.1/24 dev veth-fw-c
+sudo ip -n fw addr add 10.10.2.1/24 dev veth-fw-s
+sudo ip netns exec fw sysctl -w net.ipv4.ip_forward=1
+
+# Configure server
+sudo ip -n server link set lo up
+sudo ip -n server link set veth-server up
+sudo ip -n server addr add 10.10.2.20/24 dev veth-server
+sudo ip -n server route add default via 10.10.2.1
+
+# Verify
+sudo ip netns exec client ping -c 2 10.10.1.1
+sudo ip netns exec client ping -c 2 10.10.2.20
+sudo ip netns exec client ip route get 10.10.2.20</pre>
+<div class="expected-output"><h4>Expected output — routed topology is working</h4><pre>$ sudo ip netns exec fw sysctl -w net.ipv4.ip_forward=1
+net.ipv4.ip_forward = 1
+
+$ sudo ip netns exec client ping -c 2 10.10.1.1
+64 bytes from 10.10.1.1: icmp_seq=1 ttl=64 time=0.0XX ms
+64 bytes from 10.10.1.1: icmp_seq=2 ttl=64 time=0.0XX ms
+--- 10.10.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss
+
+$ sudo ip netns exec client ping -c 2 10.10.2.20
+64 bytes from 10.10.2.20: icmp_seq=1 ttl=63 time=0.0XX ms
+64 bytes from 10.10.2.20: icmp_seq=2 ttl=63 time=0.0XX ms
+--- 10.10.2.20 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss
+
+$ sudo ip netns exec client ip route get 10.10.2.20
+10.10.2.20 via 10.10.1.1 dev veth-client src 10.10.1.10 uid 0
+    cache</pre><ul class="compare-points"><li>The firewall-side address <code>10.10.1.1</code> usually replies with <code>ttl=64</code> because it is local to the router namespace.</li><li>The server reply commonly arrives with <code>ttl=63</code> because the firewall routed it across one hop.</li><li>The route lookup must show <code>via 10.10.1.1 dev veth-client src 10.10.1.10</code>.</li></ul><p class="variable-note"><b>Acceptable variations:</b> round-trip time, <code>uid</code>, cache formatting and ping summary decimals can differ. The required comparison is 0% loss and the correct gateway/interface.</p></div>
+<details><summary>Why this output proves routing</summary><p>The client sees 10.10.2.20 as remote, so it sends an Ethernet frame to gateway 10.10.1.1. Namespace <code>fw</code> performs a route lookup and forwards it to 10.10.2.0/24. The server returns through 10.10.2.1.</p></details><div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">All namespace loopback and veth interfaces are UP.</label><label class="checkitem"><input class="lab-check" type="checkbox">The client can ping the server before firewall policy is installed.</label><label class="checkitem"><input class="lab-check" type="checkbox">I can draw the two subnets and both gateways.</label></div></div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Lab 3 · Compare stateless and stateful forwarding</h3><div class="lab-meta"><span class="badge">45 min</span><span class="badge">nftables</span></div></div><span>🛡️</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> See why a one-way stateless rule breaks replies, then solve it with conntrack state.</p><p>Start a web server in a separate terminal and <b>leave this terminal running through Labs 3, 4 and 5</b>:</p><pre><button class="copy">Copy</button># Terminal S — keep this process running
+sudo ip netns exec server python3 -m http.server 8080 --bind 10.10.2.20</pre>
+<div class="expected-output"><h4>Expected output — server terminal</h4><pre>Serving HTTP on 10.10.2.20 port 8080 (http://10.10.2.20:8080/) ...</pre><p>The command intentionally remains in the foreground. During each successful curl, this terminal should also log a request similar to <code>10.10.1.10 - - [date/time] "GET / HTTP/1.1" 200 -</code>.</p><p class="variable-note">Python wording and the request timestamp can differ slightly by version.</p></div><div class="callout"><b>Listener check:</b> In another terminal, confirm that the service is listening before continuing:<pre><button class="copy">Copy</button>sudo ip netns exec server ss -lntp | grep ':8080'</pre>If no line is returned, the web server is not running. Restart Terminal S. If Python reports <code>Address already in use</code>, an existing server is already listening.</div><p>Install a deliberately incomplete stateless policy:</p><pre><button class="copy">Copy</button>sudo ip netns exec fw nft flush ruleset
+sudo ip netns exec fw nft -f - &lt;&lt;'NFT'
+table inet labfw {
+  chain forward {
+    type filter hook forward priority 0; policy drop;
+    iifname "veth-fw-c" oifname "veth-fw-s" \
+      ip saddr 10.10.1.0/24 ip daddr 10.10.2.20 \
+      tcp dport 8080 accept
+  }
+}
+NFT
+
+sudo ip netns exec client curl --noproxy '*' -sS --max-time 3 \
+  -o /dev/null -w 'HTTP status: %{http_code}\n' \
+  http://10.10.2.20:8080/</pre>
+<div class="expected-output"><h4>Expected output — incomplete stateless policy</h4><pre>curl: (28) Operation timed out after 3000 milliseconds with 0 bytes received
+HTTP status: 000</pre><p>The SYN reaches the server because the forward rule allows client → server TCP/8080. The SYN-ACK or later reply is dropped by the default policy because no reverse-direction rule exists.</p><p class="variable-note"><b>Acceptable variations:</b> the timeout may report approximately 3000 ms, or curl may say “Connection timed out.” The required result is failure before receiving HTTP data.</p></div><p>The request enters, but the reply has no matching reverse rule. Replace it with a stateful policy:</p><pre><button class="copy">Copy</button>sudo ip netns exec fw nft -f - &lt;&lt;'NFT'
+flush ruleset
+table inet labfw {
+  chain forward {
+    type filter hook forward priority 0; policy drop;
+    ct state invalid drop
+    ct state established,related accept
+    iifname "veth-fw-c" oifname "veth-fw-s" \
+      ip saddr 10.10.1.0/24 ip daddr 10.10.2.20 \
+      tcp dport 8080 ct state new accept
+  }
+}
+NFT
+sudo ip netns exec client curl --noproxy '*' -sS \
+  -o /dev/null -w 'HTTP status: %{http_code}\n' \
+  http://10.10.2.20:8080/
+sudo ip netns exec fw nft list ruleset
+sudo ip netns exec fw conntrack -L -p tcp 2>/dev/null</pre>
+<div class="expected-output"><h4>Expected output — stateful policy succeeds</h4><pre>$ sudo ip netns exec server ss -lntp | grep ':8080'
+LISTEN 0 5 10.10.2.20:8080 0.0.0:* users:(("python3",pid=2148,fd=3))
+
+$ sudo ip netns exec client curl ...
+HTTP status: 200
+
+$ sudo ip netns exec fw nft list ruleset
+table inet labfw {
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state invalid drop
+        ct state established,related accept
+        iifname "veth-fw-c" oifname "veth-fw-s" ip saddr 10.10.1.0/24 ip daddr 10.10.2.20 tcp dport 8080 ct state new accept
+    }
+}
+
+$ sudo ip netns exec fw conntrack -L -p tcp
+tcp 6 1XX TIME_WAIT src=10.10.1.10 dst=10.10.2.20 sport=49XXX dport=8080 \
+    src=10.10.2.20 dst=10.10.1.10 sport=8080 dport=49XXX [ASSURED] ...</pre><ul class="compare-points"><li><code>HTTP status: 200</code> proves request and reply both crossed the firewall.</li><li>The ruleset must show <code>policy drop</code>, an <code>established,related</code> acceptance rule and a narrowly scoped <code>new</code> rule.</li><li>Conntrack should show both directions of the same flow. The state may be <code>ESTABLISHED</code>, <code>FIN_WAIT</code> or <code>TIME_WAIT</code> depending on when it is inspected.</li></ul><p class="variable-note"><b>Acceptable variations:</b> Python PID, client source port, conntrack timeout, TCP state, rule formatting and handle numbers differ.</p></div><div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">I observed the stateless timeout.</label><label class="checkitem"><input class="lab-check" type="checkbox">I proved the stateful rule permits the reply.</label><label class="checkitem"><input class="lab-check" type="checkbox">I inspected counters or conntrack state.</label></div></div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Lab 4 · Capture the packet journey</h3><div class="lab-meta"><span class="badge">30 min</span><span class="badge">tcpdump</span><span class="badge">Corrected</span></div></div><span>📡</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> Correlate TCP flags, addresses, Ethernet headers and firewall interfaces with the logical packet path.</p>
+  <div class="callout warning"><b>Important:</b> <code>tcpdump</code> waits silently until matching traffic arrives. Seeing no immediate output is normal. The HTTP server from Lab 3 must still be running, and the stateful firewall policy must still be loaded.</div>
+  <h4>Step 1 — pre-flight checks</h4><pre><button class="copy">Copy</button># Confirm the listener exists
+sudo ip netns exec server ss -lntp | grep ':8080'
+
+# Confirm the client still has a route through 10.10.1.1
+sudo ip netns exec client ip route get 10.10.2.20
+
+# Confirm direct HTTP works before starting packet capture
+sudo ip netns exec client curl --noproxy '*' -sS --max-time 5 \
+  http://10.10.2.20:8080/ &gt;/dev/null &amp;&amp; echo "HTTP pre-flight: OK"</pre>
+  <p>If the listener check returns nothing, start this in a separate terminal and keep it running:</p><pre><button class="copy">Copy</button>sudo ip netns exec server python3 -m http.server 8080 --bind 10.10.2.20</pre>
+  <h4>Step 2 — deterministic single-terminal capture</h4><p>This method starts both captures in the background, generates traffic, waits for the captures to finish, and then prints the results.</p><pre><button class="copy">Copy</button>rm -f /tmp/lab4-client-side.txt /tmp/lab4-server-side.txt
+
+sudo ip netns exec fw timeout 6 \
+  tcpdump -U -l -enn -i veth-fw-c 'tcp port 8080' \
+  &gt;/tmp/lab4-client-side.txt 2&gt;&amp;1 &amp;
+CAP_CLIENT=$!
+
+sudo ip netns exec fw timeout 6 \
+  tcpdump -U -l -enn -i veth-fw-s 'tcp port 8080' \
+  &gt;/tmp/lab4-server-side.txt 2&gt;&amp;1 &amp;
+CAP_SERVER=$!
+
+sleep 1
+sudo ip netns exec client curl --noproxy '*' -sS --max-time 5 \
+  http://10.10.2.20:8080/ &gt;/dev/null
+
+wait "$CAP_CLIENT" 2&gt;/dev/null || true
+wait "$CAP_SERVER" 2&gt;/dev/null || true
+
+echo '===== Firewall client-side interface: veth-fw-c ====='
+cat /tmp/lab4-client-side.txt
+echo
+echo '===== Firewall server-side interface: veth-fw-s ====='
+cat /tmp/lab4-server-side.txt</pre>
+  <div class="expected-output"><h4>Expected output — compare both firewall interfaces</h4><pre>===== Firewall client-side interface: veth-fw-c =====
+tcpdump: listening on veth-fw-c, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+12:10:01.100001 aa:aa:aa:aa:aa:10 &gt; aa:aa:aa:aa:aa:01, ethertype IPv4, length 74: \
+  10.10.1.10.49XXX &gt; 10.10.2.20.8080: Flags [S], seq ..., length 0
+12:10:01.100101 aa:aa:aa:aa:aa:01 &gt; aa:aa:aa:aa:aa:10, ethertype IPv4, length 74: \
+  10.10.2.20.8080 &gt; 10.10.1.10.49XXX: Flags [S.], seq ..., ack ..., length 0
+12:10:01.100150 aa:aa:aa:aa:aa:10 &gt; aa:aa:aa:aa:aa:01, ethertype IPv4, length 66: \
+  10.10.1.10.49XXX &gt; 10.10.2.20.8080: Flags [.], ack ..., length 0
+
+===== Firewall server-side interface: veth-fw-s =====
+tcpdump: listening on veth-fw-s, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+12:10:01.100020 bb:bb:bb:bb:bb:01 &gt; bb:bb:bb:bb:bb:20, ethertype IPv4, length 74: \
+  10.10.1.10.49XXX &gt; 10.10.2.20.8080: Flags [S], seq ..., length 0
+12:10:01.100080 bb:bb:bb:bb:bb:20 &gt; bb:bb:bb:bb:bb:01, ethertype IPv4, length 74: \
+  10.10.2.20.8080 &gt; 10.10.1.10.49XXX: Flags [S.], seq ..., ack ..., length 0</pre><ul class="compare-points"><li><b>IP tuple stays end-to-end:</b> client <code>10.10.1.10:49XXX</code> and server <code>10.10.2.20:8080</code> appear on both links.</li><li><b>Ethernet addresses change:</b> the client-side link uses the client/firewall veth MACs; the server-side link uses the firewall/server veth MACs.</li><li><b>Handshake:</b> <code>[S]</code> → <code>[S.]</code> → <code>[.]</code>. HTTP data packets normally follow with <code>[P.]</code>.</li><li>Each file should end with a non-zero “packets captured” summary after <code>timeout</code> stops tcpdump.</li></ul><p class="variable-note"><b>Acceptable variations:</b> timestamps, MACs, ephemeral port, sequence numbers, TCP options, packet lengths and total packet count differ. The invariant is the TCP tuple, handshake direction and MAC change between links.</p></div>
+  <details><summary>If both capture files show zero packets</summary><ol><li>Verify the listener: <code>sudo ip netns exec server ss -lntp | grep ':8080'</code>.</li><li>Verify HTTP without capture: <code>sudo ip netns exec client curl --noproxy '*' -v --max-time 5 http://10.10.2.20:8080/</code>.</li><li>Verify interface names: <code>sudo ip -n fw -br link</code>.</li><li>Verify the firewall ruleset: <code>sudo ip netns exec fw nft -a list ruleset</code>.</li><li>Capture on all firewall interfaces as a fallback: <code>sudo ip netns exec fw tcpdump -ni any 'tcp port 8080'</code>, then run curl from another terminal.</li></ol></details>
+  <div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">The HTTP pre-flight check succeeded.</label><label class="checkitem"><input class="lab-check" type="checkbox">Both capture files contain packets.</label><label class="checkitem"><input class="lab-check" type="checkbox">I found SYN, SYN-ACK and ACK.</label><label class="checkitem"><input class="lab-check" type="checkbox">I compared Ethernet headers on both firewall interfaces.</label></div></div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Lab 5 · DNAT service publishing</h3><div class="lab-meta"><span class="badge">35 min</span><span class="badge">NAT</span><span class="badge">Corrected</span></div></div><span>↪</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> Publish the internal server as <code>10.10.1.1:8088</code>, verify the translation with counters and packet capture, and observe that forward filtering sees the post-DNAT destination.</p>
+<figure class="diagram-figure wide" aria-labelledby="lab5DnatTitle"><h4 id="lab5DnatTitle">Lab 5 address transformation at a glance</h4><svg class="diagram-svg" viewBox="0 0 1040 270" role="img" aria-label="Lab 5 DNAT from 10.10.1.1 port 8088 to 10.10.2.20 port 8080"><defs><marker id="lab5Arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#60a5fa"/></marker></defs><rect class="nodebox" x="35" y="72" width="220" height="112" rx="18"/><text class="label" x="145" y="108" text-anchor="middle">client</text><text class="tiny" x="145" y="135" text-anchor="middle">10.10.1.10:49XXX</text><text class="small" x="145" y="160" text-anchor="middle">curl 10.10.1.1:8088</text><rect class="firewallbox" x="365" y="45" width="285" height="166" rx="20"/><text class="label" x="507" y="82" text-anchor="middle">fw namespace</text><text class="tiny" x="507" y="110" text-anchor="middle">PREROUTING: DNAT</text><rect class="packet-yellow" x="397" y="129" width="220" height="48" rx="11"/><text class="packet-text" x="507" y="149" text-anchor="middle">10.10.1.1:8088</text><text class="packet-text" x="507" y="168" text-anchor="middle">→ 10.10.2.20:8080</text><rect class="serverbox" x="765" y="72" width="235" height="112" rx="18"/><text class="label" x="882" y="108" text-anchor="middle">server</text><text class="tiny" x="882" y="135" text-anchor="middle">10.10.2.20:8080</text><text class="small" x="882" y="160" text-anchor="middle">Python HTTP listener</text><path class="link" d="M255 128 H365" marker-end="url(#lab5Arrow)"/><path class="link" d="M650 128 H765" marker-end="url(#lab5Arrow)"/><text class="tiny" x="310" y="109" text-anchor="middle">capture: dport 8088</text><text class="tiny" x="708" y="109" text-anchor="middle">capture: dport 8080</text><text class="small" x="520" y="242" text-anchor="middle">FORWARD rule sees the translated destination 10.10.2.20:8080</text></svg><figcaption class="diagram-caption"><b>Comparison target:</b> client-side capture shows destination port <code>8088</code>; server-side capture shows destination port <code>8080</code>.</figcaption></figure>
+  <div class="callout danger"><b>Before configuring DNAT:</b> prove that the real service is alive. A zero-millisecond <code>curl: (7) Failed to connect</code> commonly means either the Python listener is absent or the DNAT rule did not match and the firewall's local TCP stack rejected port 8088.</div>
+  <h4>Step 1 — service and routing pre-flight</h4><pre><button class="copy">Copy</button># Must return a LISTEN line
+sudo ip netns exec server ss -lntp | grep ':8080'
+
+# Must show 10.10.2.20 reachable via veth-fw-s
+sudo ip netns exec fw ip route get 10.10.2.20
+
+# Must print 1
+sudo ip netns exec fw sysctl -n net.ipv4.ip_forward
+
+# Direct service test must succeed before DNAT is attempted
+sudo ip netns exec client curl --noproxy '*' -sS --max-time 5 \
+  http://10.10.2.20:8080/ &gt;/dev/null &amp;&amp; echo "Direct service: OK"</pre>
+<div class="expected-output"><h4>Expected output — DNAT pre-flight</h4><pre>$ sudo ip netns exec server ss -lntp | grep ':8080'
+LISTEN 0 5 10.10.2.20:8080 0.0.0:* users:(("python3",pid=2148,fd=3))
+
+$ sudo ip netns exec fw ip route get 10.10.2.20
+10.10.2.20 dev veth-fw-s src 10.10.2.1 uid 0
+    cache
+
+$ sudo ip netns exec fw sysctl -n net.ipv4.ip_forward
+1
+
+$ sudo ip netns exec client curl ...
+Direct service: OK</pre><p>Do not install or debug DNAT until all four checks match these outcomes.</p><p class="variable-note">PID, <code>uid</code> and route formatting can differ. The required values are listener <code>10.10.2.20:8080</code>, egress <code>veth-fw-s</code>, forwarding <code>1</code>, and direct HTTP success.</p></div>
+  <p>If the first or last command fails, start the server in a separate terminal:</p><pre><button class="copy">Copy</button>sudo ip netns exec server python3 -m http.server 8080 --bind 10.10.2.20</pre>
+  <h4>Step 2 — install DNAT and stateful forwarding rules</h4><pre><button class="copy">Copy</button>sudo ip netns exec fw nft -f - &lt;&lt;'NFT'
+flush ruleset
+
+table inet labfw {
+  chain forward {
+    type filter hook forward priority 0; policy drop;
+    ct state invalid counter drop
+    ct state established,related counter accept
+    iifname "veth-fw-c" oifname "veth-fw-s" \
+      ip daddr 10.10.2.20 tcp dport 8080 \
+      ct state new counter accept
+  }
+}
+
+table ip labnat {
+  chain prerouting {
+    type nat hook prerouting priority dstnat; policy accept;
+    iifname "veth-fw-c" ip daddr 10.10.1.1 tcp dport 8088 \
+      counter dnat to 10.10.2.20:8080
+  }
+}
+NFT
+
+sudo ip netns exec fw nft -a list ruleset</pre>
+<div class="expected-output"><h4>Expected output — rules installed before testing</h4><pre>table inet labfw {
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state invalid counter packets 0 bytes 0 drop
+        ct state established,related counter packets 0 bytes 0 accept
+        iifname "veth-fw-c" oifname "veth-fw-s" ip daddr 10.10.2.20 tcp dport 8080 \
+            ct state new counter packets 0 bytes 0 accept
+    }
+}
+table ip labnat {
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        iifname "veth-fw-c" ip daddr 10.10.1.1 tcp dport 8088 \
+            counter packets 0 bytes 0 dnat to 10.10.2.20:8080
+    }
+}</pre><p>Before the first DNAT test, counters should normally be zero. After the test, the DNAT and forward rules must have non-zero counters.</p><p class="variable-note">nftables may print symbolic priority <code>dstnat</code> or a numeric priority, and <code>-a</code> adds variable handle numbers.</p></div>
+  <h4>Step 3 — test the published address</h4><pre><button class="copy">Copy</button>sudo ip netns exec client curl --noproxy '*' -v --max-time 5 \
+  http://10.10.1.1:8088/
+
+sudo ip netns exec fw nft list chain ip labnat prerouting
+sudo ip netns exec fw nft list chain inet labfw forward
+sudo ip netns exec fw conntrack -L -p tcp 2&gt;/dev/null | \
+  grep -E 'dport=(8088|8080)' || true</pre>
+<div class="expected-output"><h4>Expected output — published service works</h4><pre>$ sudo ip netns exec client curl --noproxy '*' -v --max-time 5 http://10.10.1.1:8088/
+*   Trying 10.10.1.1:8088...
+* Connected to 10.10.1.1 (10.10.1.1) port 8088
+&gt; GET / HTTP/1.1
+&gt; Host: 10.10.1.1:8088
+&lt; HTTP/1.0 200 OK
+&lt; Server: SimpleHTTP/...
+...
+
+$ sudo ip netns exec fw nft list chain ip labnat prerouting
+... tcp dport 8088 counter packets 1 bytes 60 dnat to 10.10.2.20:8080
+
+$ sudo ip netns exec fw nft list chain inet labfw forward
+... ct state established,related counter packets 5 bytes 7XX accept
+... tcp dport 8080 ct state new counter packets 1 bytes 60 accept
+
+$ sudo ip netns exec fw conntrack -L -p tcp | grep -E 'dport=(8088|8080)'
+tcp 6 1XX TIME_WAIT src=10.10.1.10 dst=10.10.1.1 sport=49XXX dport=8088 \
+    src=10.10.2.20 dst=10.10.1.10 sport=8080 dport=49XXX [ASSURED] ...</pre><ul class="compare-points"><li>Curl connects to the <b>published</b> endpoint <code>10.10.1.1:8088</code> and receives HTTP 200 from the internal Python server.</li><li>The DNAT rule counter must be at least 1.</li><li>The <code>new</code> forward rule and <code>established,related</code> rule must both increase.</li><li>Conntrack displays the original destination tuple with <code>dport=8088</code> and the translated reply tuple originating from <code>10.10.2.20:8080</code>.</li></ul><p class="variable-note"><b>Acceptable variations:</b> HTTP version, server header, source port, state, timeout, packet and byte counters. Treat all counter values as examples; only “non-zero” matters.</p></div>
+  <details open><summary>Why does the forward rule match 10.10.2.20:8080?</summary><p>The incoming packet first traverses the prerouting hook. DNAT rewrites <code>10.10.1.1:8088</code> to <code>10.10.2.20:8080</code> before the route decision. The forwarded packet therefore reaches the forward chain with the translated destination. Conntrack stores both the original and translated tuples so the reply can be reversed correctly.</p></details>
+  <h4>Step 4 — prove the address changes across the firewall</h4><pre><button class="copy">Copy</button>rm -f /tmp/lab5-before-dnat.txt /tmp/lab5-after-dnat.txt
+
+sudo ip netns exec fw timeout 6 \
+  tcpdump -U -l -nn -i veth-fw-c 'tcp port 8088' \
+  &gt;/tmp/lab5-before-dnat.txt 2&gt;&amp;1 &amp;
+CAP_IN=$!
+
+sudo ip netns exec fw timeout 6 \
+  tcpdump -U -l -nn -i veth-fw-s 'tcp port 8080' \
+  &gt;/tmp/lab5-after-dnat.txt 2&gt;&amp;1 &amp;
+CAP_OUT=$!
+
+sleep 1
+sudo ip netns exec client curl --noproxy '*' -sS --max-time 5 \
+  http://10.10.1.1:8088/ &gt;/dev/null
+
+wait "$CAP_IN" 2&gt;/dev/null || true
+wait "$CAP_OUT" 2&gt;/dev/null || true
+
+echo '===== Before DNAT: ingress on veth-fw-c ====='
+cat /tmp/lab5-before-dnat.txt
+echo
+echo '===== After DNAT: egress on veth-fw-s ====='
+cat /tmp/lab5-after-dnat.txt</pre>
+<div class="expected-output"><h4>Expected output — DNAT visible on the wire</h4><pre>===== Before DNAT: ingress on veth-fw-c =====
+10.10.1.10.49XXX &gt; 10.10.1.1.8088: Flags [S], ...
+10.10.1.1.8088 &gt; 10.10.1.10.49XXX: Flags [S.], ...
+
+===== After DNAT: egress on veth-fw-s =====
+10.10.1.10.49XXX &gt; 10.10.2.20.8080: Flags [S], ...
+10.10.2.20.8080 &gt; 10.10.1.10.49XXX: Flags [S.], ...</pre><ul class="compare-points"><li>On ingress, the destination is the public/published tuple <code>10.10.1.1:8088</code>.</li><li>On egress, the same client flow is rewritten to internal tuple <code>10.10.2.20:8080</code>.</li><li>For the reply, conntrack performs reverse translation: the client sees the source as <code>10.10.1.1:8088</code>, not as an unrelated server.</li></ul><p class="variable-note">The capture may contain additional ACK, HTTP data and FIN packets. Match the address/port transformation, not the exact number of lines.</p></div>
+  <details><summary>Fast diagnosis when curl still fails</summary><ol><li><b>No server listener:</b> <code>sudo ip netns exec server ss -lntp | grep ':8080'</code> returns nothing. Restart the Python server.</li><li><b>DNAT counter remains zero:</b> the packet did not match prerouting. Recheck <code>iifname</code>, destination address and destination port.</li><li><b>DNAT counter increases but forward counter remains zero:</b> inspect the translated route and rule fields with <code>nft -a list ruleset</code> and <code>ip route get 10.10.2.20</code>.</li><li><b>Both counters increase but curl fails:</b> capture on <code>veth-fw-s</code> and inspect the server listener and return route.</li><li><b>Corporate proxy variables interfere:</b> retain <code>--noproxy '*'</code> in every curl command.</li><li><b>Clear only this lab's stale test entries if required:</b> <code>sudo ip netns exec fw conntrack -D -p tcp --dport 8088 2&gt;/dev/null || true</code>, then retry.</li></ol></details>
+  <div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">The server listener and direct service test succeeded.</label><label class="checkitem"><input class="lab-check" type="checkbox">The client reached the server through 10.10.1.1:8088.</label><label class="checkitem"><input class="lab-check" type="checkbox">The DNAT and forward counters increased.</label><label class="checkitem"><input class="lab-check" type="checkbox">The ingress capture showed port 8088 and the egress capture showed port 8080.</label><label class="checkitem"><input class="lab-check" type="checkbox">I located original and reply tuples in conntrack output.</label></div></div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Extension · 802.1Q VLAN tags over a veth trunk</h3><div class="lab-meta"><span class="badge">30 min</span><span class="badge">Optional</span></div></div><span>🏷️</span></div><div class="lab-body"><p class="objective"><b>Outcome:</b> Build VLAN subinterfaces and prove that matching VLAN IDs communicate while mismatched tags remain isolated.</p><figure class="diagram-figure wide" aria-labelledby="vlanLabTitle"><h4 id="vlanLabTitle">VLAN extension topology</h4><svg class="diagram-svg" viewBox="0 0 980 270" role="img" aria-label="Two namespaces connected by a veth trunk with VLAN subinterfaces"><rect class="nodebox" x="45" y="55" width="255" height="150" rx="20"/><text class="label" x="172" y="91" text-anchor="middle">namespace pc1</text><text class="tiny" x="172" y="121" text-anchor="middle">trunk1 parent link</text><rect class="tag10" x="91" y="143" width="162" height="43" rx="10"/><text class="packet-text" x="172" y="170" text-anchor="middle">trunk1.10 · VID 10</text><rect class="nodebox" x="680" y="55" width="255" height="150" rx="20"/><text class="label" x="807" y="91" text-anchor="middle">namespace pc2</text><text class="tiny" x="807" y="121" text-anchor="middle">trunk2 parent link</text><rect class="tag10" x="726" y="143" width="162" height="43" rx="10"/><text class="packet-text" x="807" y="170" text-anchor="middle">trunk2.10 · VID 10</text><path class="trunk" d="M300 130 H680"/><text class="label" x="490" y="101" text-anchor="middle">veth trunk carries 802.1Q tag</text><rect class="tag10" x="425" y="144" width="130" height="36" rx="9"/><text class="packet-text" x="490" y="167" text-anchor="middle">0x8100 · VLAN 10</text><text class="small" x="490" y="231" text-anchor="middle">Changing only pc2 to VLAN 20 creates a tag mismatch, so frames no longer meet at the same logical Layer-2 segment.</text></svg></figure><pre><button class="copy">Copy</button>sudo ip netns add pc1
+sudo ip netns add pc2
+sudo ip link add trunk1 type veth peer name trunk2
+sudo ip link set trunk1 netns pc1
+sudo ip link set trunk2 netns pc2
+sudo ip -n pc1 link set lo up
+sudo ip -n pc2 link set lo up
+sudo ip -n pc1 link set trunk1 up
+sudo ip -n pc2 link set trunk2 up
+
+sudo ip -n pc1 link add link trunk1 name trunk1.10 type vlan id 10
+sudo ip -n pc2 link add link trunk2 name trunk2.10 type vlan id 10
+sudo ip -n pc1 addr add 192.168.10.10/24 dev trunk1.10
+sudo ip -n pc2 addr add 192.168.10.20/24 dev trunk2.10
+sudo ip -n pc1 link set trunk1.10 up
+sudo ip -n pc2 link set trunk2.10 up
+sudo ip netns exec pc1 ping -c 2 192.168.10.20
+
+# Deterministically capture VLAN-tagged traffic on the parent trunk
+rm -f /tmp/vlan10-capture.txt
+sudo ip netns exec pc1 timeout 5 \
+  tcpdump -U -l -enn -i trunk1 vlan \
+  &gt;/tmp/vlan10-capture.txt 2&gt;&amp;1 &amp;
+VLAN_CAP=$!
+sleep 1
+sudo ip netns exec pc1 ping -c 2 192.168.10.20 &gt;/dev/null
+wait "$VLAN_CAP" 2&gt;/dev/null || true
+cat /tmp/vlan10-capture.txt
+
+# Rebuild pc2 with VLAN 20 to prove tag mismatch isolation
+sudo ip -n pc2 link del trunk2.10
+sudo ip -n pc2 link add link trunk2 name trunk2.20 type vlan id 20
+sudo ip -n pc2 addr add 192.168.10.20/24 dev trunk2.20
+sudo ip -n pc2 link set trunk2.20 up
+sudo ip netns exec pc1 ping -c 2 -W 1 192.168.10.20</pre>
+<div class="expected-output"><h4>Expected output — matching and mismatched VLANs</h4><pre>$ sudo ip netns exec pc1 ping -c 2 192.168.10.20
+64 bytes from 192.168.10.20: icmp_seq=1 ttl=64 time=0.0XX ms
+64 bytes from 192.168.10.20: icmp_seq=2 ttl=64 time=0.0XX ms
+2 packets transmitted, 2 received, 0% packet loss
+
+$ cat /tmp/vlan10-capture.txt
+... ethertype 802.1Q (0x8100), vlan 10, ethertype IPv4, \
+    192.168.10.10 &gt; 192.168.10.20: ICMP echo request, id ..., seq 1
+... ethertype 802.1Q (0x8100), vlan 10, ethertype IPv4, \
+    192.168.10.20 &gt; 192.168.10.10: ICMP echo reply, id ..., seq 1
+
+$ sudo ip netns exec pc1 ping -c 2 -W 1 192.168.10.20
+From 192.168.10.10 icmp_seq=1 Destination Host Unreachable
+From 192.168.10.10 icmp_seq=2 Destination Host Unreachable
+2 packets transmitted, 0 received, +2 errors, 100% packet loss</pre><ul class="compare-points"><li>Matching VLAN 10 produces successful ICMP replies and an 802.1Q capture showing <code>vlan 10</code>.</li><li>After pc2 moves to VLAN 20, pc1 sends VLAN 10 frames but receives no VLAN 10 reply.</li></ul><p class="variable-note">Some tcpdump versions print <code>802.1Q</code>, <code>vlan 10</code and priority fields in a slightly different order. A mismatched test may show only timeout lines rather than “Host Unreachable”; 100% loss is the required outcome.</p></div><div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">VLAN 10 endpoints communicated.</label><label class="checkitem"><input class="lab-check" type="checkbox">I captured an 802.1Q tag.</label><label class="checkitem"><input class="lab-check" type="checkbox">I demonstrated mismatched VLAN isolation.</label></div></div></article>
+
+
+  <article class="lab" id="breakfixLab"><div class="lab-head"><div><h3 style="margin:0">Lab 6 · Break–fix troubleshooting challenge</h3><div class="lab-meta"><span class="badge">45 min</span><span class="badge">Diagnostic practice</span><span class="badge">Namespace-safe faults</span></div></div><span>🧯</span></div><div class="lab-body">
+    <p class="objective"><b>Outcome:</b> Diagnose a deliberately introduced failure using the troubleshooting ladder, packet captures and counters—without guessing.</p>
+    <div class="callout warning"><b>Prerequisite:</b> Labs 1–5 should be working, the server should be listening on port 8080, and the DNAT rules should be installed. Every injected fault is confined to the training namespaces or a temporary training table.</div>
+    <div class="breakfix-console">
+      <div class="challenge-card">
+        <h4>Challenge generator</h4>
+        <div class="field"><label>Choose fault</label><select id="breakFault"><option value="random">Random fault</option><option value="server">Stopped application listener</option><option value="route">Missing client default route</option><option value="forwarding">IP forwarding disabled</option><option value="state">Established replies dropped</option><option value="dnat">DNAT sends to wrong port</option></select></div>
+        <div class="actions"><button class="btn" id="breakInject">Generate challenge</button><button class="btn secondary" id="breakReveal">Reveal diagnosis and recovery</button></div>
+        <p>Challenge ID: <span id="challengeSeed" class="challenge-seed">not generated</span></p>
+        <div id="breakSymptom" class="symptom-banner">Generate a challenge after confirming the baseline works.</div>
+        <div class="hypothesis-list"><b>Before revealing the answer, record your hypothesis:</b><label><input type="radio" name="hypothesis"> Layer 1/2 or interface state</label><label><input type="radio" name="hypothesis"> Addressing, route or gateway</label><label><input type="radio" name="hypothesis"> Listener or application</label><label><input type="radio" name="hypothesis"> Forwarding, firewall or conntrack</label><label><input type="radio" name="hypothesis"> NAT translation</label></div>
+      </div>
+      <div class="challenge-card">
+        <h4>Fault injection command</h4>
+        <div id="breakInjectCommand" class="result">No fault selected.</div>
+        <h4>Observed test</h4><div id="breakTestCommand" class="result">The test command will appear here.</div>
+        <div id="breakSecret" class="challenge-secret answer-key">
+          <h4>Evidence-first diagnosis</h4><div id="breakDiagnosis"></div>
+          <h4>Recovery command</h4><div id="breakRecovery"></div>
+          <h4>Expected recovery result</h4><div id="breakExpected" class="expected-output"></div>
+        </div>
+      </div>
+    </div>
+    <div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">I proved the baseline before injecting a fault.</label><label class="checkitem"><input class="lab-check" type="checkbox">I identified the failing layer using commands or counters.</label><label class="checkitem"><input class="lab-check" type="checkbox">I restored service and repeated the original test successfully.</label><label class="checkitem"><input class="lab-check" type="checkbox">I explained why the observed symptom matched the root cause.</label></div>
+  </div></article>
+
+  <article class="lab"><div class="lab-head"><div><h3 style="margin:0">Cleanup</h3><div class="lab-meta"><span class="badge">5 min</span></div></div><span>🧹</span></div><div class="lab-body"><pre><button class="copy">Copy</button>for ns in client fw server pc1 pc2; do
+  sudo ip netns del "$ns" 2>/dev/null || true
+done
+ip netns list</pre>
+<div class="expected-output"><h4>Expected output — cleanup complete</h4><pre>$ ip netns list
+# No output when these were the only namespaces.</pre><p>If the host already had unrelated namespaces, they may still be listed. The required result is that <code>client</code>, <code>fw</code>, <code>server</code>, <code>pc1</code> and <code>pc2</code> no longer appear.</p></div><div class="checklist"><label class="checkitem"><input class="lab-check" type="checkbox">All training namespaces were removed.</label></div></div></article>
+
+  <div class="card"><h3>Troubleshooting ladder</h3><ol><li><b>Link:</b> <code>ip -n NS -br link</code> — is the interface UP?</li><li><b>Address:</b> <code>ip -n NS -br addr</code> — correct IP/prefix?</li><li><b>Route:</b> <code>ip netns exec NS ip route get DEST</code> — expected gateway/egress?</li><li><b>Neighbor:</b> <code>ip netns exec NS ip neigh</code> — resolved next hop?</li><li><b>Forwarding:</b> <code>sysctl net.ipv4.ip_forward</code> inside router namespace.</li><li><b>Rules and counters:</b> <code>nft -a list ruleset</code>.</li><li><b>State:</b> <code>conntrack -L</code>.</li><li><b>Wire truth:</b> <code>tcpdump</code> on both sides.</li><li><b>Application:</b> listening socket and service logs.</li></ol></div>
+</section>
+
+<section id="assessment" class="reveal">
+  <div class="eyebrow">Knowledge check</div><h2>Assessment</h2>
+  <div class="quiz" id="quizBox">
+    <div class="quiz-question" data-answer="b"><b>1. Which address normally changes at every routed Ethernet hop?</b><div class="options"><label class="option"><input type="radio" name="q1" value="a"> Final destination IP</label><label class="option"><input type="radio" name="q1" value="b"> Layer-2 source and destination MAC</label><label class="option"><input type="radio" name="q1" value="c"> TCP destination port</label></div><div class="feedback"></div></div>
+    <div class="quiz-question" data-answer="c"><b>2. A host 192.168.1.10/24 sends to 192.168.2.20. What happens first?</b><div class="options"><label class="option"><input type="radio" name="q2" value="a"> It ARPs directly for 192.168.2.20</label><label class="option"><input type="radio" name="q2" value="b"> It changes the destination IP to the gateway</label><label class="option"><input type="radio" name="q2" value="c"> It sends a frame to the gateway MAC while retaining the final destination IP</label></div><div class="feedback"></div></div>
+    <div class="quiz-question" data-answer="a"><b>3. Which rule most directly permits reply traffic in a stateful nftables policy?</b><div class="options"><label class="option"><input type="radio" name="q3" value="a"> ct state established,related accept</label><label class="option"><input type="radio" name="q3" value="b"> tcp flags syn accept</label><label class="option"><input type="radio" name="q3" value="c"> ip protocol tcp drop</label></div><div class="feedback"></div></div>
+    <div class="quiz-question" data-answer="b"><b>4. Why does DNAT commonly occur before the route decision?</b><div class="options"><label class="option"><input type="radio" name="q4" value="a"> To encrypt the packet</label><label class="option"><input type="radio" name="q4" value="b"> The translated destination determines where the packet should be routed</label><label class="option"><input type="radio" name="q4" value="c"> To learn the source MAC</label></div><div class="feedback"></div></div>
+    <div class="quiz-question" data-answer="c"><b>5. What is the best description of ICMP?</b><div class="options"><label class="option"><input type="radio" name="q5" value="a"> A reliable application transport</label><label class="option"><input type="radio" name="q5" value="b"> A replacement for ARP</label><label class="option"><input type="radio" name="q5" value="c"> Control and error reporting associated with IP</label></div><div class="feedback"></div></div>
+    <div class="actions"><button class="btn" id="gradeQuiz">Grade quiz</button><button class="btn secondary" id="resetQuiz">Reset</button><span class="score" id="quizScore"></span></div>
+  </div>
+  <div class="card" style="margin-top:18px"><h3>Practical assessment prompts</h3><ol><li>Given a packet capture, identify the TCP handshake and explain each flag.</li><li>Diagnose why a host with a wrong /16 mask cannot reach a nearby /24 correctly.</li><li>Write a default-drop nftables forward policy permitting client HTTP access and stateful replies.</li><li>Predict which Netfilter hooks a locally generated DNS query traverses.</li><li>Explain how DNAT and conntrack cooperate for the reply path.</li></ol></div>
+</section>
+
+<section id="reference" class="reveal">
+  <div class="eyebrow">Keep nearby</div><h2>Reference, glossary and correctness notes</h2>
+  <div class="glossary">
+    <div class="term"><b>Frame</b><br>Layer-2 unit carried on a link.</div><div class="term"><b>Packet</b><br>Layer-3 IP unit routed across networks.</div><div class="term"><b>Segment</b><br>Common term for a TCP protocol data unit.</div><div class="term"><b>Datagram</b><br>Message-oriented unit, commonly used for UDP/IP.</div><div class="term"><b>MAC address</b><br>Link-layer identifier used for local delivery.</div><div class="term"><b>Port</b><br>Transport-layer numeric identifier for an endpoint conversation.</div><div class="term"><b>VLAN</b><br>Logical Layer-2 broadcast domain.</div><div class="term"><b>Subnet</b><br>Address prefix treated as one routed network.</div><div class="term"><b>Gateway</b><br>Next-hop router used to reach non-local destinations.</div><div class="term"><b>Route</b><br>Destination prefix plus next-hop/egress decision.</div><div class="term"><b>Netfilter</b><br>Linux kernel framework for packet handling, filtering, NAT and tracking.</div><div class="term"><b>nftables</b><br>Modern ruleset framework and user-space management approach for Netfilter.</div>
+  </div>
+  <div class="grid"><div class="card span-7"><h3>Command cheat sheet</h3><pre><button class="copy">Copy</button># Interfaces and addressing
+ip -br link
+ip -br address
+
+# Routing and next hop
+ip route
+ip route get DESTINATION
+ip neigh
+
+# Listening and active sockets
+ss -lntup
+
+# Packet capture
+tcpdump -ni INTERFACE 'host IP and port PORT'
+
+# nftables
+nft list ruleset
+nft -a list ruleset
+nft -c -f /etc/nftables.conf
+
+# conntrack
+conntrack -L
+conntrack -E</pre></div><div class="card span-5"><h3>Validated scope</h3><ul><li>Uses native nftables syntax suitable for Ubuntu 24.04.</li><li>Does not mix UFW management with native nftables in the labs.</li><li>Uses namespace-contained rules to reduce host lockout risk.</li><li>Shows the classic Netfilter route/filter/NAT path; advanced flowtable offload can bypass later classic hooks after a flow is offloaded.</li><li>Uses documentation prefixes 192.0.2.0/24, 198.51.100.0/24 and 203.0.113.0/24 only in conceptual examples.</li></ul></div></div>
+  <details class="answer-key"><summary>Trainer answer: Why can ping work while the application fails?</summary><p>ICMP Echo and the application’s transport flow are separate protocols and policy matches. Routing may work while a TCP port is filtered, no process is listening, TLS fails, or the application rejects the request.</p></details>
+  <details class="answer-key"><summary>Trainer answer: Why can a firewall see ESTABLISHED before the application responds?</summary><p>Conntrack state represents the network flow’s observed packet context, not application-level success. A TCP handshake can be established even if the later HTTP request receives an error.</p></details>
+  <details class="answer-key"><summary>Trainer answer: Does a VLAN provide security?</summary><p>It provides segmentation, not complete security. Inter-VLAN routing policy, switch protections, endpoint controls, management-plane security and monitoring determine the effective security boundary.</p></details>
+  <h3 style="margin-top:28px">Primary references</h3>
+  <ul class="muted"><li>Ubuntu Security Documentation — nftables and firewall guidance.</li><li>Ubuntu Server Documentation — firewall administration.</li><li>Linux Kernel Documentation — Netfilter flowtable and conntrack interfaces.</li><li>Netfilter Project — nftables manual and conntrack documentation.</li><li>IETF RFC 2663 and RFC 3022 — NAT terminology and traditional NAT.</li></ul>
+  <p class="muted">Prepared for professional IT trainees. Conceptual examples intentionally simplify rare protocol edge cases; lab commands are designed for an isolated Ubuntu 24.04 VM.</p>
+</section>
+<footer>Session 1 · Networking and Firewall Basics · Interactive offline trainee reference · v7</footer>
+</main>
+</div>
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const storeKey='netlab-session1-progress-v2';
+function safeGet(key){try{return window.localStorage.getItem(key)}catch(e){return null}}
+function safeSet(key,value){try{window.localStorage.setItem(key,value)}catch(e){/* Progress remains session-only when local files block storage. */}}
+function safeRemove(key){try{window.localStorage.removeItem(key)}catch(e){}}
+
+// Theme
+const savedTheme=safeGet('netlab-theme'); if(savedTheme==='light') document.body.classList.add('light');
+$('#themeBtn').addEventListener('click',()=>{document.body.classList.toggle('light');safeSet('netlab-theme',document.body.classList.contains('light')?'light':'dark')});
+
+// Reading progress and active nav
+const sections=$$('main section');
+function onScroll(){const max=document.documentElement.scrollHeight-innerHeight;$('#progressBar').style.width=(max?scrollY/max*100:0)+'%';let active=sections[0].id;sections.forEach(s=>{if(s.getBoundingClientRect().top<130)active=s.id});$$('#sideNav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+active))}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.05});
+  $$('.reveal').forEach(x=>io.observe(x));
+}else{$$('.reveal').forEach(x=>x.classList.add('visible'))}
+// A final fail-safe guarantees that no section remains hidden in restricted local-file viewers.
+setTimeout(()=>$$('.reveal').forEach(x=>x.classList.add('visible')),900);
+
+// OSI details
+const layerData={
+1:['Physical layer','Moves raw bits as electrical, optical or radio signals.','Example fault: disconnected cable, damaged optic, interference, speed/duplex issue.','Firewall relevance: normally below IP filtering, but interface/link state determines whether packets arrive.'],
+2:['Data Link layer','Frames traffic for a local medium; Ethernet switching, MAC addressing and VLAN tags live here.','Example fault: wrong access VLAN, MAC learning issue, loop or MTU mismatch.','Firewall relevance: bridge-family nftables can filter Layer-2 paths; routed firewalls usually receive traffic after local-link delivery.'],
+3:['Network layer','Provides logical addressing and routing between IP networks.','Example fault: wrong prefix, missing route, TTL expiry or asymmetric routing.','Firewall relevance: source/destination IP, route decision, input/forward/output paths and ICMP controls.'],
+4:['Transport layer','Identifies endpoint conversations with ports and supplies TCP or UDP behavior.','Example fault: no listener, blocked port, handshake timeout, retransmission or application-side reset.','Firewall relevance: protocol, ports, TCP flags and conntrack state are common policy inputs.'],
+5:['Session layer','A conceptual coordination layer for establishing and managing conversations.','Example: RPC/session recovery or application dialogue state; implementations often fold this into applications/libraries.','Firewall relevance: basic packet filters usually do not understand full application session semantics.'],
+6:['Presentation layer','Transforms representation: encoding, serialization, compression and cryptographic formatting.','Example fault: certificate, cipher, character encoding or serialization mismatch.','Firewall relevance: encryption can hide payload content while leaving metadata such as addresses and ports visible.'],
+7:['Application layer','Defines protocol messages directly used by applications and users.','Example fault: HTTP 500, DNS response error, SSH authentication failure.','Firewall relevance: an open port does not prove application health; proxies/WAFs can enforce higher-layer policy.']};
+$$('#osiStack .layer').forEach(b=>b.addEventListener('click',()=>{$$('#osiStack .layer').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');const d=layerData[b.dataset.layer];$('#layerTitle').textContent=d[0];$('#layerDetail').innerHTML=`<p>${d[1]}</p><p><b>Troubleshooting:</b> ${d[2]}</p><p><b>${d[3]}</b></p>`}));
+
+// Tabs
+$$('.tab[data-tab]').forEach(t=>t.addEventListener('click',()=>{const parent=t.closest('section');$$('.tab[data-tab]',parent).forEach(x=>x.classList.remove('active'));$$('.tab-panel',parent).forEach(x=>x.classList.remove('active'));t.classList.add('active');$('#'+t.dataset.tab).classList.add('active')}));
+
+// Detailed encapsulation / decapsulation simulator
+const encapScenarios={
+  http:{name:'HTTP request over TCP',payload:'GET /status HTTP/1.1',l4:'TCP',l4pdu:'TCP segment',srcPort:'51514',dstPort:'8080',transport:'Flags PSH,ACK · Seq 1001 · Ack 5001',protocol:'IP protocol 6 (TCP)'},
+  dns:{name:'DNS query over UDP',payload:'Query: A training.example',l4:'UDP',l4pdu:'UDP datagram',srcPort:'53000',dstPort:'53',transport:'Length 38 · no handshake or transport ACK',protocol:'IP protocol 17 (UDP)'}
+};
+let encapIndex=0,encapTimer=null;
+const encapSteps=[
+  {title:'1. Application creates the message',pdu:'Application data',device:'Client application',pos:7,sender:4,receiver:null,pieces:['data'],journey:'Sender builds the protocol data unit',explain:s=>`The application creates <code>${s.payload}</code>. At this point there are no IP addresses, MAC addresses or transport ports inside the message itself.`,notice:'Troubleshooting meaning: application logs and protocol-aware tools explain this content; a basic router does not inspect it to route the packet.'},
+  {title:'2. Transport adds service identifiers',pdu:s=>s.l4pdu,device:s=>s.l4,pos:7,sender:3,receiver:null,pieces:['l4','data'],journey:'Encapsulation at the sender',explain:s=>`${s.l4} adds source port <code>${s.srcPort}</code> and destination port <code>${s.dstPort}</code>. The destination port identifies the server process; the source port identifies this client conversation.`,notice:'A firewall can now match protocol and ports. A listening port is still required at the destination.'},
+  {title:'3. IP adds end-to-end logical addresses',pdu:'IPv4 packet',device:'Client IP stack',pos:7,sender:2,receiver:null,pieces:['ip','l4','data'],journey:'Encapsulation at the sender',explain:s=>`IPv4 adds source <code>10.10.1.10</code>, destination <code>10.10.2.20</code>, TTL <code>64</code> and ${s.protocol}. A route lookup selects gateway <code>10.10.1.1</code>.`,notice:'The final destination IP remains the server. The gateway is the next hop, not a replacement destination.'},
+  {title:'4. Ethernet prepares the first local hop',pdu:'Ethernet frame',device:'Client NIC / local switch',pos:7,sender:1,receiver:null,pieces:['eth1','ip','l4','data'],journey:'Encapsulation at the sender',explain:s=>`Ethernet adds client MAC <code>02:aa:aa:aa:aa:10</code> as source and gateway MAC <code>02:ff:ff:ff:01:01</code> as destination. EtherType <code>0x0800</code> says the payload is IPv4.`,notice:'MAC addresses deliver only across this local VLAN/link. They are not carried unchanged across routers.'},
+  {title:'5. Physical layer transmits encoded bits',pdu:'Bits / signals',device:'Cable, fibre or radio',pos:29,sender:0,receiver:null,pieces:['bits'],journey:'First link: client → router',explain:s=>'The complete frame is encoded as electrical, optical or radio signals. The receiving router interface reconstructs the frame and validates the link-layer delivery.',notice:'A link failure prevents every higher layer from working. Check carrier, interface state, cabling, optics and errors first.'},
+  {title:'6. Router removes and rebuilds Layer 2',pdu:'Routed IPv4 packet',device:'Router / firewall',pos:50,sender:null,receiver:null,pieces:['ip63','l4','data'],journey:'Router processes the packet',explain:s=>`The router removes the first Ethernet header, examines destination IP <code>10.10.2.20</code>, decrements TTL from <code>64</code> to <code>63</code>, applies routing/firewall policy, and selects the server-facing interface.`,notice:'Without NAT, the IP addresses and transport ports remain unchanged. The router does not forward the original Ethernet frame.'},
+  {title:'7. Router creates a new frame for link two',pdu:'New Ethernet frame',device:'Router egress NIC / switch',pos:69,sender:null,receiver:null,pieces:['eth2','ip63','l4','data'],journey:'Second link: router → server',explain:s=>`A new Ethernet header uses router egress MAC <code>02:ff:ff:ff:02:01</code> as source and server MAC <code>02:bb:bb:bb:bb:20</code> as destination. The IP destination remains <code>10.10.2.20</code>.`,notice:'Comparing tcpdump on both router interfaces proves hop-by-hop Layer-2 rewriting and the TTL decrease.'},
+  {title:'8. Server accepts and removes Ethernet',pdu:'IPv4 packet',device:'Server NIC / link layer',pos:93,sender:null,receiver:1,pieces:['ip63','l4','data'],journey:'Decapsulation at the receiver',explain:s=>'The server NIC accepts the frame because its destination MAC matches the local interface, verifies link-layer integrity, and removes the Ethernet header/trailer.',notice:'A correct IP address is not enough when the frame reaches the wrong VLAN or wrong destination MAC.'},
+  {title:'9. Server IP stack validates the packet',pdu:s=>s.l4pdu,device:'Server IP stack',pos:93,sender:null,receiver:2,pieces:['l4','data'],journey:'Decapsulation at the receiver',explain:s=>`The server confirms that destination IP <code>10.10.2.20</code> is local, processes TTL/protocol information, and passes the payload to ${s.l4}.`,notice:'If no route or firewall decision allowed the packet to reach this host, this decapsulation step never occurs.'},
+  {title:'10. Transport finds the destination service',pdu:'Application data',device:s=>s.l4,pos:93,sender:null,receiver:3,pieces:['data'],journey:'Decapsulation at the receiver',explain:s=>`${s.l4} uses destination port <code>${s.dstPort}</code> to locate the listening process. ${s.transport}.`,notice:'“Connection refused” usually means the host responded but nothing accepted the destination TCP port; a timeout more often indicates silent loss or filtering.'},
+  {title:'11. Server application receives the message',pdu:'Application data',device:'Server application',pos:93,sender:null,receiver:4,pieces:['data'],journey:'Delivery complete',explain:s=>`The server application receives <code>${s.payload}</code> and can generate a response. The reply is encapsulated again with source/destination roles reversed.`,notice:'Network delivery success does not guarantee application success: the service can still return an error, reject authentication or process bad data.'}
+];
+function encapValue(v,s){return typeof v==='function'?v(s):v}
+function encapPiece(type,s){const labels={eth1:'Ethernet H<br>client → gateway',eth2:'Ethernet H<br>router → server',ip:'IPv4 H<br>TTL 64',ip63:'IPv4 H<br>TTL 63',l4:`${s.l4} H<br>${s.srcPort} → ${s.dstPort}`,data:'Application<br>data',bits:'10110100 01101001<br>encoded frame bits'};const cls=type.startsWith('eth')?'piece-eth':type.startsWith('ip')?'piece-ip':type==='l4'?'piece-l4':type==='data'?'piece-data':'piece-bits';return `<span class="packet-piece ${cls}">${labels[type]}</span>`}
+function updateMiniStack(id,active,side){$$('.mini-layer',$(id)).forEach(layer=>{const n=Number(layer.dataset.layer);layer.classList.toggle('active',n===active);let complete=false;if(side==='sender'&&active!==null)complete=n>active;if(side==='sender'&&active===null&&encapIndex>=5)complete=true;if(side==='receiver'&&active!==null)complete=n<active;if(side==='receiver'&&encapIndex===10)complete=true;layer.classList.toggle('complete',complete)})}
+function renderEncap(){
+  const s=encapScenarios[$('#encapScenario').value],step=encapSteps[encapIndex];
+  $('#senderAddress').innerHTML=`IP 10.10.1.10<br>MAC 02:aa:aa:aa:aa:10<br>Source port ${s.srcPort}`;
+  $('#receiverAddress').innerHTML=`IP 10.10.2.20<br>MAC 02:bb:bb:bb:bb:20<br>Service port ${s.dstPort}`;
+  $('#packetBuilder').innerHTML=step.pieces.map(x=>encapPiece(x,s)).join('');
+  $('#encapMover').style.left=step.pos+'%';$('#encapMover').textContent=encapValue(step.pdu,s).split(' ')[0].toUpperCase().slice(0,5);
+  $('#encapJourneyLabel').textContent=step.journey;$('#encapStepCount').textContent=`Step ${encapIndex+1} of ${encapSteps.length}`;$('#encapPdu').textContent='PDU: '+encapValue(step.pdu,s);$('#encapDevice').textContent='Processed by: '+encapValue(step.device,s);
+  $('#encapTitle').textContent=step.title;$('#encapExplanation').innerHTML='<p>'+step.explain(s)+'</p>';$('#encapNotice').innerHTML='<b>What to notice:</b> '+step.notice;
+  ['#encapClientNode','#encapRouterNode','#encapServerNode'].forEach(x=>$(x).classList.remove('active'));$(step.pos<40?'#encapClientNode':step.pos<80?'#encapRouterNode':'#encapServerNode').classList.add('active');
+  updateMiniStack('#senderStack',step.sender,'sender');updateMiniStack('#receiverStack',step.receiver,'receiver');
+  const eth=encapIndex<=4?'02:aa:aa:aa:aa:10 → 02:ff:ff:ff:01:01':encapIndex===5?'Removed while routing':'02:ff:ff:ff:02:01 → 02:bb:bb:bb:bb:20';
+  const ttl=encapIndex<5?'64':encapIndex===5?'64 → 63':'63';
+  $('#encapFields').innerHTML=`<tr><td>Scenario</td><td>${s.name}</td></tr><tr><td>Application content</td><td><code>${s.payload}</code></td></tr><tr><td>Transport</td><td>${s.l4} · <code>${s.srcPort} → ${s.dstPort}</code></td></tr><tr><td>IP scope</td><td><code>10.10.1.10 → 10.10.2.20</code> · TTL ${ttl}</td></tr><tr><td>Ethernet scope</td><td><code>${eth}</code></td></tr><tr><td>Current PDU</td><td>${encapValue(step.pdu,s)}</td></tr>`;
+  $('#encapPrev').disabled=encapIndex===0;$('#encapNext').textContent=encapIndex===encapSteps.length-1?'Replay from start':'Next step →';
+}
+function stopEncapAuto(){if(encapTimer){clearInterval(encapTimer);encapTimer=null;$('#encapAuto').textContent='Auto play'}}
+$('#encapNext').addEventListener('click',()=>{stopEncapAuto();encapIndex=encapIndex===encapSteps.length-1?0:encapIndex+1;renderEncap()});
+$('#encapPrev').addEventListener('click',()=>{stopEncapAuto();encapIndex=Math.max(0,encapIndex-1);renderEncap()});
+$('#encapReset').addEventListener('click',()=>{stopEncapAuto();encapIndex=0;renderEncap()});
+$('#encapScenario').addEventListener('change',()=>{stopEncapAuto();encapIndex=0;renderEncap()});
+$('#encapAuto').addEventListener('click',()=>{if(encapTimer){stopEncapAuto();return}$('#encapAuto').textContent='Pause';encapTimer=setInterval(()=>{encapIndex=(encapIndex+1)%encapSteps.length;renderEncap()},1700)});
+renderEncap();
+
+// IPv4 calculator
+function ipToInt(ip){const a=ip.trim().split('.').map(Number);if(a.length!==4||a.some(n=>!Number.isInteger(n)||n<0||n>255))throw Error('Invalid IPv4 address');return a.reduce((v,n)=>((v<<8)>>>0)+n,0)>>>0}
+function intToIp(n){return [n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.')}
+$('#calcSubnet').addEventListener('click',()=>{try{const ip=ipToInt($('#ipInput').value),p=Number($('#prefixInput').value);if(!Number.isInteger(p)||p<0||p>32)throw Error('Prefix must be 0–32');const mask=p===0?0:(0xffffffff<<(32-p))>>>0;const net=(ip&mask)>>>0,bcast=(net|(~mask>>>0))>>>0,total=2**(32-p);let usable,first,last;if(p===32){usable=1;first=last=ip}else if(p===31){usable=2;first=net;last=bcast}else{usable=Math.max(0,total-2);first=(net+1)>>>0;last=(bcast-1)>>>0}$('#subnetResult').innerHTML=`<b>Network:</b> ${intToIp(net)}/${p}<br><b>Mask:</b> ${intToIp(mask)}<br><b>Broadcast:</b> ${intToIp(bcast)}<br><b>Usable range:</b> ${intToIp(first)} – ${intToIp(last)}<br><b>Usable addresses:</b> ${usable.toLocaleString()}`;}catch(e){$('#subnetResult').innerHTML='<span class="bad">'+e.message+'</span>'}});
+
+// Routing
+$('#animateRoute').addEventListener('click',()=>{const steps=$$('#routeFlow .flow-step');steps.forEach(x=>x.classList.remove('current'));steps.forEach((x,i)=>setTimeout(()=>x.classList.add('current'),i*500));setTimeout(()=>steps.forEach(x=>x.classList.remove('current')),steps.length*500+900)});
+$('#decideRoute').addEventListener('click',()=>{const d=$('#destSelect').value;const local=d.startsWith('192.168.50.');$('#routeResult').innerHTML=local?`<b class="good">On-link.</b> ARP/neighbor discovery resolves ${d}; the Ethernet frame is sent directly to that host.`:`<b class="warn">Remote.</b> Route lookup selects the default gateway 192.168.50.1. The frame targets the gateway MAC; the IP destination stays ${d}.`});
+
+// Firewall simulator
+$('#runFirewall').addEventListener('click',()=>{const d=$('#fwDirection').value,m=$('#fwMode').value;let text;if(d==='out')text='<b class="good">ALLOW:</b> matches the outbound web rule.';else if(d==='reply'&&m==='stateful')text='<b class="good">ALLOW:</b> conntrack identifies the packet as ESTABLISHED reply traffic.';else if(d==='reply')text='<b class="bad">DROP:</b> the only stateless rule describes client → server; the reverse packet needs its own rule.';else text='<b class="bad">DROP:</b> unsolicited inbound traffic is not part of an established flow and matches no allow rule.';$('#fwResult').innerHTML=text});
+
+// NAT visualizer
+$('#natGo').addEventListener('click',()=>{const t=$('#natType').value,b=$('#natBody'),n=$('#natNote');if(t==='snat'){b.innerHTML='<tr><td>Original</td><td>10.10.1.10:51514</td><td>203.0.113.80:443</td><td>Private client</td></tr><tr><td>After SNAT</td><td>198.51.100.10:40001</td><td>203.0.113.80:443</td><td>Fixed public source</td></tr>';n.innerHTML='Conntrack remembers the original and translated tuples so the reply is reversed to 10.10.1.10:51514.'}else if(t==='dnat'){b.innerHTML='<tr><td>Original</td><td>198.51.100.44:53000</td><td>203.0.113.10:443</td><td>Public service address</td></tr><tr><td>After DNAT</td><td>198.51.100.44:53000</td><td>10.20.30.40:8443</td><td>Internal service target</td></tr>';n.innerHTML='The translated destination drives the route toward the internal server. Filtering still decides whether to permit the flow.'}else{b.innerHTML='<tr><td>Original</td><td>10.10.1.10:51514</td><td>203.0.113.80:443</td><td>Private client</td></tr><tr><td>After MASQUERADE</td><td>Current egress IP:40001</td><td>203.0.113.80:443</td><td>Uses interface address dynamically</td></tr>';n.innerHTML='MASQUERADE is useful when the egress address changes. For a stable address, explicit SNAT is usually clearer.'}});
+
+// Conntrack lifecycle
+const ctSteps=[['SYN sent','NEW','120s','The first packet creates a tracked entry. Only the original direction has been seen.'],['SYN-ACK received','ESTABLISHED','60s','A valid reply direction is observed; the flow is now recognized bidirectionally.'],['ACK + data','ESTABLISHED','5d','The TCP flow carries data. Actual timeout values vary with kernel settings and TCP state.'],['FIN exchange','ESTABLISHED','120s','The connection is closing but remains tracked temporarily.'],['Expired','NONE','—','The entry ages out and table capacity is released.']];let ctIndex=-1;
+$('#ctNext').addEventListener('click',()=>{ctIndex=(ctIndex+1)%ctSteps.length;const s=ctSteps[ctIndex];$('#ctState').textContent=s[1];$('#ctState').className=s[1]==='ESTABLISHED'?'state-est':'state-new';$('#ctTimeout').textContent=s[2];$('#ctExplain').innerHTML=`<b>${s[0]}:</b> ${s[3]}`;$('#ctNext').textContent=ctIndex===ctSteps.length-1?'Restart':'Next packet'});
+$('#ctReset').addEventListener('click',()=>{ctIndex=-1;$('#ctState').textContent='NONE';$('#ctTimeout').textContent='—';$('#ctExplain').textContent='No tracked flow yet.';$('#ctNext').textContent='Send SYN'});
+
+// Hook flow
+const paths={localin:{steps:['Ingress','PREROUTING','Route decision','INPUT','Local process'],text:'Destination belongs to this host. Forward and postrouting are not used for delivery to the local socket.'},forward:{steps:['Ingress','PREROUTING','Route decision','FORWARD','POSTROUTING','Egress'],text:'The host acts as a router/firewall. DNAT can affect route selection; SNAT commonly occurs after egress selection.'},localout:{steps:['Local process','OUTPUT','Route decision','POSTROUTING','Egress'],text:'Locally generated traffic does not traverse prerouting, input or forward.'}};
+function showPath(k){$('#hookFlow').innerHTML=paths[k].steps.map((s,i)=>`<span class="flow-step">${s}</span>${i<paths[k].steps.length-1?'<span class="arrow">→</span>':''}`).join('');$('#hookExplain').textContent=paths[k].text;const fs=$$('#hookFlow .flow-step');fs.forEach((x,i)=>setTimeout(()=>x.classList.add('current'),i*220));setTimeout(()=>fs.forEach(x=>x.classList.remove('current')),fs.length*220+800)}
+$$('.path-tab').forEach(t=>t.addEventListener('click',()=>{$$('.path-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');showPath(t.dataset.path)}));showPath('localin');
+
+
+// Version 7 trainer presentation controls
+let timerSeconds=0,timerHandle=null;
+function timerText(n){const h=String(Math.floor(n/3600)).padStart(2,'0'),m=String(Math.floor(n%3600/60)).padStart(2,'0'),s=String(n%60).padStart(2,'0');return `${h}:${m}:${s}`}
+function paintTimer(){const t=timerText(timerSeconds);$('#trainerTimer').textContent=t;$('#sessionClock').textContent=t}
+function toggleClassControl(button,cls,labelOn,labelOff){document.body.classList.toggle(cls);const on=document.body.classList.contains(cls);button.setAttribute('aria-pressed',String(on));if(labelOn)button.textContent=on?labelOn:labelOff;return on}
+function setPresentation(force){const on=force===undefined?!document.body.classList.contains('presentation'):force;document.body.classList.toggle('presentation',on);$('#presentationToggle').setAttribute('aria-pressed',String(on));$('#presentBtn').setAttribute('aria-pressed',String(on));if(on){const current=$$('main section').find(s=>{const r=s.getBoundingClientRect();return r.top<=160&&r.bottom>160})||$('main section');current?.scrollIntoView({behavior:'smooth',block:'start'})}}
+$('#presentBtn').addEventListener('click',()=>setPresentation());
+$('#presentationToggle').addEventListener('click',()=>setPresentation());
+$('#expectedToggle').addEventListener('click',e=>toggleClassControl(e.currentTarget,'hide-expected','Show expected outputs','Hide expected outputs'));
+$('#answersToggle').addEventListener('click',e=>toggleClassControl(e.currentTarget,'hide-answers','Show answers','Hide answers'));
+$('#largeCodeToggle').addEventListener('click',e=>toggleClassControl(e.currentTarget,'large-code','Normal command text','Large command text'));
+$('#projectorToggle').addEventListener('click',e=>toggleClassControl(e.currentTarget,'projector','Normal contrast','Projector contrast'));
+$('#diagramToggle').addEventListener('click',e=>toggleClassControl(e.currentTarget,'diagram-focus-mode','Stop diagram focus','Click diagrams to focus'));
+$('#timerStart').addEventListener('click',()=>{if(timerHandle){clearInterval(timerHandle);timerHandle=null}else{timerHandle=setInterval(()=>{timerSeconds++;paintTimer()},1000)}});
+$('#timerReset').addEventListener('click',()=>{if(timerHandle){clearInterval(timerHandle);timerHandle=null}timerSeconds=0;paintTimer()});paintTimer();
+$('#trainerResetProgress').addEventListener('click',()=>$('#resetBtn').click());
+function moveSection(delta){const ss=$$('main section');let index=0,best=Infinity;ss.forEach((s,i)=>{const d=Math.abs(s.getBoundingClientRect().top-75);if(d<best){best=d;index=i}});ss[Math.max(0,Math.min(ss.length-1,index+delta))].scrollIntoView({behavior:'smooth',block:'start'})}
+$('#prevSectionBtn').addEventListener('click',()=>moveSection(-1));$('#nextSectionBtn').addEventListener('click',()=>moveSection(1));
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key.toLowerCase()==='p'){e.preventDefault();setPresentation()}else if(document.body.classList.contains('presentation')&&e.key==='ArrowRight'){e.preventDefault();moveSection(1)}else if(document.body.classList.contains('presentation')&&e.key==='ArrowLeft'){e.preventDefault();moveSection(-1)}else if(e.key==='Escape'){$$('.diagram-zoomed').forEach(x=>x.classList.remove('diagram-zoomed'))}});
+$$('.diagram-figure').forEach(f=>f.addEventListener('click',e=>{if(!document.body.classList.contains('diagram-focus-mode')&&!f.classList.contains('diagram-zoomed'))return;if(e.target.closest('button,a,input,select'))return;$$('.diagram-zoomed').filter(x=>x!==f).forEach(x=>x.classList.remove('diagram-zoomed'));f.classList.toggle('diagram-zoomed')}));
+
+// Browser-safe readiness analyser
+const readinessRequired=['ip','nft','tcpdump','conntrack','curl','python3','ss','timeout'];
+$('#readinessSample').addEventListener('click',()=>{$('#readinessInput').value=`NETLAB_READINESS_V1\nOS:Ubuntu 24.04.2 LTS\nCMD:ip:OK:/usr/sbin/ip\nCMD:nft:OK:/usr/sbin/nft\nCMD:tcpdump:OK:/usr/bin/tcpdump\nCMD:conntrack:OK:/usr/sbin/conntrack\nCMD:curl:OK:/usr/bin/curl\nCMD:python3:OK:/usr/bin/python3\nCMD:ss:OK:/usr/bin/ss\nCMD:timeout:OK:/usr/bin/timeout\nSUDO:PROMPT_OR_DENIED\nNETNS:OK\nHOST_FORWARD:0\nEXISTING_NS:\nNFT_LINES:23\nPROXY_HTTP:none\nPROXY_HTTPS:none\nNETLAB_READINESS_END`});
+$('#runReadiness').addEventListener('click',()=>{const raw=$('#readinessInput').value.trim(),rows=[];if(!raw.includes('NETLAB_READINESS_V1')){ $('#readinessResult').innerHTML='<span class="bad"><b>Invalid input:</b> paste the complete readiness probe output.</span>';return }
+  const commandStatus={};raw.split(/\r?\n/).forEach(line=>{const m=line.match(/^CMD:([^:]+):(OK|MISSING)(?::(.*))?$/);if(m)commandStatus[m[1]]={ok:m[2]==='OK',path:m[3]||''}});
+  readinessRequired.forEach(c=>{const s=commandStatus[c];rows.push({level:s?.ok?'pass':'fail',name:c,message:s?.ok?`Found at ${s.path||'PATH'}`:'Missing. Install the package shown in the command panel.'})});
+  const os=(raw.match(/^OS:(.*)$/m)||[])[1]||'unknown';rows.unshift({level:/Ubuntu 24\.04/i.test(os)?'pass':/Ubuntu/i.test(os)?'warn':'warn',name:'Operating system',message:/Ubuntu 24\.04/i.test(os)?os:`${os}. Labs target Ubuntu 24.04; commands may vary.`});
+  const netns=(raw.match(/^NETNS:(.*)$/m)||[])[1]||'not reported';rows.push({level:netns.startsWith('OK')?'pass':'fail',name:'Namespaces',message:netns.startsWith('OK')?'Namespace create/delete probe succeeded.':netns});
+  const sudo=(raw.match(/^SUDO:(.*)$/m)||[])[1]||'unknown';rows.push({level:sudo==='NONINTERACTIVE_OK'?'pass':'warn',name:'sudo',message:sudo==='NONINTERACTIVE_OK'?'Non-interactive sudo works.':'A password prompt may appear, or the account may lack sudo. Confirm before class.'});
+  const nss=(raw.match(/^EXISTING_NS:(.*)$/m)||[])[1]||'';const clashes=['client','fw','server','pc1','pc2'].filter(n=>new RegExp(`(^|[;\\s])${n}([;\\s]|$)`).test(nss));rows.push({level:clashes.length?'warn':'pass',name:'Name conflicts',message:clashes.length?`Existing lab namespace names: ${clashes.join(', ')}. Run cleanup or rename them.`:'No conflicting lab namespace names found.'});
+  const proxyH=(raw.match(/^PROXY_HTTP:(.*)$/m)||[])[1]||'none',proxyS=(raw.match(/^PROXY_HTTPS:(.*)$/m)||[])[1]||'none';rows.push({level:(proxyH!=='none'||proxyS!=='none')?'warn':'pass',name:'Proxy variables',message:(proxyH!=='none'||proxyS!=='none')?'Proxy variables are set. Keep curl --noproxy \'*\' in lab commands.':'No HTTP(S) proxy variables reported.'});
+  const nft=Number((raw.match(/^NFT_LINES:(\d+)$/m)||[])[1]||0);rows.push({level:nft?'warn':'pass',name:'Host nftables',message:nft?`Host ruleset has about ${nft} lines. Labs remain namespace-contained; never omit “ip netns exec fw”.`:'No host nftables output reported.'});
+  const fails=rows.filter(r=>r.level==='fail').length,warns=rows.filter(r=>r.level==='warn').length,status=fails?'fail':warns?'warn':'pass',headline=fails?'NOT READY':warns?'READY WITH WARNINGS':'READY';
+  $('#readinessResult').innerHTML=`<div class="readiness-score ${status}">${headline}</div><div>${fails} failed · ${warns} warnings · ${rows.length-fails-warns} passed</div><div class="readiness-summary">${rows.map(r=>`<div class="readiness-row ${r.level}"><div class="status-icon">${r.level==='pass'?'✓':r.level==='warn'?'!':'✕'}</div><b>${escapeHtml(r.name)}</b><div>${escapeHtml(r.message)}</div></div>`).join('')}</div>`;
+});
+
+// tcpdump teaching decoder
+const tcpSamples={syn:'12:10:01.100001 02:aa:aa:aa:aa:10 > 02:ff:ff:ff:01:01, ethertype IPv4 (0x0800), length 74: 10.10.1.10.49514 > 10.10.2.20.8080: Flags [S], seq 12345, win 64240, options [mss 1460], length 0',synack:'12:10:01.100101 02:bb:bb:bb:bb:20 > 02:ff:ff:ff:02:01, ethertype IPv4 (0x0800), length 74: 10.10.2.20.8080 > 10.10.1.10.49514: Flags [S.], seq 9000, ack 12346, win 65160, length 0',vlan:'12:11:44.222222 02:11:22:33:44:55 > 02:66:77:88:99:aa, ethertype 802.1Q (0x8100), length 102: vlan 10, p 0, ethertype IPv4 (0x0800), 192.168.10.10 > 192.168.10.20: ICMP echo request, id 44, seq 1, length 64',reset:'12:12:05.300300 02:ff:ff:ff:01:01 > 02:aa:aa:aa:aa:10, ethertype IPv4 (0x0800), length 54: 10.10.1.1.8088 > 10.10.1.10.49514: Flags [R.], seq 0, ack 1, win 0, length 0'};
+$$('.tcp-sample').forEach(b=>b.addEventListener('click',()=>{$('#tcpdumpInput').value=tcpSamples[b.dataset.sample];$('#decodeTcpdump').click()}));
+function escapeHtml(v){return String(v??'—').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function endpointParse(line){const re=/((?:\d{1,3}\.){3}\d{1,3})(?:\.(\d+))?\s*>\s*((?:\d{1,3}\.){3}\d{1,3})(?:\.(\d+))?/g;let m,last;while((m=re.exec(line)))last=m;return last?{srcIp:last[1],srcPort:last[2]||'—',dstIp:last[3],dstPort:last[4]||'—'}:{} }
+$('#decodeTcpdump').addEventListener('click',()=>{const line=$('#tcpdumpInput').value.trim().split(/\r?\n/).find(Boolean)||'';if(!line){$('#tcpdumpDecoded').textContent='Paste a capture line first.';return}const ep=endpointParse(line),mac=line.match(/([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s*>\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})/i),flags=(line.match(/Flags \[([^\]]+)\]/)||[])[1],vlan=(line.match(/vlan\s+(\d+)/i)||[])[1],ttl=(line.match(/ttl\s+(\d+)/i)||[])[1],seq=(line.match(/\bseq\s+([^,]+)/i)||[])[1],ack=(line.match(/\back\s+([^,]+)/i)||[])[1],win=(line.match(/\bwin\s+(\d+)/i)||[])[1],len=(line.match(/\blength\s+(\d+)\s*$/i)||[])[1],eth=/802\.1Q|0x8100/i.test(line)?'802.1Q tagged Ethernet':/ethertype IPv4/i.test(line)?'Ethernet + IPv4':'Not identified';let proto=/ICMP/i.test(line)?'ICMP':flags?'TCP':/UDP/i.test(line)?'UDP':'Unknown',meaning='Packet type not confidently inferred.';
+  if(proto==='TCP'){if(flags==='S')meaning='TCP SYN: a client is requesting a new connection.';else if(flags?.includes('S')&&flags.includes('.'))meaning='TCP SYN-ACK: the server accepted the SYN and is acknowledging it.';else if(flags?.includes('R'))meaning='TCP reset: an endpoint actively rejected or aborted the connection.';else if(flags?.includes('F'))meaning='TCP FIN: an endpoint is closing the connection cleanly.';else if(flags?.includes('P'))meaning='TCP data with PSH/ACK: application bytes are being delivered.';else if(flags==='.')meaning='TCP ACK: acknowledges previously received bytes.'}
+  if(proto==='ICMP')meaning=/echo request/i.test(line)?'ICMP Echo Request: reachability probe travelling toward the target.':/echo reply/i.test(line)?'ICMP Echo Reply: target is responding to a reachability probe.':'ICMP control or error message.';
+  let direction='Unknown';const sp=Number(ep.srcPort),dp=Number(ep.dstPort);if(proto==='TCP'||proto==='UDP'){if(sp>49151&&dp>0&&dp<49152)direction='Likely client → service';else if(dp>49151&&sp>0&&sp<49152)direction='Likely service → client'}else if(/request/i.test(line))direction='Request';else if(/reply/i.test(line))direction='Reply';
+  const fields=[['Protocol',proto],['Interpretation',meaning],['Source endpoint',`${ep.srcIp||'—'}${ep.srcPort&&ep.srcPort!=='—'?':'+ep.srcPort:''}`],['Destination endpoint',`${ep.dstIp||'—'}${ep.dstPort&&ep.dstPort!=='—'?':'+ep.dstPort:''}`],['Likely direction',direction],['TCP flags',flags||'—'],['Sequence / ACK',`${seq||'—'} / ${ack||'—'}`],['Window / payload length',`${win||'—'} / ${len||'—'}`],['Source MAC',mac?.[1]||'not printed'],['Destination MAC',mac?.[2]||'not printed'],['Ethernet format',eth],['VLAN ID',vlan||'untagged / not printed'],['TTL',ttl||'not printed']];
+  $('#tcpdumpDecoded').innerHTML=`<div class="decode-grid">${fields.map(([k,v])=>`<div class="decode-field"><small>${escapeHtml(k)}</small><b>${escapeHtml(v)}</b></div>`).join('')}</div><div class="packet-meaning"><b>What this proves:</b> ${escapeHtml(meaning)} ${vlan?`The frame belongs to VLAN ${escapeHtml(vlan)}.`:''}<br><b>Remember:</b> capture location matters. Routed packets keep their IP endpoints but use different Ethernet MAC addresses on each link.</div>`;
+});
+$('#decodeTcpdump').click();
+
+// End-to-end firewall decision simulator
+const decisionPresets={dnat:{path:'forward',proto:'TCP',state:'NEW',rule:'new-http',srcIp:'10.10.1.10',srcPort:'49514',dstIp:'10.10.1.1',dstPort:'8088',nat:'dnat',natIp:'10.10.2.20',natPort:'8080',ingress:'veth-fw-c'},direct:{path:'forward',proto:'TCP',state:'NEW',rule:'new-http',srcIp:'10.10.1.10',srcPort:'49514',dstIp:'10.10.2.20',dstPort:'8080',nat:'none',natIp:'',natPort:'',ingress:'veth-fw-c'},reply:{path:'forward',proto:'TCP',state:'ESTABLISHED',rule:'established',srcIp:'10.10.2.20',srcPort:'8080',dstIp:'10.10.1.10',dstPort:'49514',nat:'none',natIp:'',natPort:'',ingress:'veth-fw-s'},localin:{path:'localin',proto:'TCP',state:'NEW',rule:'none',srcIp:'10.10.1.10',srcPort:'49999',dstIp:'10.10.1.1',dstPort:'22',nat:'none',natIp:'',natPort:'',ingress:'veth-fw-c'},snat:{path:'forward',proto:'TCP',state:'NEW',rule:'new-http',srcIp:'10.10.1.10',srcPort:'49514',dstIp:'203.0.113.80',dstPort:'443',nat:'snat',natIp:'198.51.100.10',natPort:'40001',ingress:'lan0'}};
+function loadDecision(name){const p=decisionPresets[name]||decisionPresets.dnat;Object.entries(p).forEach(([k,v])=>{const el=$(`#decision${k[0].toUpperCase()+k.slice(1)}`);if(el)el.value=v});$('#decisionSummary').textContent=`Loaded preset: ${$('#decisionPreset').selectedOptions[0]?.textContent||name}.`}
+$('#loadDecisionPreset').addEventListener('click',()=>loadDecision($('#decisionPreset').value));$('#decisionReset').addEventListener('click',()=>{$('#decisionPreset').value='dnat';loadDecision('dnat');$('#decisionTrack').innerHTML=''});
+function tupleText(t){return `${t.srcIp}${t.srcPort?':'+t.srcPort:''} → ${t.dstIp}${t.dstPort?':'+t.dstPort:''}`}
+$('#runDecision').addEventListener('click',()=>{const v=id=>$(id).value.trim(),path=v('#decisionPath'),proto=v('#decisionProto'),state=v('#decisionState'),rule=v('#decisionRule'),nat=v('#decisionNat'),ingress=v('#decisionIngress');let tuple={srcIp:v('#decisionSrcIp'),srcPort:proto==='ICMP'?'':v('#decisionSrcPort'),dstIp:v('#decisionDstIp'),dstPort:proto==='ICMP'?'':v('#decisionDstPort')},steps=[];
+  if(path!=='localout')steps.push({name:'Ingress',detail:`Frame arrives on ${ingress}. tcpdump here sees the original tuple.`,tuple:{...tuple},counter:'Interface RX counter increases.'});
+  if(path!=='localout'){if(nat==='dnat'){steps.push({name:'PREROUTING / DNAT',detail:`Destination is rewritten before routing: ${tuple.dstIp}:${tuple.dstPort} → ${v('#decisionNatIp')}:${v('#decisionNatPort')}.`,tuple:{...tuple},counter:'DNAT rule counter +1'});tuple.dstIp=v('#decisionNatIp');tuple.dstPort=v('#decisionNatPort')}else steps.push({name:'PREROUTING',detail:'No destination NAT rule matches. Tuple is unchanged.',tuple:{...tuple},counter:'Matching prerouting counters only.'})}
+  const routeName=path==='localin'?'INPUT':path==='localout'?'OUTPUT':'FORWARD';steps.push({name:'Route decision',detail:path==='localin'?'Destination belongs to the firewall; select INPUT.':path==='localout'?'Packet originates locally; select OUTPUT and an egress route.':`Destination is remote; select FORWARD and the egress interface ${tuple.dstIp.startsWith('10.10.2.')?'veth-fw-s':'selected by routing table'}.`,tuple:{...tuple},counter:'Route lookup; no filter verdict yet.'});
+  let accept=(rule==='established'&&(state==='ESTABLISHED'||state==='RELATED'))||(rule==='new-http'&&state==='NEW') ;if(rule==='invalid'||state==='INVALID')accept=false;const verdict=accept?'ACCEPT':'DROP';steps.push({name:`${routeName} filter`,detail:accept?`Rule “${rule}” matches state ${state}; packet is accepted.`:`No valid allow rule matches state ${state}; policy/rule drops the packet.`,tuple:{...tuple},counter:`${rule||'policy'} counter +1`,verdict});
+  if(accept&&path!=='localin'){if(nat==='snat'||nat==='masq'){const old=`${tuple.srcIp}:${tuple.srcPort}`,newIp=nat==='masq'?'current egress IP':v('#decisionNatIp');tuple.srcIp=newIp;tuple.srcPort=v('#decisionNatPort')||tuple.srcPort;steps.push({name:`POSTROUTING / ${nat==='snat'?'SNAT':'MASQUERADE'}`,detail:`Source changes after route selection: ${old} → ${tuple.srcIp}:${tuple.srcPort}.`,tuple:{...tuple},counter:`${nat.toUpperCase()} counter +1`})}else steps.push({name:'POSTROUTING',detail:'No source translation is applied. The filtered tuple is retained.',tuple:{...tuple},counter:'Matching postrouting counters only.'});steps.push({name:'Egress',detail:'A new Ethernet frame is built for the selected next hop. Capture on the egress interface sees this final tuple.',tuple:{...tuple},counter:'Interface TX counter increases.'})}
+  $('#decisionTrack').innerHTML=steps.map((s,i)=>`<div class="decision-step ${s.verdict==='DROP'?'drop':s.verdict==='ACCEPT'?'accept':''}"><div class="decision-num">${i+1}</div><div><b>${escapeHtml(s.name)}</b>${s.verdict?`<br><span class="${s.verdict==='ACCEPT'?'good':'bad'}">${s.verdict}</span>`:''}</div><div>${escapeHtml(s.detail)}<div class="tuple">${escapeHtml(tupleText(s.tuple))}</div></div><div class="counter-hit">${escapeHtml(s.counter)}</div></div>`).join('');$$('#decisionTrack .decision-step').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*220));$('#decisionSummary').innerHTML=`<b class="${accept?'good':'bad'}">Final verdict: ${verdict}</b> · ${accept?`packet leaves with tuple <code>${escapeHtml(tupleText(tuple))}</code>`:'processing stops at the filter verdict; no egress packet exists.'}`;
+});loadDecision('dnat');
+
+// Break-fix challenge generator
+const breakFaults={server:{title:'Stopped application listener',symptom:'Direct and DNAT curl tests fail immediately with “Connection refused” or curl error 7.',inject:`sudo ip netns exec server pkill -f 'python3 -m http.server 8080' || true`,test:`sudo ip netns exec client curl --noproxy '*' -v --max-time 3 http://10.10.2.20:8080/`,diagnosis:`Start at the service layer: <code>sudo ip netns exec server ss -lntp | grep ':8080'</code> returns no line. Routing and firewall counters may still be correct; there is simply no socket accepting TCP/8080.`,recovery:`sudo ip netns exec server sh -c 'nohup python3 -m http.server 8080 --bind 10.10.2.20 >/tmp/http8080.log 2>&1 &amp;'`,expected:`<pre>LISTEN ... 10.10.2.20:8080 ...\nHTTP status: 200</pre>`},route:{title:'Missing client default route',symptom:'The client reports “Network is unreachable” when reaching 10.10.2.20.',inject:`sudo ip -n client route del default`,test:`sudo ip netns exec client ip route get 10.10.2.20\nsudo ip netns exec client ping -c 1 10.10.2.20`,diagnosis:`<code>ip route get</code> fails before any packet reaches the firewall. Therefore nftables and conntrack counters remain unchanged. This is a Layer-3 next-hop problem on the source host.`,recovery:`sudo ip -n client route replace default via 10.10.1.1`,expected:`<pre>10.10.2.20 via 10.10.1.1 dev veth-client src 10.10.1.10\n1 packets transmitted, 1 received, 0% packet loss</pre>`},forwarding:{title:'IP forwarding disabled',symptom:'The client can ping 10.10.1.1, but routed traffic to 10.10.2.20 times out.',inject:`sudo ip netns exec fw sysctl -w net.ipv4.ip_forward=0`,test:`sudo ip netns exec fw sysctl -n net.ipv4.ip_forward\nsudo ip netns exec client curl --noproxy '*' --max-time 3 http://10.10.2.20:8080/`,diagnosis:`Both firewall interfaces are up and routes exist, but the kernel is not acting as a router. The forwarding sysctl prints <code>0</code>; FORWARD-chain counters may not show the expected accepted flow.`,recovery:`sudo ip netns exec fw sysctl -w net.ipv4.ip_forward=1`,expected:`<pre>net.ipv4.ip_forward = 1\nHTTP status: 200</pre>`},state:{title:'Established replies dropped',symptom:'The SYN reaches the server, but curl times out because the SYN-ACK is discarded.',inject:`sudo ip netns exec fw nft delete table inet breakfix 2>/dev/null || true\nsudo ip netns exec fw nft -f - &lt;&lt;'NFT'\ntable inet breakfix {\n  chain forward {\n    type filter hook forward priority -10; policy accept;\n    iifname "veth-fw-s" ct state established counter drop\n  }\n}\nNFT`,test:`sudo ip netns exec client curl --noproxy '*' --max-time 3 http://10.10.2.20:8080/\nsudo ip netns exec fw nft -a list table inet breakfix`,diagnosis:`Capture shows client SYN on both interfaces and server SYN-ACK on <code>veth-fw-s</code>, but no SYN-ACK leaves <code>veth-fw-c</code>. The temporary drop counter increases for established reply traffic.`,recovery:`sudo ip netns exec fw nft delete table inet breakfix`,expected:`<pre>HTTP status: 200\n# table inet breakfix no longer exists</pre>`},dnat:{title:'DNAT sends to wrong port',symptom:'The published address matches DNAT, but the translated connection is refused on server port 9090.',inject:`sudo ip netns exec fw nft delete table ip breaknat 2>/dev/null || true\nsudo ip netns exec fw nft -f - &lt;&lt;'NFT'\ntable ip breaknat {\n  chain prerouting {\n    type nat hook prerouting priority -110; policy accept;\n    iifname "veth-fw-c" ip daddr 10.10.1.1 tcp dport 8088 counter dnat to 10.10.2.20:9090\n  }\n}\nNFT`,test:`sudo ip netns exec client curl --noproxy '*' -v --max-time 3 http://10.10.1.1:8088/\nsudo ip netns exec fw nft -a list table ip breaknat`,diagnosis:`The early DNAT counter increases and the server-side capture shows destination port <code>9090</code>. No application listens there. This proves translation occurred, but to the wrong service tuple.`,recovery:`sudo ip netns exec fw nft delete table ip breaknat`,expected:`<pre>HTTP status: 200\n# server-side tcpdump again shows dport 8080</pre>`}};
+let activeBreak=null;
+function dynamicPre(code){return `<pre><button class="copy dynamic">Copy</button>${escapeHtml(code)}</pre>`}
+$('#breakInject').addEventListener('click',()=>{let key=$('#breakFault').value;if(key==='random'){const keys=Object.keys(breakFaults);key=keys[Math.floor(Math.random()*keys.length)]}activeBreak=key;const f=breakFaults[key],seed=`BF-${Date.now().toString(36).slice(-5).toUpperCase()}`;$('#challengeSeed').textContent=seed;$('#breakSymptom').innerHTML=`<b>${escapeHtml(f.title)}</b><br>${escapeHtml(f.symptom)}`;$('#breakInjectCommand').innerHTML=dynamicPre(f.inject);$('#breakTestCommand').innerHTML=dynamicPre(f.test);$('#breakDiagnosis').innerHTML='Hidden until you reveal the recovery.';$('#breakRecovery').innerHTML='';$('#breakExpected').innerHTML='';$('#breakSecret').classList.remove('revealed')});
+$('#breakReveal').addEventListener('click',()=>{if(!activeBreak){$('#breakSymptom').innerHTML='<b>Generate a challenge first.</b>';return}const f=breakFaults[activeBreak];$('#breakDiagnosis').innerHTML=f.diagnosis;$('#breakRecovery').innerHTML=dynamicPre(f.recovery);$('#breakExpected').innerHTML=f.expected;$('#breakSecret').classList.add('revealed')});
+document.addEventListener('click',async e=>{const btn=e.target.closest('.copy.dynamic');if(!btn)return;const pre=btn.closest('pre'),clone=pre.cloneNode(true);clone.querySelector('.copy')?.remove();try{await navigator.clipboard.writeText(clone.textContent.trim());btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)}catch{btn.textContent='Select manually'}});
+
+
+// Code copy
+$$('pre').forEach(pre=>{const btn=$('.copy',pre);if(btn)btn.addEventListener('click',async()=>{const text=pre.cloneNode(true);const copyInClone=$('.copy',text);if(copyInClone)copyInClone.remove();try{await navigator.clipboard.writeText(text.textContent.trim());btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)}catch{btn.textContent='Select manually'}})});
+
+// Persistent checklist progress
+const checks=$$('.lab-check');let saved=[];try{const raw=safeGet(storeKey);saved=raw?JSON.parse(raw):[]}catch(e){saved=[]}
+checks.forEach((c,i)=>{c.checked=!!saved[i];c.closest('.checkitem').classList.toggle('done',c.checked);c.addEventListener('change',saveChecks)});
+function saveChecks(){const vals=checks.map(c=>c.checked);safeSet(storeKey,JSON.stringify(vals));checks.forEach(c=>c.closest('.checkitem').classList.toggle('done',c.checked));const pct=vals.length?Math.round(vals.filter(Boolean).length/vals.length*100):0;$('#labProgress').textContent=pct+'%'}saveChecks();
+$('#resetBtn').addEventListener('click',()=>{safeRemove(storeKey);checks.forEach(c=>c.checked=false);saveChecks()});
+
+// Quiz
+$('#gradeQuiz').addEventListener('click',()=>{let score=0;$$('.quiz-question').forEach(q=>{const chosen=$('input:checked',q),ok=chosen&&chosen.value===q.dataset.answer;score+=ok?1:0;$('.feedback',q).innerHTML=ok?'<span class="good">Correct</span>':'<span class="bad">Review this concept</span>'});$('#quizScore').textContent=`${score}/5 · ${score>=4?'Competent':score>=3?'Developing':'Revisit the packet journey'}`});
+$('#resetQuiz').addEventListener('click',()=>{$$('#quizBox input').forEach(i=>i.checked=false);$$('#quizBox .feedback').forEach(x=>x.textContent='');$('#quizScore').textContent=''});
+</script>
+</body>
+</html>
