@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="dark light" name="color-scheme"/>
+<meta content="#07111f" name="theme-color"/>
+<meta content="Interactive TCP and UDP reference with handshakes, transfer, termination, recovery, packet analysis, fault injection, QUIC, calculators, security and Ubuntu labs." name="description"/>
+<title>TCP &amp; UDP — Interactive Protocol Reference and Practical Lab</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#07111f;--bg2:#0d1b2a;--panel:#10233a;--panel2:#132b46;--text:#eaf4ff;--muted:#a9bfd4;
+  --accent:#47c2ff;--accent2:#68e0b4;--warn:#ffca64;--bad:#ff7373;--good:#68e0b4;--line:#294965;
+  --shadow:0 18px 48px rgba(0,0,0,.28);--radius:18px;--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f3f7fb;--bg2:#e7f0f7;--panel:#fff;--panel2:#f7fbff;--text:#132438;--muted:#50677d;
+  --accent:#0077b6;--accent2:#008f6b;--warn:#a96b00;--bad:#c43838;--good:#087b5d;--line:#c8d7e5;
+  --shadow:0 14px 35px rgba(35,65,90,.12)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;overflow-x:hidden;background:radial-gradient(circle at 20% 0%,rgba(71,194,255,.11),transparent 30%),linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.62}
+button,input,select{font:inherit}button{cursor:pointer}.skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;z-index:100;background:var(--panel);padding:.8rem 1rem;border-radius:8px;color:var(--text)}
+header.hero{padding:5rem max(1.2rem,calc((100vw - 1180px)/2)) 3.5rem;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:2rem;align-items:center}.eyebrow{letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);font-weight:800;font-size:.8rem}.hero h1{font-size:clamp(2.4rem,6vw,5.5rem);line-height:.95;margin:.5rem 0 1rem;letter-spacing:-.05em}.hero p{font-size:1.12rem;color:var(--muted);max-width:760px}.hero-actions,.toolbar,.sim-controls{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:.72rem 1rem;border-radius:12px;font-weight:750;transition:.2s}.btn:hover,.btn:focus-visible{transform:translateY(-2px);border-color:var(--accent);outline:none}.btn.primary{background:linear-gradient(135deg,var(--accent),#6a7cff);color:#04101a;border:0}.btn.good{background:var(--accent2);color:#051611;border:0}.btn.warn{background:var(--warn);color:#211300;border:0}.hero-art{min-height:330px;background:linear-gradient(145deg,rgba(71,194,255,.08),rgba(104,224,180,.05));border:1px solid var(--line);border-radius:28px;padding:1rem;box-shadow:var(--shadow)}
+.packet-orbit{position:relative;height:300px}.host{position:absolute;width:118px;height:118px;border:2px solid var(--accent);border-radius:24px;display:grid;place-items:center;text-align:center;background:var(--panel);box-shadow:var(--shadow);font-weight:800}.host.client{left:2%;top:92px}.host.server{right:2%;top:92px}.road{position:absolute;left:22%;right:22%;top:148px;height:4px;background:repeating-linear-gradient(90deg,var(--line) 0 14px,transparent 14px 25px)}.orbit-packet{position:absolute;top:118px;left:23%;padding:.55rem .75rem;background:var(--accent);color:#05111c;border-radius:9px;font-family:var(--mono);font-weight:800;animation:packetTrip 3s ease-in-out infinite}.orbit-packet.udp{top:180px;background:var(--accent2);animation-delay:1.1s}@keyframes packetTrip{0%,10%{left:23%;opacity:0}20%{opacity:1}70%{left:67%;opacity:1}85%,100%{left:67%;opacity:0}}
+.sticky-nav{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}.nav-inner{max-width:1180px;margin:auto;display:flex;gap:.35rem;overflow:auto;padding:.55rem 1rem}.nav-inner a{white-space:nowrap;color:var(--muted);text-decoration:none;padding:.5rem .75rem;border-radius:9px;font-size:.9rem}.nav-inner a:hover{background:var(--panel);color:var(--text)}
+main{max-width:1180px;margin:auto;padding:1.5rem 1rem 5rem}.section{padding:3.2rem 0;border-bottom:1px solid var(--line)}.section:last-child{border-bottom:0}.section h2{font-size:clamp(1.8rem,4vw,3rem);line-height:1.05;margin:0 0 .7rem}.lead{color:var(--muted);font-size:1.06rem;max-width:880px}.grid{display:grid;gap:1rem}.grid>*{min-width:0}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:1.15rem;box-shadow:var(--shadow)}.card h3{margin:.1rem 0 .55rem}.card p:last-child{margin-bottom:0}.tag{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .58rem;border-radius:999px;background:rgba(71,194,255,.12);border:1px solid var(--line);font-size:.78rem;font-weight:800}.tag.green{background:rgba(104,224,180,.12)}.tag.warn{background:rgba(255,202,100,.13)}.tag.bad{background:rgba(255,115,115,.12)}.callout{border-left:5px solid var(--accent);padding:1rem 1.1rem;background:rgba(71,194,255,.08);border-radius:0 12px 12px 0}.callout.warn{border-color:var(--warn);background:rgba(255,202,100,.08)}.callout.bad{border-color:var(--bad);background:rgba(255,115,115,.08)}
+.compare-table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px}.compare-table th,.compare-table td{padding:.8rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.compare-table tr:last-child td{border-bottom:0}.compare-table th{background:var(--panel2)}
+.protocol-picker{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.protocol-choice{padding:1.2rem;border:1px solid var(--line);border-radius:16px;background:var(--panel);transition:.2s}.protocol-choice:hover{transform:translateY(-2px)}
+.header-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--line);padding:4px;border-radius:14px;overflow:hidden}.field{min-height:58px;background:var(--panel);padding:.6rem;border:0;color:var(--text);text-align:left;font-size:.82rem;font-weight:800}.field:hover,.field.active{background:color-mix(in srgb,var(--accent) 22%,var(--panel));outline:2px solid var(--accent);outline-offset:-2px}.field.span2{grid-column:span 2}.field.span4{grid-column:span 4}.field.tiny{font-size:.7rem}.field-info{min-height:145px;margin-top:1rem;padding:1rem;border:1px dashed var(--line);border-radius:14px;background:var(--panel2)}
+.simulator{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:22px;padding:1.2rem;box-shadow:var(--shadow)}.lifelines{position:relative;height:390px;margin:1rem 0;border:1px solid var(--line);border-radius:16px;background:linear-gradient(90deg,transparent 49.7%,var(--line) 49.7%,var(--line) 50.3%,transparent 50.3%)}.endpoint{position:absolute;top:12px;width:42%;padding:.55rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;text-align:center;font-weight:900}.endpoint.left{left:2%}.endpoint.right{right:2%}.life{position:absolute;top:58px;bottom:18px;width:2px;background:var(--line)}.life.left{left:23%}.life.right{right:23%}.packet-line{position:absolute;left:23%;right:23%;height:2px;background:var(--accent);transform-origin:left center;opacity:.18}.packet-line.reverse{transform:none;background:var(--accent2)}.packet-label{position:absolute;left:50%;transform:translateX(-50%);top:-15px;background:var(--panel);padding:.2rem .45rem;border-radius:7px;border:1px solid var(--line);font-family:var(--mono);font-size:.76rem;white-space:nowrap}.packet-line.done{opacity:1;animation:revealLine .45s ease}.packet-line.drop{background:var(--bad);border-top:2px dashed var(--bad);height:0}.packet-line.drop::after{content:"✕ dropped";position:absolute;left:50%;top:-24px;color:var(--bad);font-weight:900}@keyframes revealLine{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}.state-badge{display:inline-block;padding:.3rem .55rem;border-radius:8px;background:rgba(104,224,180,.14);border:1px solid var(--line);font-family:var(--mono);font-size:.78rem}.step-note{min-height:112px;padding:1rem;border-radius:14px;background:var(--bg2);border:1px solid var(--line)}
+.state-machine{width:100%;height:auto}.state-node{fill:var(--panel);stroke:var(--line);stroke-width:2}.state-node.active{fill:var(--accent);stroke:var(--accent);filter:drop-shadow(0 0 8px rgba(71,194,255,.6))}.state-text{fill:var(--text);font-size:12px;font-weight:800;text-anchor:middle}.state-node.active + .state-text{fill:#03101a}
+.segment-track{display:flex;gap:.45rem;flex-wrap:wrap;margin:1rem 0}.segment{min-width:74px;padding:.65rem .5rem;text-align:center;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-family:var(--mono);font-size:.75rem}.segment.sent{border-color:var(--accent)}.segment.acked{background:rgba(104,224,180,.18);border-color:var(--good)}.segment.lost{background:rgba(255,115,115,.16);border-color:var(--bad);text-decoration:line-through}.segment.retx{box-shadow:inset 0 0 0 2px var(--warn)}.meter{height:16px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden}.meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));width:40%;transition:.4s}.range-row{display:grid;grid-template-columns:180px 1fr 70px;gap:.7rem;align-items:center;margin:.65rem 0}.range-row input{width:100%}
+canvas{width:100%;height:280px;background:var(--bg2);border:1px solid var(--line);border-radius:14px}.legend{display:flex;gap:1rem;flex-wrap:wrap;color:var(--muted);font-size:.85rem}.dot{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:var(--accent);margin-right:.3rem}.dot.good{background:var(--good)}.dot.bad{background:var(--bad)}
+.resume-ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:.65rem;align-items:stretch}.rung{padding:.8rem;border:1px solid var(--line);border-radius:13px;background:var(--panel);font-size:.88rem}.rung strong{display:block;color:var(--accent2)}.arrow{display:none}.scenario-result{padding:1rem;border-radius:14px;background:var(--bg2);border:1px solid var(--line);min-height:115px}
+.udp-stage{position:relative;height:260px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--bg2)}.udp-host{position:absolute;top:90px;width:120px;height:80px;display:grid;place-items:center;border:1px solid var(--line);border-radius:16px;background:var(--panel);font-weight:900}.udp-host.a{left:2%}.udp-host.b{right:2%}.dgram{position:absolute;left:15%;padding:.45rem .65rem;border-radius:8px;background:var(--accent2);color:#06130f;font:800 .78rem var(--mono);opacity:0}.dgram.fly{animation:udpFly 1.25s ease forwards}.dgram.drop{animation:udpDrop 1.25s ease forwards;background:var(--bad)}.dgram.dup::after{content:" duplicate"}.dgram.reorder{animation-duration:1.9s}@keyframes udpFly{0%{left:15%;opacity:1}100%{left:78%;opacity:1}}@keyframes udpDrop{0%{left:15%;top:90px;opacity:1}70%{left:48%;top:120px;opacity:1}100%{left:52%;top:200px;opacity:0}}
+.lab{margin:1rem 0}.lab summary{cursor:pointer;font-weight:900;padding:.9rem 1rem;border:1px solid var(--line);border-radius:13px;background:var(--panel)}.lab[open] summary{border-radius:13px 13px 0 0}.lab-body{border:1px solid var(--line);border-top:0;padding:1rem;border-radius:0 0 13px 13px;background:var(--panel2)}pre{position:relative;overflow:auto;background:#020912;color:#d9f2ff;padding:1rem;border-radius:13px;border:1px solid #20374a;font:13px/1.55 var(--mono)}code{font-family:var(--mono)}.copy{float:right;margin-top:-.3rem;background:#16324a;color:#e8f6ff;border:1px solid #36546c;border-radius:8px;padding:.3rem .55rem;font-size:.75rem}.expected{border-left:4px solid var(--good);padding:.8rem 1rem;background:rgba(104,224,180,.08);border-radius:0 10px 10px 0}
+.quiz-q{padding:1rem;border:1px solid var(--line);border-radius:14px;margin:.8rem 0;background:var(--panel)}.quiz-q label{display:block;padding:.35rem .45rem;border-radius:8px}.quiz-q label:hover{background:var(--panel2)}.quiz-feedback{font-weight:800;margin-top:.5rem}.score{font-size:1.3rem;font-weight:900;padding:1rem;border-radius:13px;background:var(--panel2);border:1px solid var(--line)}
+.glossary{columns:2;column-gap:1rem}.glossary .card{break-inside:avoid;margin-bottom:1rem}.refs li{margin:.55rem 0}.refs a{color:var(--accent)}footer{max-width:1180px;margin:auto;padding:2rem 1rem 4rem;color:var(--muted)}
+.progress-wrap{position:fixed;right:1rem;bottom:1rem;z-index:25;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);font-size:.75rem;font-weight:900}.progress-ring{position:absolute;inset:4px;border-radius:50%;background:conic-gradient(var(--accent) var(--progress,0%),var(--line) 0);mask:radial-gradient(circle,transparent 58%,#000 60%)}
+.small{font-size:.86rem;color:var(--muted)}.mono{font-family:var(--mono)}.hidden{display:none!important}.kbd{font-family:var(--mono);border:1px solid var(--line);padding:.12rem .35rem;border-radius:6px;background:var(--panel2)}
+@media(max-width:850px){.hero-grid,.grid.two,.grid.three,.grid.four,.protocol-picker{grid-template-columns:1fr}.resume-ladder{grid-template-columns:1fr}.hero-art{min-height:280px}.packet-orbit{height:250px}.host{width:90px;height:90px}.host.client,.host.server{top:78px}.road{top:122px}.orbit-packet{top:94px}.orbit-packet.udp{top:150px}.range-row{grid-template-columns:1fr}.glossary{columns:1}.header-grid{grid-template-columns:repeat(2,1fr)}.field.span4{grid-column:span 2}.field.span2{grid-column:span 2}}
+@media print{.sticky-nav,.hero-actions,.toolbar,.sim-controls,.progress-wrap,.copy{display:none!important}body{background:white;color:black}.card,.simulator,.lab-body,.lab summary{box-shadow:none;background:white;color:black}.section{break-inside:avoid}a{color:black;text-decoration:underline}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Extended practical modules */
+.lab-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin:1rem 0}.lab-index a{display:block;text-decoration:none;color:var(--text);padding:.8rem;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.lab-index a:hover{border-color:var(--accent);transform:translateY(-1px)}
+.filter-table{width:100%;border-collapse:collapse;margin:.8rem 0}.filter-table th,.filter-table td{padding:.65rem;border:1px solid var(--line);text-align:left;vertical-align:top}.filter-table th{background:var(--panel)}
+.decision-panel{display:grid;grid-template-columns:minmax(250px,.7fr) minmax(0,1.3fr);gap:1rem}.decision-output{min-height:330px}.evidence-list{display:grid;gap:.55rem}.evidence-item{padding:.7rem .8rem;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--bg2)}
+.flow-map{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.55rem;align-items:stretch}.flow-step{position:relative;padding:.8rem;border:1px solid var(--line);border-radius:12px;background:var(--panel);min-height:112px}.flow-step:not(:last-child)::after{content:'→';position:absolute;right:-.55rem;top:42%;z-index:2;color:var(--accent);font-weight:900}.flow-step strong{display:block;color:var(--accent2)}
+.quic-stage{border:1px solid var(--line);border-radius:16px;padding:1rem;background:var(--bg2)}.stream-row{display:grid;grid-template-columns:150px 1fr;gap:.7rem;align-items:center;margin:.65rem 0}.stream-track{display:flex;gap:.35rem;min-height:48px;align-items:center;border:1px dashed var(--line);border-radius:10px;padding:.45rem;overflow:hidden}.stream-block{flex:1;min-width:45px;padding:.42rem .25rem;text-align:center;border-radius:8px;background:var(--accent);color:#04101a;font:800 .72rem var(--mono);transition:.35s}.stream-block.alt{background:var(--accent2);color:#04130f}.stream-block.lost{background:var(--bad);color:#240606;transform:translateY(8px);opacity:.55}.stream-block.stalled{filter:grayscale(1);opacity:.38}.stream-block.recovered{box-shadow:inset 0 0 0 3px var(--warn)}
+.calc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.calc-card label{display:grid;grid-template-columns:1fr 120px;gap:.7rem;align-items:center;margin:.55rem 0}.calc-card input,.calc-card select,.decision-panel select{width:100%;padding:.58rem;border:1px solid var(--line);border-radius:9px;background:var(--bg2);color:var(--text)}.calc-result{padding:.9rem;border-radius:12px;background:rgba(104,224,180,.09);border:1px solid var(--line);font-weight:750;min-height:90px}
+.security-map{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}.security-node{border:1px solid var(--line);border-radius:14px;padding:1rem;background:var(--panel);cursor:pointer;text-align:left;color:var(--text)}.security-node:hover,.security-node.active{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}.security-output{margin-top:1rem;min-height:210px}.severity{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid var(--line);font-size:.75rem;font-weight:900}.severity.high{background:rgba(255,115,115,.15)}.severity.medium{background:rgba(255,202,100,.14)}
+.checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.check-item{padding:.7rem;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+@media(max-width:900px){.lab-index,.security-map{grid-template-columns:repeat(2,minmax(0,1fr))}.decision-panel,.calc-grid{grid-template-columns:1fr}.flow-map{grid-template-columns:1fr}.flow-step:not(:last-child)::after{content:'↓';right:50%;top:auto;bottom:-1.2rem}.stream-row{grid-template-columns:1fr}}
+@media(max-width:560px){.lab-index,.security-map,.checklist{grid-template-columns:1fr}.calc-card label{grid-template-columns:1fr}.stream-track{overflow:auto}.stream-block{min-width:54px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="hero">
+<div class="hero-grid">
+<div>
+<div class="eyebrow">Transport-layer training • Single-file offline module</div>
+<h1>TCP &amp; UDP,<br/>made visible.</h1>
+<p>See how connections open, data moves, losses are repaired, windows and congestion control interact, connections close, and applications recover when a path breaks.</p>
+<div class="hero-actions">
+<a class="btn primary" href="#start">Start learning</a>
+<button aria-label="Switch to light mode" class="btn theme-toggle" id="themeBtn" title="Switch to light mode" type="button"><span aria-hidden="true" id="themeIcon">☀</span> <span id="themeLabel">Light mode</span></button>
+<button class="btn" onclick="window.print()" type="button">Print / PDF</button>
+</div>
+<p class="small">Recommended: mixed technical audience • Ubuntu VM labs • 5–8 hours instructor-led or self-paced.</p>
+</div>
+<div aria-label="Animated TCP and UDP packets between client and server" class="hero-art">
+<div class="packet-orbit">
+<div class="host client">CLIENT<br/><span class="small">ephemeral port</span></div>
+<div class="host server">SERVER<br/><span class="small">well-known port</span></div>
+<div class="road"></div>
+<div class="orbit-packet">TCP: SYN →</div>
+<div class="orbit-packet udp">UDP: DATA →</div>
+</div>
+</div>
+</div>
+</header>
+<nav aria-label="Section navigation" class="sticky-nav">
+<div class="nav-inner">
+<a href="#start">Start</a><a href="#headers">Headers</a><a href="#handshake">Handshake</a><a href="#transfer">Transfer</a><a href="#congestion">Congestion</a><a href="#termination">Termination</a><a href="#recovery">Recovery</a><a href="#udp">UDP</a><a href="#usecases">Use cases</a><a href="#labs">Labs</a><a href="#diagnostics">Troubleshoot</a><a href="#quic">QUIC</a><a href="#calculators">Calculators</a><a href="#security">Security</a><a href="#quiz">Assessment</a><a href="#references">References</a>
+</div>
+</nav>
+<main id="main">
+<section class="section" id="start">
+<span class="tag green">Learning outcome</span>
+<h2>First, the correct mental model</h2>
+<p class="lead">TCP and UDP both sit above IP. IP tries to deliver packets between hosts; TCP and UDP identify application endpoints with ports and provide different transport services.</p>
+<div class="grid three">
+<article class="card"><h3>TCP is a reliable byte stream</h3><p>Connection-oriented, ordered, duplicate-suppressed delivery with flow control and congestion control. TCP does not preserve application message boundaries.</p></article>
+<article class="card"><h3>UDP is a datagram service</h3><p>Connectionless, message-oriented and minimal. Each send produces a datagram boundary, but delivery, ordering and duplicate suppression are not guaranteed.</p></article>
+<article class="card"><h3>IP can still change the outcome</h3><p>Packets may be lost, duplicated, reordered, fragmented or delayed. TCP repairs many of these effects; a UDP application must tolerate or repair them itself.</p></article>
+</div>
+<div class="callout warn" style="margin-top:1rem"><strong>Critical correction:</strong> a TCP connection that has truly failed cannot be “resumed” as the same TCP connection. A fresh handshake creates a new connection. Application state may be restored using a token, checkpoint, byte offset, transaction identifier, replay-safe retry or a protocol-specific mechanism.</div>
+<h3>TCP versus UDP at a glance</h3>
+<div style="overflow:auto">
+<table class="compare-table">
+<thead><tr><th>Property</th><th>TCP</th><th>UDP</th></tr></thead>
+<tbody>
+<tr><td>Communication model</td><td>Connection-oriented byte stream</td><td>Connectionless datagrams</td></tr>
+<tr><td>Setup</td><td>Normally three-way handshake</td><td>No transport handshake</td></tr>
+<tr><td>Ordering / reliability</td><td>Ordered and retransmitted</td><td>Not provided by UDP</td></tr>
+<tr><td>Message boundaries</td><td>Not preserved</td><td>Preserved per datagram</td></tr>
+<tr><td>Backpressure</td><td>Receiver window plus sender congestion control</td><td>Application responsibility</td></tr>
+<tr><td>Header</td><td>Minimum 20 bytes, options may extend it</td><td>8 bytes</td></tr>
+<tr><td>Typical fit</td><td>Web, SSH, databases, file transfer</td><td>DNS, voice/video, gaming, telemetry, discovery</td></tr>
+</tbody>
+</table></div>
+<h3>Choose the transport</h3>
+<div class="protocol-picker">
+<button class="protocol-choice" data-choice="tcp"><strong>My data must arrive in order</strong><br/><span class="small">Example: a database command, file, SSH stream or web response.</span></button>
+<button class="protocol-choice" data-choice="udp"><strong>Freshness matters more than perfect delivery</strong><br/><span class="small">Example: live voice, game positions, sensor samples or discovery.</span></button>
+</div>
+<div class="scenario-result" id="choiceResult" style="margin-top:1rem">Select a requirement to see the design consequences.</div>
+</section>
+<section class="section" id="headers">
+<span class="tag">Interactive header explorer</span>
+<h2>What is inside each segment or datagram?</h2>
+<p class="lead">Select a field. The diagrams are conceptual bit-field maps, not byte-for-byte packet captures.</p>
+<div class="grid two">
+<div class="card">
+<h3>TCP header (minimum 20 bytes)</h3>
+<div class="header-grid" id="tcpHeader">
+<button class="field span2" data-info="16-bit sender port. Together with source IP, destination IP and destination port, it identifies the connection endpoint pair." data-name="Source port">Source Port · 16</button>
+<button class="field span2" data-info="16-bit receiving application port, such as 22 for SSH or 443 for HTTPS." data-name="Destination port">Destination Port · 16</button>
+<button class="field span4" data-info="The sequence number of the first data byte in this segment. SYN consumes one sequence number even when no application payload is present." data-name="Sequence number">Sequence Number · 32</button>
+<button class="field span4" data-info="When ACK is set, this is the next sequence number expected. TCP acknowledgments are cumulative unless SACK adds detail about non-contiguous blocks." data-name="Acknowledgment number">Acknowledgment Number · 32</button>
+<button class="field" data-info="TCP header length in 32-bit words. A value of 5 means 20 bytes; options increase the value." data-name="Data offset">Offset · 4</button>
+<button class="field tiny" data-info="Reserved bits are normally zero unless defined by an extension." data-name="Reserved">Reserved</button>
+<button class="field tiny" data-info="Control bits include CWR, ECE, URG, ACK, PSH, RST, SYN and FIN. NS is carried in a formerly reserved bit by an experimental extension." data-name="Flags">Flags · 8</button>
+<button class="field" data-info="Receive window advertisement: how much additional data the sender may have outstanding. Window scaling can extend the effective value beyond 65,535 bytes." data-name="Window">Window · 16</button>
+<button class="field span2" data-info="End-to-end integrity check over TCP header, payload and an IP pseudo-header. It detects corruption; it is not encryption or authentication." data-name="Checksum">Checksum · 16</button>
+<button class="field span2" data-info="Used only when URG is set. Rare in modern application protocols; semantics have historically varied." data-name="Urgent pointer">Urgent Pointer · 16</button>
+<button class="field span4" data-info="Examples: MSS, Window Scale, SACK Permitted/SACK blocks and Timestamps. Options are padded so the header ends on a 32-bit boundary." data-name="Options">Options + Padding · 0–40 bytes</button>
+</div>
+<div class="field-info" id="tcpFieldInfo"><strong>Select a TCP field.</strong></div>
+</div>
+<div class="card">
+<h3>UDP header (8 bytes)</h3>
+<div class="header-grid" id="udpHeader">
+<button class="field span2" data-info="Sender port. It may be zero in IPv4 when no reply port is needed, although normal socket APIs usually assign one." data-name="Source port">Source Port · 16</button>
+<button class="field span2" data-info="Receiving application port, such as 53 for DNS or 123 for NTP." data-name="Destination port">Destination Port · 16</button>
+<button class="field span2" data-info="Total length of UDP header plus payload. Minimum is 8 bytes." data-name="Length">Length · 16</button>
+<button class="field span2" data-info="Integrity check over pseudo-header, UDP header and data. In IPv4, zero historically means not computed; IPv6 generally requires a checksum except for narrowly defined exceptions." data-name="Checksum">Checksum · 16</button>
+</div>
+<div class="field-info" id="udpFieldInfo"><strong>Select a UDP field.</strong></div>
+<div class="callout" style="margin-top:1rem"><strong>Message boundary example:</strong> two UDP sends usually become two datagrams. Two TCP sends may be received as one read, several reads, or any byte grouping. Applications over TCP therefore need framing such as a length prefix, delimiter or self-describing format.</div>
+</div>
+</div>
+</section>
+<section class="section" id="handshake">
+<span class="tag green">Animated TCP opening</span>
+<h2>The three-way handshake, including failure cases</h2>
+<p class="lead">The handshake synchronizes sequence spaces, proves two-way reachability, negotiates options and creates state at both endpoints.</p>
+<div class="simulator">
+<div class="sim-controls">
+<label>Scenario <select id="hsScenario"><option value="normal">Normal handshake</option><option value="synlost">Initial SYN lost</option><option value="synacklost">SYN-ACK lost</option><option value="finalacklost">Final ACK lost</option><option value="simopen">Simultaneous open</option></select></label>
+<button class="btn primary" id="hsNext">Next step</button><button class="btn" id="hsPrev">Previous</button><button class="btn" id="hsAuto">Auto play</button><button class="btn" id="hsReset">Reset</button>
+</div>
+<div aria-live="polite" class="lifelines" id="hsLines"></div>
+<div class="grid two">
+<div><strong>Client:</strong> <span class="state-badge" id="clientState">CLOSED</span></div>
+<div><strong>Server:</strong> <span class="state-badge" id="serverState">LISTEN</span></div>
+</div>
+<div class="step-note" id="hsNote" style="margin-top:1rem">Press <strong>Next step</strong>. Example initial sequence numbers: client 1000, server 5000.</div>
+</div>
+<div class="grid three" style="margin-top:1rem">
+<article class="card"><h3>1. SYN</h3><p>Client sends <span class="mono">SEQ=1000, SYN=1</span>, enters <span class="mono">SYN-SENT</span>. SYN consumes one sequence number.</p></article>
+<article class="card"><h3>2. SYN + ACK</h3><p>Server sends <span class="mono">SEQ=5000, ACK=1001</span>, enters <span class="mono">SYN-RECEIVED</span>. Options are negotiated only if advertised appropriately.</p></article>
+<article class="card"><h3>3. ACK</h3><p>Client sends <span class="mono">ACK=5001</span>. Both endpoints reach <span class="mono">ESTABLISHED</span>; application data can flow.</p></article>
+</div>
+<div class="callout warn"><strong>Final ACK nuance:</strong> if the final ACK is lost, the client may believe the connection is established while the server remains in SYN-RECEIVED. The server retransmits SYN-ACK. The client's response can complete establishment; data carrying a valid ACK may also do so.</div>
+</section>
+<section class="section" id="transfer">
+<span class="tag">Reliable transfer simulator</span>
+<h2>Sequence numbers, ACKs, windows and retransmission</h2>
+<p class="lead">TCP numbers bytes, not packets. The next expected byte becomes the ACK number. Retransmission can be triggered by a timeout or loss-recovery algorithms such as duplicate ACK/SACK-based recovery.</p>
+<div class="simulator">
+<div class="range-row"><label for="payload">Application payload</label><input id="payload" max="12000" min="1000" step="500" type="range" value="6000"/><output id="payloadOut">6000 B</output></div>
+<div class="range-row"><label for="mss">MSS</label><input id="mss" max="1460" min="500" step="20" type="range" value="1000"/><output id="mssOut">1000 B</output></div>
+<div class="range-row"><label for="lossSeg">Lose segment #</label><input id="lossSeg" max="8" min="0" type="range" value="3"/><output id="lossOut">3</output></div>
+<label><input checked="" id="sack" type="checkbox"/> Receiver advertised SACK Permitted during SYN</label>
+<div class="sim-controls" style="margin-top:.8rem"><button class="btn primary" id="runTransfer">Run transfer</button><button class="btn" id="ackAll">Repair loss</button><button class="btn" id="resetTransfer">Reset</button></div>
+<div class="segment-track" id="segmentTrack"></div>
+<div class="step-note" id="transferText">Set values and run the transfer. Segment numbers are pedagogical labels; sequence numbers represent byte positions.</div>
+</div>
+<div class="grid two" style="margin-top:1rem">
+<article class="card"><h3>Receive window (rwnd)</h3><p>The receiver advertises available buffer space. A zero window temporarily stops new data; the sender uses persist behavior to probe for a reopened window.</p><div class="meter"><span id="rwndMeter" style="width:75%"></span></div><div class="range-row"><label for="rwnd">Free receive buffer</label><input id="rwnd" max="100" min="0" type="range" value="75"/><output id="rwndOut">75%</output></div><p class="small" id="rwndText">Sender may continue within the advertised window.</p></article>
+<article class="card"><h3>Important data-path features</h3><ul><li><strong>Cumulative ACK:</strong> ACK N confirms all bytes before N.</li><li><strong>SACK:</strong> reports received non-contiguous byte blocks.</li><li><strong>Delayed ACK:</strong> receiver may briefly delay ACKs to reduce overhead.</li><li><strong>Nagle:</strong> may coalesce small writes; low-latency applications often use TCP_NODELAY.</li><li><strong>PSH:</strong> a sender hint; not an application message delimiter.</li></ul></article>
+</div>
+</section>
+<section class="section" id="congestion">
+<span class="tag warn">Network protection</span>
+<h2>Flow control is not congestion control</h2>
+<p class="lead"><strong>Flow control</strong> protects the receiver. <strong>Congestion control</strong> protects the network path. The sender is effectively limited by the smaller of the receive window and congestion window.</p>
+<div class="grid two">
+<div class="simulator">
+<div class="sim-controls"><label>Loss event <select id="ccLoss"><option value="dup">Triple duplicate ACK / fast recovery model</option><option value="timeout">Retransmission timeout</option><option value="none">No loss</option></select></label><button class="btn primary" id="drawCwnd">Simulate 16 RTTs</button></div>
+<canvas aria-label="Simplified congestion window graph" height="280" id="cwndCanvas" width="720"></canvas>
+<div class="step-note" id="ccText">This is a teaching model of classic Reno-style behavior, not a promise of a specific operating system's exact congestion-control implementation.</div>
+</div>
+<div class="card">
+<h3>Core behaviors</h3>
+<ol><li><strong>Slow start:</strong> cwnd grows quickly from a small initial value.</li><li><strong>Congestion avoidance:</strong> growth becomes roughly linear after the slow-start threshold.</li><li><strong>Fast retransmit:</strong> repeated duplicate ACKs can signal a missing segment before timeout.</li><li><strong>Timeout:</strong> indicates more serious uncertainty; classic behavior sharply reduces cwnd and restarts cautiously.</li></ol>
+<div class="callout">Modern systems may use CUBIC, BBR or other algorithms. The universal lesson is that TCP adapts sending rate based on feedback; UDP applications that send at high rates need their own congestion-aware behavior.</div>
+</div>
+</div>
+</section>
+<section class="section" id="termination">
+<span class="tag bad">TCP closing</span>
+<h2>FIN close, half-close, simultaneous close and RST abort</h2>
+<p class="lead">TCP is full duplex: each direction closes independently. That is why a normal close commonly uses four logical messages.</p>
+<div class="grid two">
+<div class="simulator">
+<div class="sim-controls"><label>Close type <select id="termScenario"><option value="normal">Client active close</option><option value="half">Half-close then response</option><option value="sim">Simultaneous close</option><option value="rst">Abort with RST</option></select></label><button class="btn primary" id="termNext">Next step</button><button class="btn" id="termReset">Reset</button></div>
+<div class="lifelines" id="termLines"></div>
+<div class="grid two"><div><strong>Client:</strong> <span class="state-badge" id="termClient">ESTABLISHED</span></div><div><strong>Server:</strong> <span class="state-badge" id="termServer">ESTABLISHED</span></div></div>
+<div class="step-note" id="termNote" style="margin-top:1rem">Select a close type, then advance.</div>
+</div>
+<div class="card">
+<h3>State map</h3>
+<svg aria-label="Simplified TCP state machine" class="state-machine" id="stateSvg" role="img" viewbox="0 0 520 430">
+<defs><marker id="arrowHead" markerheight="8" markerwidth="8" orient="auto" refx="7" refy="3"><path d="M0,0 L0,6 L8,3 z" fill="currentColor"></path></marker></defs>
+<g fill="none" marker-end="url(#arrowHead)" stroke="var(--line)"><path d="M85 60 L215 60"></path><path d="M300 60 L420 60"></path><path d="M440 85 L440 160"></path><path d="M420 190 L310 190"></path><path d="M250 215 L250 285"></path><path d="M215 310 L110 310"></path><path d="M85 285 L85 215"></path><path d="M110 190 L210 190"></path><path d="M300 190 L420 310"></path></g>
+<g data-state="CLOSED"><circle class="state-node" cx="55" cy="60" r="32"></circle><text class="state-text" x="55" y="64">CLOSED</text></g>
+<g data-state="SYN-SENT"><rect class="state-node" height="50" rx="14" width="90" x="215" y="35"></rect><text class="state-text" x="260" y="64">SYN-SENT</text></g>
+<g data-state="ESTABLISHED"><rect class="state-node" height="50" rx="14" width="100" x="395" y="35"></rect><text class="state-text" x="445" y="64">ESTABLISHED</text></g>
+<g data-state="FIN-WAIT-1"><rect class="state-node" height="50" rx="14" width="105" x="390" y="165"></rect><text class="state-text" x="442" y="194">FIN-WAIT-1</text></g>
+<g data-state="FIN-WAIT-2"><rect class="state-node" height="50" rx="14" width="110" x="205" y="165"></rect><text class="state-text" x="260" y="194">FIN-WAIT-2</text></g>
+<g data-state="TIME-WAIT"><rect class="state-node" height="50" rx="14" width="95" x="205" y="285"></rect><text class="state-text" x="252" y="314">TIME-WAIT</text></g>
+<g data-state="CLOSE-WAIT"><rect class="state-node" height="50" rx="14" width="110" x="35" y="165"></rect><text class="state-text" x="90" y="194">CLOSE-WAIT</text></g>
+<g data-state="LAST-ACK"><rect class="state-node" height="50" rx="14" width="100" x="35" y="285"></rect><text class="state-text" x="85" y="314">LAST-ACK</text></g>
+<g data-state="CLOSING"><rect class="state-node" height="50" rx="14" width="100" x="390" y="285"></rect><text class="state-text" x="440" y="314">CLOSING</text></g>
+<text class="state-text" x="260" y="390">Simplified active/passive close paths</text>
+</svg>
+<p class="small"><strong>TIME-WAIT</strong> normally belongs to the endpoint that performs the active close. It allows delayed duplicates to expire and permits retransmission of the final ACK if the peer retransmits its FIN.</p>
+</div>
+</div>
+<div class="grid four" style="margin-top:1rem">
+<article class="card"><h3>FIN</h3><p>“I will send no more bytes.” Previously queued data may still arrive. The opposite direction can remain open.</p></article>
+<article class="card"><h3>ACK</h3><p>Acknowledges FIN because FIN consumes one sequence number.</p></article>
+<article class="card"><h3>RST</h3><p>Immediate abort or rejection. Unread buffered data may be discarded; applications see a reset/error.</p></article>
+<article class="card"><h3>Half-close</h3><p>Useful when a client finishes sending a request but still expects the server's response.</p></article>
+</div>
+</section>
+<section class="section" id="recovery">
+<span class="tag warn">Failure and continuity</span>
+<h2>What happens when the connection breaks?</h2>
+<p class="lead">A cable pull, Wi-Fi roam, NAT timeout, host reboot, address change or prolonged black hole can invalidate the path. TCP may first retransmit because temporary loss is normal. Eventually the application receives an error or times out.</p>
+<div class="resume-ladder">
+<div class="rung"><strong>1. Detect</strong>RTO, user timeout, socket error, heartbeat or application deadline.</div>
+<div class="rung"><strong>2. Reconnect</strong>New SYN/SYN-ACK/ACK and new TCP state.</div>
+<div class="rung"><strong>3. Re-authenticate</strong>Reuse a valid session token or establish fresh security context.</div>
+<div class="rung"><strong>4. Reconcile</strong>Ask what the server committed; avoid blindly duplicating writes.</div>
+<div class="rung"><strong>5. Resume work</strong>Continue from checkpoint, byte range, message ID or transaction state.</div>
+</div>
+<div class="grid two" style="margin-top:1rem">
+<div class="card">
+<h3>Recovery pattern explorer</h3>
+<label>Workload <select id="recoveryScenario"><option value="download">Large file download</option><option value="payment">Payment request</option><option value="shell">Remote shell</option><option value="stream">Live telemetry stream</option><option value="upload">Large upload</option></select></label>
+<button class="btn primary" id="showRecovery" style="margin-top:.8rem">Show safe recovery</button>
+<div class="scenario-result" id="recoveryResult" style="margin-top:.8rem"></div>
+</div>
+<div class="card">
+<h3>Do not confuse these mechanisms</h3>
+<ul><li><strong>TCP retransmission:</strong> repairs loss while the same connection is still viable.</li><li><strong>TCP keepalive:</strong> optional probes for long-idle connections; not a fast universal failure detector.</li><li><strong>Application heartbeat:</strong> protocol-specific liveness and deadline semantics.</li><li><strong>TLS resumption:</strong> reduces security-handshake work; it does not restore old TCP sequence numbers.</li><li><strong>Application resumption:</strong> restores business or transfer progress.</li></ul>
+</div>
+</div>
+<div class="callout bad" style="margin-top:1rem"><strong>Exactly-once is not obtained by retrying TCP.</strong> If a reply is lost after the server committed an operation, the client cannot infer whether the operation happened. Use idempotency keys, transaction identifiers, deduplication records and a status query.</div>
+</section>
+<section class="section" id="udp">
+<span class="tag green">UDP behavior lab</span>
+<h2>No handshake does not mean “no design work”</h2>
+<p class="lead">UDP sends independent datagrams immediately. The transport does not establish a connection, retransmit, reorder or pace traffic for you.</p>
+<div class="simulator">
+<div class="sim-controls"><label>Network effect <select id="udpEffect"><option value="normal">Normal delivery</option><option value="loss">Loss</option><option value="duplicate">Duplicate</option><option value="reorder">Reordering</option></select></label><label><input id="udpReliable" type="checkbox"/> Add application sequence + ACK/retry</label><button class="btn primary" id="udpSend">Send datagrams</button><button class="btn" id="udpClear">Clear</button></div>
+<div class="udp-stage" id="udpStage"><div class="udp-host a">SENDER</div><div class="udp-host b">RECEIVER</div></div>
+<div class="step-note" id="udpText" style="margin-top:1rem">Send three datagrams and observe that each is independent.</div>
+</div>
+<div class="grid three" style="margin-top:1rem">
+<article class="card"><h3>Strengths</h3><p>Low protocol overhead, no setup RTT, preserves message boundaries, supports multicast/broadcast patterns, and lets applications control timeliness and repair.</p></article>
+<article class="card"><h3>Risks</h3><p>Loss, duplication, reordering, amplification abuse, fragmentation sensitivity, receiver overload and congestion collapse if the application sends without control.</p></article>
+<article class="card"><h3>Reliable UDP?</h3><p>An application can add sequence numbers, ACKs, retransmission, FEC, pacing and congestion control. At that point it is designing a transport protocol; QUIC is a prominent example built over UDP.</p></article>
+</div>
+<h3>UDP application design checklist</h3>
+<div class="grid four">
+<div class="card"><strong>Bound datagram size</strong><p class="small">Avoid IP fragmentation where practical; discover or conservatively respect path constraints.</p></div>
+<div class="card"><strong>Add identity</strong><p class="small">Message type, version, sequence, timestamp and correlation ID.</p></div>
+<div class="card"><strong>Handle duplicates</strong><p class="small">Deduplicate operations or make messages idempotent.</p></div>
+<div class="card"><strong>Control rate</strong><p class="small">Pacing, backoff and congestion-aware behavior are mandatory for responsible deployment.</p></div>
+</div>
+</section>
+<section class="section" id="usecases">
+<span class="tag">Real-world selection</span>
+<h2>Why real systems choose one, or combine both</h2>
+<div class="grid three">
+<article class="card"><h3>HTTPS / REST APIs — TCP</h3><p>Requests and responses need reliable bytes. HTTP/1.1 and HTTP/2 normally run over TCP; TLS adds security above it.</p></article>
+<article class="card"><h3>DNS — commonly UDP, sometimes TCP</h3><p>Small queries favor UDP. TCP is used for cases such as larger responses, zone transfers and retry/fallback behavior defined by DNS specifications.</p></article>
+<article class="card"><h3>Voice/video — often UDP</h3><p>A late packet may be less useful than a missing packet. Jitter buffers, sequence numbers, loss concealment and adaptive bitrate handle imperfection.</p></article>
+<article class="card"><h3>Databases — TCP</h3><p>Ordered, reliable command and result streams simplify correctness. The application still needs transactions and retry rules.</p></article>
+<article class="card"><h3>Online games — often mixed</h3><p>Position updates may use UDP while login, inventory and purchases use reliable channels or reliable messages.</p></article>
+<article class="card"><h3>Vehicle / IoT telemetry — context dependent</h3><p>Periodic telemetry may use UDP for bounded freshness; firmware updates and commands usually require authenticated, reliable, resumable application protocols.</p></article>
+</div>
+</section>
+<section class="section" id="advanced">
+<span class="tag warn">Advanced operational details</span>
+<h2>Features commonly encountered in production</h2>
+<div class="grid four">
+<article class="card"><h3>MSS, MTU and PMTUD</h3><p>MSS limits TCP payload size; MTU limits the IP packet carried by a link. Path MTU Discovery tries to avoid fragmentation. A blocked ICMP “packet too big” signal can create a PMTU black hole where handshakes work but larger transfers stall.</p></article>
+<article class="card"><h3>Window Scale</h3><p>The 16-bit TCP window field alone tops out at 65,535. Window Scale, negotiated in SYNs, permits much larger effective receive windows for high bandwidth-delay paths.</p></article>
+<article class="card"><h3>Timestamps and PAWS</h3><p>TCP timestamps improve RTT measurement and help reject old duplicate segments through Protection Against Wrapped Sequence numbers on high-speed paths.</p></article>
+<article class="card"><h3>ECN: ECE and CWR</h3><p>Explicit Congestion Notification can signal congestion without dropping a packet when all relevant endpoints and network devices support it. ECE reports congestion; CWR indicates sender response.</p></article>
+<article class="card"><h3>TCP Fast Open</h3><p>TFO can carry data during connection establishment after cookie-based setup. It reduces latency for suitable applications but early data can have replay-like risks and must be safe to repeat.</p></article>
+<article class="card"><h3>SYN backlog and SYN cookies</h3><p>A listening server holds incomplete handshakes in a queue. Under SYN flood pressure, implementations may use SYN cookies or other defenses, with implementation-dependent trade-offs.</p></article>
+<article class="card"><h3>Head-of-line blocking</h3><p>TCP delivers an ordered byte stream. A missing byte prevents later bytes from being delivered to the application even if later segments arrived. Multiplexed application streams over one TCP connection can therefore interfere with each other.</p></article>
+<article class="card"><h3>Offload capture artifacts</h3><p>Checksum offload, segmentation offload and receive coalescing can make host-side packet captures show apparently bad checksums or unusually large “segments.” Capture on the wire or account for NIC/kernel offload before diagnosing.</p></article>
+</div>
+<div class="grid two" style="margin-top:1rem">
+<article class="card"><h3>“Connected UDP” socket</h3><p>A program may call <code>connect()</code> on a UDP socket. This sets a default peer and can improve error reporting/filtering, but it creates no UDP handshake and no reliable transport connection.</p></article>
+<article class="card"><h3>Multicast, broadcast and ICMP feedback</h3><p>UDP is commonly used for one-to-many or discovery traffic. Applications must explicitly join multicast groups and control scope. ICMP errors such as Port Unreachable may be reported, but applications cannot treat ICMP delivery as guaranteed.</p></article>
+</div>
+<div class="callout warn" style="margin-top:1rem"><strong>Security boundary:</strong> TCP sequence numbers, checksums and ACKs are not confidentiality, peer authentication or tamper-proof integrity. Use TLS, IPsec, DTLS, QUIC security, or an authenticated application protocol as appropriate.</div>
+</section>
+<section class="section" id="labs">
+<span class="tag green">Ubuntu VM practicals</span>
+<h2>Hands-on packet capture labs</h2>
+<p class="lead">Use an Ubuntu 22.04/24.04 VM. Each lab states the observable packet or socket evidence, the reason for it, and the common reasons results may differ.</p>
+<div class="callout warn"><strong>Core prerequisites:</strong> <code>sudo apt update &amp;&amp; sudo apt install -y tcpdump netcat-openbsd iproute2 iperf3 curl jq tmux</code>. Optional GUI analysis: <code>sudo apt install wireshark</code>. Some recovery labs install NGINX or OpenSSH Server locally. Use only on systems you own or are authorized to test.</div><div aria-label="Practical lab index" class="lab-index">
+<a href="#lab1"><strong>1–3</strong><br/><span class="small">Handshake, UDP, RST</span></a>
+<a href="#lab4"><strong>4</strong><br/><span class="small">Fault injection</span></a>
+<a href="#lab5"><strong>5–6</strong><br/><span class="small">States and PCAP analysis</span></a>
+<a href="#lab7"><strong>7–9</strong><br/><span class="small">Application recovery</span></a>
+<a href="#lab10"><strong>10–11</strong><br/><span class="small">Diagnosis and security</span></a>
+<a href="#lab12"><strong>12</strong><br/><span class="small">HTTP/3 readiness</span></a></div>
+<details class="lab" id="lab1" open=""><summary>Lab 1 — Capture a TCP three-way handshake and graceful close</summary><div class="lab-body">
+<p><strong>Terminal 1 — capture:</strong></p><pre><button class="copy">Copy</button><code>sudo tcpdump -i lo -nn -tttt -vvv 'tcp port 8080'</code></pre>
+<p><strong>Terminal 2 — server:</strong></p><pre><button class="copy">Copy</button><code>python3 -m http.server 8080 --bind 127.0.0.1</code></pre>
+<p><strong>Terminal 3 — client:</strong></p><pre><button class="copy">Copy</button><code>curl -v http://127.0.0.1:8080/ -o /dev/null</code></pre>
+<div class="expected"><strong>Expected observations:</strong> a SYN, a SYN-ACK and an ACK before HTTP bytes; sequence/acknowledgment movement during data; then FIN/ACK exchanges. Loopback offload can make payload segmentation look different from a physical NIC capture.</div>
+<p><strong>Filter only setup/teardown flags:</strong></p><pre><button class="copy">Copy</button><code>sudo tcpdump -i lo -nn 'tcp port 8080 and (tcp[tcpflags] &amp; (tcp-syn|tcp-fin|tcp-rst) != 0)'</code></pre>
+</div></details>
+<details class="lab" id="lab2"><summary>Lab 2 — Prove UDP has no transport handshake</summary><div class="lab-body">
+<p><strong>Terminal 1:</strong></p><pre><button class="copy">Copy</button><code>sudo tcpdump -i lo -nn -vvv 'udp port 9999'</code></pre>
+<p><strong>Terminal 2:</strong></p><pre><button class="copy">Copy</button><code>nc -u -l 127.0.0.1 9999</code></pre>
+<p><strong>Terminal 3:</strong></p><pre><button class="copy">Copy</button><code>printf 'sensor=42\n' | nc -u -w1 127.0.0.1 9999</code></pre>
+<div class="expected"><strong>Expected observations:</strong> one UDP datagram appears immediately. There is no SYN/SYN-ACK/ACK and no UDP FIN. Stopping the listener does not notify prior senders through a UDP connection state because no such state exists.</div>
+</div></details>
+<details class="lab" id="lab3"><summary>Lab 3 — Generate and observe an intentional TCP RST</summary><div class="lab-body">
+<p>Create <code>rst_server.py</code>:</p><pre><button class="copy">Copy</button><code>cat &gt; rst_server.py &lt;&lt;'PY'
+import socket, struct
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(('127.0.0.1', 9090))
+s.listen(1)
+conn, addr = s.accept()
+conn.sendall(b'connected\n')
+conn.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
+conn.close()  # abortive close: sends RST on common Linux behavior
+s.close()
+PY</code></pre>
+<p>Run capture, server and client in separate terminals:</p><pre><button class="copy">Copy</button><code>sudo tcpdump -i lo -nn -vvv 'tcp port 9090'
+python3 rst_server.py
+nc 127.0.0.1 9090</code></pre>
+<div class="expected"><strong>Expected observations:</strong> normal handshake, server data, then an RST rather than a normal FIN close. The exact user-facing netcat message can vary.</div>
+</div></details>
+<details class="lab" id="lab4"><summary>Lab 4 — Build a controlled network and inject delay, loss, duplication, reordering and rate limits</summary><div class="lab-body">
+<p><strong>Purpose:</strong> show that <code>netem</code> affects packets leaving the selected interface. Configure both namespace interfaces when both directions must be impaired.</p>
+<p><strong>Setup an isolated two-host topology:</strong></p><pre><button class="copy">Copy</button><code>cat &gt; /tmp/tcpudp-netem-setup.sh &lt;&lt;'SH'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+sudo ip netns del tcp-client 2&gt;/dev/null || true
+sudo ip netns del tcp-server 2&gt;/dev/null || true
+sudo ip netns add tcp-client
+sudo ip netns add tcp-server
+sudo ip link add veth-c type veth peer name veth-s
+sudo ip link set veth-c netns tcp-client
+sudo ip link set veth-s netns tcp-server
+sudo ip -n tcp-client addr add 10.200.0.1/24 dev veth-c
+sudo ip -n tcp-server addr add 10.200.0.2/24 dev veth-s
+sudo ip -n tcp-client link set lo up
+sudo ip -n tcp-server link set lo up
+sudo ip -n tcp-client link set veth-c up
+sudo ip -n tcp-server link set veth-s up
+sudo ip netns exec tcp-client ping -c 2 10.200.0.2
+SH
+bash /tmp/tcpudp-netem-setup.sh</code></pre>
+<p><strong>Terminal 1 — throughput server:</strong></p><pre><button class="copy">Copy</button><code>sudo ip netns exec tcp-server iperf3 -s</code></pre><p><strong>Terminal 2 — HTTP server:</strong></p><pre><button class="copy">Copy</button><code>sudo ip netns exec tcp-server python3 -m http.server 8080 --bind 10.200.0.2</code></pre>
+<p><strong>Baseline from the client:</strong></p><pre><button class="copy">Copy</button><code>sudo ip netns exec tcp-client ping -c 5 10.200.0.2
+sudo ip netns exec tcp-client iperf3 -c 10.200.0.2 -t 5
+sudo ip netns exec tcp-client curl -sS -o /dev/null -w 'time=%{time_total}s code=%{http_code}\n' http://10.200.0.2:8080/</code></pre>
+<p><strong>Apply one scenario at a time:</strong></p><pre><button class="copy">Copy</button><code># Fixed delay plus jitter on client-to-server traffic
+sudo ip netns exec tcp-client tc qdisc replace dev veth-c root netem delay 100ms 20ms
+
+# Random loss
+sudo ip netns exec tcp-client tc qdisc replace dev veth-c root netem loss 5%
+
+# Duplication
+sudo ip netns exec tcp-client tc qdisc replace dev veth-c root netem duplicate 2%
+
+# Reordering requires delay so packets can overtake one another
+sudo ip netns exec tcp-client tc qdisc replace dev veth-c root netem delay 30ms reorder 25% 50%
+
+# Delay plus a 5 Mbit/s serialization rate
+sudo ip netns exec tcp-client tc qdisc replace dev veth-c root netem delay 40ms rate 5mbit
+
+# Apply a return-path impairment separately when required
+sudo ip netns exec tcp-server tc qdisc replace dev veth-s root netem delay 80ms loss 2%</code></pre>
+<p><strong>Observe each scenario:</strong></p><pre><button class="copy">Copy</button><code>sudo ip netns exec tcp-client tc -s qdisc show dev veth-c
+sudo ip netns exec tcp-client ping -c 10 10.200.0.2
+sudo ip netns exec tcp-client iperf3 -c 10.200.0.2 -t 10
+sudo ip netns exec tcp-client ss -tin dst 10.200.0.2
+sudo ip netns exec tcp-client tcpdump -i veth-c -nn -tttt 'host 10.200.0.2'</code></pre>
+<div class="expected"><strong>Expected observations:</strong> delay raises RTT; loss can cause retransmissions and congestion-window reduction; duplication creates repeated packets; reordering can produce duplicate ACK/SACK evidence even without true loss; a rate limit caps ideal throughput. Short probabilistic runs differ, so repeat each test. <code>tc -s</code> counters confirm the queue discipline is active.</div>
+<p><strong>Reset and cleanup:</strong></p><pre><button class="copy">Copy</button><code>sudo ip netns exec tcp-client tc qdisc del dev veth-c root 2&gt;/dev/null || true
+sudo ip netns exec tcp-server tc qdisc del dev veth-s root 2&gt;/dev/null || true
+sudo ip netns del tcp-client
+sudo ip netns del tcp-server</code></pre>
+</div></details>
+
+<details class="lab" id="lab5"><summary>Lab 5 — Inspect sockets and TCP states</summary><div class="lab-body">
+<pre><button class="copy">Copy</button><code>ss -lntup
+ss -tnp
+ss -tin
+watch -n 0.5 'ss -tan | head -40'</code></pre>
+<div class="expected"><strong>Expected observations:</strong> LISTEN for a TCP server; ESTAB during a connection; possibly TIME-WAIT after active close. <code>ss -ti</code> may show congestion algorithm, RTT, cwnd, retransmission and pacing information, depending on kernel and permissions.</div>
+</div></details><details class="lab" id="lab6"><summary>Lab 6 — Investigate a packet capture with tcpdump and Wireshark filters</summary><div class="lab-body">
+<p><strong>Capture a complete TCP lifecycle to a PCAP file:</strong></p><pre><button class="copy">Copy</button><code># Terminal 1
+sudo tcpdump -i lo -nn -s0 -w tcp-lifecycle.pcap 'tcp port 8080'
+
+# Terminal 2
+python3 -m http.server 8080 --bind 127.0.0.1
+
+# Terminal 3
+curl -sS http://127.0.0.1:8080/ -o /dev/null
+# Stop tcpdump with Ctrl+C after the request completes.</code></pre>
+<p><strong>Read it without a GUI:</strong></p><pre><button class="copy">Copy</button><code>tcpdump -nn -tttt -vvv -r tcp-lifecycle.pcap
+tcpdump -nn -r tcp-lifecycle.pcap 'tcp[tcpflags] &amp; (tcp-syn|tcp-fin|tcp-rst) != 0'</code></pre>
+<p><strong>Useful Wireshark display filters:</strong></p>
+<table class="filter-table"><thead><tr><th>Question</th><th>Display filter</th><th>Interpretation</th></tr></thead><tbody>
+<tr><td>Only this conversation</td><td><code>tcp.port == 8080</code></td><td>Then use “Follow TCP Stream” to view application bytes and direction.</td></tr>
+<tr><td>Connection setup</td><td><code>tcp.flags.syn == 1</code></td><td>SYN and SYN-ACK packets. Inspect MSS, SACK Permitted, timestamps and window scale.</td></tr>
+<tr><td>Retransmissions</td><td><code>tcp.analysis.retransmission || tcp.analysis.fast_retransmission</code></td><td>These are Wireshark analysis labels inferred from the capture, not fields transmitted on the wire.</td></tr>
+<tr><td>Duplicate ACKs</td><td><code>tcp.analysis.duplicate_ack</code></td><td>Often indicates a gap or reordering; it is evidence, not automatic proof of packet loss.</td></tr>
+<tr><td>Close or abort</td><td><code>tcp.flags.fin == 1 || tcp.flags.reset == 1</code></td><td>FIN closes one stream direction; RST aborts a connection.</td></tr>
+<tr><td>UDP and ICMP error</td><td><code>udp.port == 9999 || (icmp.type == 3 &amp;&amp; icmp.code == 3)</code></td><td>Shows UDP datagrams and an IPv4 Port Unreachable response when generated and captured.</td></tr>
+</tbody></table>
+<div class="expected"><strong>Investigation checklist:</strong> identify the 4-tuple; establish who initiated; write down relative SEQ/ACK movement; find the first symptom rather than the last retransmission; separate wire evidence from Wireshark inference; account for host offload before calling a checksum or segment size abnormal.</div>
+</div></details>
+<details class="lab" id="lab7"><summary>Lab 7 — Resume an interrupted HTTP download with a new TCP connection</summary><div class="lab-body">
+<p>This proves the key distinction: TCP does not resume. The second <code>curl</code> command opens a new connection and uses an HTTP byte-range request to continue the file.</p>
+<p><strong>Prepare a range-capable local HTTP server:</strong></p><pre><button class="copy">Copy</button><code>sudo apt install -y nginx
+sudo systemctl enable --now nginx
+sudo dd if=/dev/urandom of=/var/www/html/large.bin bs=1M count=100 status=progress
+sha256sum /var/www/html/large.bin | tee /tmp/source.sha256</code></pre>
+<p><strong>Start a limited-rate download and interrupt it with Ctrl+C after several seconds:</strong></p><pre><button class="copy">Copy</button><code>rm -f resumed.bin
+curl --limit-rate 1M -o resumed.bin http://127.0.0.1/large.bin
+# Press Ctrl+C after approximately 5–10 seconds.
+ls -lh resumed.bin</code></pre>
+<p><strong>Resume from the local file size:</strong></p><pre><button class="copy">Copy</button><code>curl --limit-rate 1M -C - -o resumed.bin http://127.0.0.1/large.bin
+sha256sum resumed.bin
+cat /tmp/source.sha256
+sudo tail -n 5 /var/log/nginx/access.log</code></pre>
+<div class="expected"><strong>Expected observations:</strong> the resumed request normally receives HTTP <code>206 Partial Content</code>; the final hashes match; packet capture shows a fresh TCP handshake. Resume is safe only when the client verifies it is continuing the same representation, typically using validators such as ETag or Last-Modified in production designs.</div>
+</div></details>
+<details class="lab" id="lab8"><summary>Lab 8 — Preserve a shell task across an SSH connection break with tmux</summary><div class="lab-body">
+<p><strong>Install and configure a localhost SSH lab:</strong></p><pre><button class="copy">Copy</button><code>sudo apt install -y openssh-server tmux
+sudo systemctl enable --now ssh
+install -d -m 700 ~/.ssh
+[ -f ~/.ssh/tcpudp_lab ] || ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/tcpudp_lab
+touch ~/.ssh/authorized_keys
+PUB="$(cat ~/.ssh/tcpudp_lab.pub)"
+grep -qxF "$PUB" ~/.ssh/authorized_keys || printf '%s\n' "$PUB" &gt;&gt; ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+ssh -i ~/.ssh/tcpudp_lab -o IdentitiesOnly=yes localhost</code></pre>
+<p><strong>Inside SSH:</strong></p><pre><button class="copy">Copy</button><code>tmux new -s durable-shell
+watch -n 1 'date; echo; ss -s'</code></pre>
+<p>Detach with <span class="kbd">Ctrl+B</span>, then <span class="kbd">D</span>. Reattach once to verify. Next, leave it attached and terminate the SSH client using the OpenSSH escape sequence: press Enter, then type <code>~.</code> at the start of a new line.</p>
+<p><strong>Reconnect:</strong></p><pre><button class="copy">Copy</button><code>ssh -i ~/.ssh/tcpudp_lab -o IdentitiesOnly=yes localhost
+tmux attach -t durable-shell</code></pre>
+<div class="expected"><strong>Expected observations:</strong> SSH uses a new TCP connection, but the server-side tmux process and terminal state continue. Without tmux/screen or a reconnect-capable protocol, the original interactive shell channel is lost when SSH disconnects.</div>
+</div></details>
+<details class="lab" id="lab9"><summary>Lab 9 — Retry an uncertain API request safely with an idempotency key</summary><div class="lab-body">
+<p>Create a local API that commits a transaction before deliberately delaying its first reply:</p><pre><button class="copy">Copy</button><code>cat &gt; idempotent_server.py &lt;&lt;'PY'
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json, time, uuid
+
+records = {}
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != '/charge':
+            self.send_error(404)
+            return
+        key = self.headers.get('Idempotency-Key')
+        if not key:
+            self.send_error(400, 'Idempotency-Key required')
+            return
+        replayed = key in records
+        if not replayed:
+            records[key] = {
+                'transaction_id': str(uuid.uuid4()),
+                'status': 'committed',
+                'amount': 100
+            }
+            print('COMMITTED', key, records[key], flush=True)
+        body = json.dumps({**records[key], 'replayed': replayed}).encode()
+        if not replayed:
+            time.sleep(2)  # client will time out, but commit already happened
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        try:
+            self.wfile.write(body)
+        except BrokenPipeError:
+            pass
+
+HTTPServer(('127.0.0.1', 8088), Handler).serve_forever()
+PY
+python3 idempotent_server.py</code></pre>
+<p><strong>In another terminal, make the first client give up before the reply:</strong></p><pre><button class="copy">Copy</button><code>curl --max-time 0.5 -i -X POST \
+  -H 'Idempotency-Key: order-1001' \
+  http://127.0.0.1:8088/charge
+
+# Retry the same logical request with the same key:
+curl -sS -X POST \
+  -H 'Idempotency-Key: order-1001' \
+  http://127.0.0.1:8088/charge | jq</code></pre>
+<div class="expected"><strong>Expected observations:</strong> the first client reports a timeout even though the server logged a commit. The retry returns the same transaction identifier with <code>"replayed": true</code>. Retrying with a different key would create another transaction. Production systems also need durable storage, atomic key enforcement, authentication, request-body matching and expiry rules.</div>
+</div></details>
+<details class="lab" id="lab10"><summary>Lab 10 — Distinguish connection refused, timeout, reset and UDP no-response evidence</summary><div class="lab-body">
+<p><strong>Closed TCP port: immediate refusal normally produces RST:</strong></p><pre><button class="copy">Copy</button><code># Terminal 1
+sudo tcpdump -i lo -nn -vvv 'tcp port 65001'
+
+# Terminal 2
+nc -vz -w 2 127.0.0.1 65001</code></pre>
+<p><strong>UDP to a closed local port may produce ICMP Port Unreachable:</strong></p><pre><button class="copy">Copy</button><code># Terminal 1
+sudo tcpdump -i lo -nn -vvv 'udp port 65000 or icmp'
+
+# Terminal 2
+printf 'probe\n' | nc -u -w 1 127.0.0.1 65000</code></pre>
+<p><strong>Inspect kernel counters and listeners:</strong></p><pre><button class="copy">Copy</button><code>ss -lntup
+ss -s
+nstat -az | grep -E 'TcpAttemptFails|TcpEstabResets|TcpExtListenDrops|TcpExtListenOverflows|TcpExtSyncookies|UdpNoPorts' || true</code></pre>
+<div class="expected"><strong>Expected observations:</strong> a refused TCP connection generally shows SYN followed by RST/ACK, proving the host was reachable but no listener accepted that port. A silent timeout usually means no usable reply reached the client. UDP has no handshake; ICMP feedback may be generated, filtered or ignored, so absence of an application reply is ambiguous.</div>
+</div></details>
+<details class="lab" id="lab11"><summary>Lab 11 — Inspect safe security and capacity indicators without generating an attack</summary><div class="lab-body">
+<p><strong>Read defensive settings and pressure counters:</strong></p><pre><button class="copy">Copy</button><code>sysctl net.ipv4.tcp_syncookies
+sysctl net.core.somaxconn
+sysctl net.ipv4.tcp_max_syn_backlog
+ss -s
+nstat -az | grep -E 'Syncookies|ListenDrops|ListenOverflows|TCPAbort|TcpEstabResets|UdpNoPorts' || true
+sudo nft list ruleset</code></pre>
+<p><strong>Observe normal listener queues:</strong></p><pre><button class="copy">Copy</button><code>python3 -m http.server 8080 --bind 127.0.0.1 &amp;
+SERVER_PID=$!
+ss -lntp 'sport = :8080'
+ss -lnt 'sport = :8080'
+kill "$SERVER_PID"</code></pre>
+<div class="expected"><strong>Expected observations:</strong> healthy counters may remain zero. Non-zero listen overflows/drops indicate backlog pressure, but they do not by themselves prove an attack. SYN cookies are a pressure defense, not a substitute for filtering, capacity planning, rate controls and application limits. Do not run flood generators on shared or production networks.</div>
+</div></details>
+<details class="lab" id="lab12"><summary>Lab 12 — Check HTTP/3 capability and interpret the result correctly</summary><div class="lab-body">
+<p><strong>Check the local curl build:</strong></p><pre><button class="copy">Copy</button><code>curl --version
+curl --help all | grep -E -- '--http3|--http3-only' || true</code></pre>
+<div class="expected"><strong>Expected observations:</strong> HTTP/3 testing requires a curl build with HTTP/3 support, UDP reachability, DNS/certificate correctness and a server advertising/supporting HTTP/3. A missing option means the local curl build cannot perform the test; it does not mean the network blocks QUIC.</div>
+<p>When an HTTP/3 service is available in your authorized lab, compare:</p><pre><button class="copy">Copy</button><code>curl --http2 -I https://YOUR-LAB-HOST/
+curl --http3-only -I https://YOUR-LAB-HOST/</code></pre>
+<p class="small">Do not replace <code>YOUR-LAB-HOST</code> with an arbitrary public service for load or impairment testing. Capture UDP port 443 and use browser developer tools or server logs to confirm the negotiated protocol.</p>
+</div></details>
+
+</section>
+<section class="section" id="diagnostics">
+<span class="tag bad">Interactive troubleshooting</span>
+<h2>Start with the symptom, then prove the first failure</h2>
+<p class="lead">Error text is a clue, not a verdict. Select a symptom to see likely packet evidence, host checks and common misdiagnoses.</p>
+<div class="decision-panel">
+<div class="card">
+<label for="diagSymptom"><strong>Observed symptom</strong></label>
+<select id="diagSymptom">
+<option value="refused">Connection refused immediately</option>
+<option value="timeout">Connection attempt times out</option>
+<option value="reset">Connection reset after establishment</option>
+<option value="stall">Handshake succeeds, larger data stalls</option>
+<option value="retrans">Frequent retransmissions / slow transfer</option>
+<option value="zerowin">TCP ZeroWindow / application freezes</option>
+<option value="udp">UDP request sent, no application reply</option>
+</select>
+<button class="btn primary" id="diagRun" style="margin-top:.8rem" type="button">Build investigation path</button>
+<div class="callout warn" style="margin-top:1rem"><strong>Rule:</strong> find the earliest abnormal packet or state transition. Later retransmissions are often consequences.</div>
+</div>
+<div aria-live="polite" class="card decision-output" id="diagResult"></div>
+</div>
+<div class="flow-map" style="margin-top:1rem">
+<div class="flow-step"><strong>1. Resolve</strong>Confirm destination IP, address family and port.</div>
+<div class="flow-step"><strong>2. Route</strong>Check route, source address, namespace and policy routing.</div>
+<div class="flow-step"><strong>3. Capture</strong>Observe SYN/SYN-ACK/RST, UDP and ICMP on both ends when possible.</div>
+<div class="flow-step"><strong>4. Socket</strong>Confirm listener, process, backlog and receive behavior.</div>
+<div class="flow-step"><strong>5. Application</strong>Validate framing, timeout, authentication and retry semantics.</div>
+</div>
+</section>
+<section class="section" id="quic">
+<span class="tag green">Modern transport comparison</span>
+<h2>QUIC and HTTP/3: reliable transport implemented over UDP</h2>
+<p class="lead">QUIC uses UDP as its substrate but adds encrypted connection establishment, reliable streams, flow control, loss recovery and congestion control. HTTP/3 maps HTTP semantics onto QUIC streams.</p>
+<div class="grid two">
+<div class="quic-stage">
+<div class="sim-controls"><button class="btn primary" id="quicLoss" type="button">Lose Stream B data</button><button class="btn" id="quicMigrate" type="button">Change client network</button><button class="btn" id="quicReset" type="button">Reset</button></div>
+<h3>HTTP/2 over one TCP byte stream</h3>
+<div class="stream-row"><strong>TCP delivery</strong><div class="stream-track" id="h2Track"><span class="stream-block">A1</span><span class="stream-block alt">B1</span><span class="stream-block">A2</span><span class="stream-block alt">B2</span><span class="stream-block">A3</span></div></div>
+<h3>HTTP/3 over QUIC streams</h3>
+<div class="stream-row"><strong>QUIC Stream A</strong><div class="stream-track" id="quicA"><span class="stream-block">A1</span><span class="stream-block">A2</span><span class="stream-block">A3</span></div></div>
+<div class="stream-row"><strong>QUIC Stream B</strong><div class="stream-track" id="quicB"><span class="stream-block alt">B1</span><span class="stream-block alt">B2</span><span class="stream-block alt">B3</span></div></div>
+<div class="step-note" id="quicNote">Inject a loss or simulate a client IP/network change.</div>
+</div>
+<div class="card">
+<h3>What changes—and what does not</h3>
+<ul><li><strong>Independent ordered streams:</strong> lost data on one QUIC stream does not create transport-level head-of-line blocking for unrelated streams.</li><li><strong>Loss still matters:</strong> retransmission and shared congestion control can still reduce total sending rate.</li><li><strong>Integrated security:</strong> QUIC integrates TLS 1.3 and encrypts application data plus most transport control information; UDP itself provides none of this.</li><li><strong>Migration:</strong> connection IDs can let an endpoint continue after an address/path change, subject to path validation and policy.</li><li><strong>Not automatic application recovery:</strong> a closed or expired QUIC connection still requires application reconnection and state restoration.</li></ul>
+<div class="callout"><strong>Do not teach “UDP = unreliable application.”</strong> UDP only defines the minimal datagram service. A protocol above it can supply reliability, security and congestion control.</div>
+</div>
+</div>
+</section>
+<section class="section" id="calculators">
+<span class="tag">Interactive performance tools</span>
+<h2>Calculate the numbers behind transport behavior</h2>
+<p class="lead">These are planning estimates. Real throughput also depends on congestion control, loss, CPU, storage, protocol overhead, buffering and application behavior.</p>
+<div class="calc-grid">
+<div class="card calc-card"><h3>Bandwidth-delay product</h3>
+<label>Bandwidth (Mbit/s)<input id="bdpRate" min="0.1" step="0.1" type="number" value="100"/></label>
+<label>RTT (ms)<input id="bdpRtt" min="0" step="1" type="number" value="80"/></label>
+<button class="btn primary" id="calcBdp" type="button">Calculate BDP</button><div class="calc-result" id="bdpResult"></div>
+</div>
+<div class="card calc-card"><h3>MSS and path-sized UDP payload</h3>
+<label>Path/link MTU<input id="mtuValue" min="576" step="1" type="number" value="1500"/></label>
+<label>IP version<select id="ipVersion"><option value="4">IPv4 (20-byte base header)</option><option value="6">IPv6 (40-byte base header)</option></select></label>
+<label>TCP option bytes<input id="tcpOptions" max="40" min="0" step="4" type="number" value="0"/></label>
+<button class="btn primary" id="calcMss" type="button">Calculate payloads</button><div class="calc-result" id="mssResult"></div>
+</div>
+<div class="card calc-card"><h3>Ideal file-transfer time</h3>
+<label>File size (MiB)<input id="fileMib" min="0.1" step="0.1" type="number" value="1024"/></label>
+<label>Available rate (Mbit/s)<input id="fileRate" min="0.1" step="0.1" type="number" value="100"/></label>
+<label>RTT (ms)<input id="fileRtt" min="0" step="1" type="number" value="50"/></label>
+<label>Setup RTTs<input id="setupRtts" max="10" min="0" step="1" type="number" value="1"/></label>
+<button class="btn primary" id="calcTime" type="button">Estimate time</button><div class="calc-result" id="timeResult"></div>
+</div>
+<div class="card calc-card"><h3>Approximate packet rate</h3>
+<label>Line rate (Mbit/s)<input id="ppsRate" min="0.1" step="0.1" type="number" value="1000"/></label>
+<label>Packet size (bytes)<input id="ppsSize" min="64" step="1" type="number" value="1500"/></label>
+<button class="btn primary" id="calcPps" type="button">Calculate packets/s</button><div class="calc-result" id="ppsResult"></div>
+</div>
+</div>
+</section>
+<section class="section" id="security">
+<span class="tag bad">Security and resilience</span>
+<h2>Recognize transport-layer abuse without confusing symptoms with proof</h2>
+<p class="lead">Select a scenario. The module separates the mechanism, packet evidence, operational impact and defensive controls.</p>
+<div class="security-map">
+<button class="security-node" data-security="syn"><strong>SYN backlog pressure</strong><br/><span class="small">Many incomplete TCP opens</span></button>
+<button class="security-node" data-security="amp"><strong>UDP reflection/amplification</strong><br/><span class="small">Spoofed source, larger replies</span></button>
+<button class="security-node" data-security="scan"><strong>Port scanning</strong><br/><span class="small">Systematic probes</span></button>
+<button class="security-node" data-security="rst"><strong>RST injection/aborts</strong><br/><span class="small">Unexpected connection resets</span></button>
+<button class="security-node" data-security="idle"><strong>Idle connection exhaustion</strong><br/><span class="small">State held with little work</span></button>
+<button class="security-node" data-security="spoof"><strong>Source spoofing</strong><br/><span class="small">Forged network identity</span></button>
+</div>
+<div aria-live="polite" class="card security-output" id="securityResult">Choose a scenario.</div>
+<div class="checklist" style="margin-top:1rem">
+<div class="check-item"><strong>Evidence</strong><br/><span class="small">Capture both directions, host counters, listener queues and upstream telemetry.</span></div>
+<div class="check-item"><strong>Containment</strong><br/><span class="small">Rate limits, filtering, backlog controls, timeouts, connection caps and upstream mitigation.</span></div>
+<div class="check-item"><strong>Authentication</strong><br/><span class="small">Checksums and sequence numbers are not identity. Use cryptographic peer and message authentication.</span></div>
+<div class="check-item"><strong>Safe testing</strong><br/><span class="small">Use isolated VMs/namespaces. Never flood a shared, public or production service.</span></div>
+</div>
+</section>
+<section class="section" id="quiz">
+<span class="tag">Assessment</span>
+<h2>Check your understanding</h2>
+<form id="quizForm">
+<div class="quiz-q" data-answer="b"><strong>1. What does TCP ACK=5001 mean?</strong><label><input name="q1" type="radio" value="a"/> Packet 5001 was received.</label><label><input name="q1" type="radio" value="b"/> All bytes through 5000 are cumulatively acknowledged; 5001 is expected next.</label><label><input name="q1" type="radio" value="c"/> The receive window is 5001 bytes.</label><div class="quiz-feedback"></div></div>
+<div class="quiz-q" data-answer="c"><strong>2. A TCP path breaks permanently. What happens?</strong><label><input name="q2" type="radio" value="a"/> TCP resumes with the same sequence numbers after any duration.</label><label><input name="q2" type="radio" value="b"/> UDP takes over automatically.</label><label><input name="q2" type="radio" value="c"/> The application establishes a new connection and restores state if supported.</label><div class="quiz-feedback"></div></div>
+<div class="quiz-q" data-answer="a"><strong>3. Why can normal TCP close use four messages?</strong><label><input name="q3" type="radio" value="a"/> Each direction of the full-duplex stream closes independently.</label><label><input name="q3" type="radio" value="b"/> TCP repeats every control packet twice.</label><label><input name="q3" type="radio" value="c"/> Two are for encryption.</label><div class="quiz-feedback"></div></div>
+<div class="quiz-q" data-answer="b"><strong>4. Which statement about UDP is correct?</strong><label><input name="q4" type="radio" value="a"/> It guarantees delivery but not ordering.</label><label><input name="q4" type="radio" value="b"/> It preserves datagram boundaries but does not guarantee delivery.</label><label><input name="q4" type="radio" value="c"/> It always performs a two-way handshake.</label><div class="quiz-feedback"></div></div>
+<div class="quiz-q" data-answer="c"><strong>5. Which protects the receiver's buffer?</strong><label><input name="q5" type="radio" value="a"/> Congestion window only.</label><label><input name="q5" type="radio" value="b"/> SYN cookie.</label><label><input name="q5" type="radio" value="c"/> Advertised receive window.</label><div class="quiz-feedback"></div></div>
+<div class="quiz-q" data-answer="a"><strong>6. What is a safe payment retry design?</strong><label><input name="q6" type="radio" value="a"/> Idempotency key plus status reconciliation.</label><label><input name="q6" type="radio" value="b"/> Retry blindly until a success reply arrives.</label><label><input name="q6" type="radio" value="c"/> Set PSH on every segment.</label><div class="quiz-feedback"></div></div>
+<button class="btn good" type="submit">Grade assessment</button>
+<div class="score" id="score" style="margin-top:1rem">Score not yet calculated.</div>
+</form>
+</section>
+<section class="section">
+<span class="tag">Glossary</span><h2>Fast reference</h2>
+<div class="glossary">
+<div class="card"><strong>4-tuple</strong><p>Source IP, source port, destination IP and destination port. Along with protocol and network namespace/context, it identifies a flow.</p></div>
+<div class="card"><strong>ISN</strong><p>Initial Sequence Number chosen for a TCP direction during connection establishment.</p></div>
+<div class="card"><strong>MSS</strong><p>Maximum Segment Size: maximum TCP payload an endpoint asks the peer to send in one segment.</p></div>
+<div class="card"><strong>MTU</strong><p>Maximum Transmission Unit of a link. MSS is derived to avoid oversized IP packets for a known path/link context.</p></div>
+<div class="card"><strong>RTO</strong><p>Retransmission timeout calculated from measured timing and bounded rules.</p></div>
+<div class="card"><strong>RTT</strong><p>Round-trip time for traffic and acknowledgment feedback.</p></div>
+<div class="card"><strong>SACK</strong><p>Selective Acknowledgment: reports received byte blocks beyond a gap.</p></div>
+<div class="card"><strong>rwnd / cwnd</strong><p>Receiver-advertised flow-control window / sender congestion-control window.</p></div>
+<div class="card"><strong>TIME-WAIT</strong><p>Post-close state that protects against delayed duplicates and supports reliable completion of closing.</p></div>
+<div class="card"><strong>Idempotent</strong><p>Repeating the same logical request has the same intended effect as performing it once.</p></div>
+</div>
+</section>
+<section class="section" id="references">
+<span class="tag">Technical validation sources</span>
+<h2>Primary references</h2>
+<p class="lead">The simulations deliberately simplify timing and implementation-specific algorithms, while preserving the protocol semantics taught.</p>
+<ol class="refs">
+<li><a href="https://www.rfc-editor.org/rfc/rfc9293.html" rel="noopener" target="_blank">RFC 9293 — Transmission Control Protocol (TCP)</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc768.html" rel="noopener" target="_blank">RFC 768 — User Datagram Protocol</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc8085.html" rel="noopener" target="_blank">RFC 8085 — UDP Usage Guidelines</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc5681.html" rel="noopener" target="_blank">RFC 5681 — TCP Congestion Control</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc6298.html" rel="noopener" target="_blank">RFC 6298 — Computing TCP's Retransmission Timer</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc2018.html" rel="noopener" target="_blank">RFC 2018 — TCP Selective Acknowledgment Options</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc7323.html" rel="noopener" target="_blank">RFC 7323 — TCP Extensions for High Performance</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc5482.html" rel="noopener" target="_blank">RFC 5482 — TCP User Timeout Option</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9000.html" rel="noopener" target="_blank">RFC 9000 — QUIC: A UDP-Based Multiplexed and Secure Transport</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc9002.html" rel="noopener" target="_blank">RFC 9002 — QUIC Loss Detection and Congestion Control</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc9114.html" rel="noopener" target="_blank">RFC 9114 — HTTP/3</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc9110.html" rel="noopener" target="_blank">RFC 9110 — HTTP Semantics, including range requests</a></li><li><a href="https://man7.org/linux/man-pages/man8/tc-netem.8.html" rel="noopener" target="_blank">tc-netem(8) — Linux Network Emulation manual</a></li><li><a href="https://curl.se/docs/manpage.html" rel="noopener" target="_blank">curl manual — resume with --continue-at / -C</a></li></ol>
+</section>
+</main>
+<footer>
+<strong>Trainer note:</strong> Have participants narrate every arrow using “state, flags, SEQ, ACK, reason.” Then repeat with one packet lost. That exposes memorization gaps quickly.
+</footer>
+<div aria-label="Reading progress" class="progress-wrap"><div class="progress-ring"></div><span id="progressText">0%</span></div>
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeStore=(()=>{try{const k='__tcpudp_test__';localStorage.setItem(k,k);localStorage.removeItem(k);return localStorage}catch{return {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
+
+// Theme and progress
+const themeMedia=window.matchMedia?window.matchMedia('(prefers-color-scheme: light)'):null;
+const savedTheme=safeStore.getItem('tcpudp-theme');
+const initialTheme=savedTheme||(themeMedia&&themeMedia.matches?'light':'dark');
+function applyTheme(theme,{persist=false}={}){
+  const selected=theme==='light'?'light':'dark';
+  document.documentElement.dataset.theme=selected;
+  if(persist) safeStore.setItem('tcpudp-theme',selected);
+  const nextLabel=selected==='light'?'Dark mode':'Light mode';
+  const nextIcon=selected==='light'?'☾':'☀';
+  $('#themeLabel').textContent=nextLabel;
+  $('#themeIcon').textContent=nextIcon;
+  $('#themeBtn').setAttribute('aria-label','Switch to '+nextLabel.toLowerCase());
+  $('#themeBtn').setAttribute('title','Switch to '+nextLabel.toLowerCase());
+  $('#themeBtn').setAttribute('aria-pressed',String(selected==='light'));
+  const themeMeta=$('meta[name="theme-color"]');
+  if(themeMeta) themeMeta.setAttribute('content',selected==='light'?'#f3f7fb':'#07111f');
+}
+applyTheme(initialTheme);
+$('#themeBtn').addEventListener('click',()=>{
+  const next=document.documentElement.dataset.theme==='light'?'dark':'light';
+  applyTheme(next,{persist:true});
+  drawCongestion();
+});
+if(themeMedia&&themeMedia.addEventListener){
+  themeMedia.addEventListener('change',event=>{
+    if(!safeStore.getItem('tcpudp-theme')){
+      applyTheme(event.matches?'light':'dark');
+      drawCongestion();
+    }
+  });
+}
+function updateProgress(){const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;const p=max?Math.round(h.scrollTop/max*100):0;document.documentElement.style.setProperty('--progress',p+'%');$('#progressText').textContent=p+'%';safeStore.setItem('tcpudp-progress',p)}
+document.addEventListener('scroll',updateProgress,{passive:true}); updateProgress();
+
+// Protocol choice
+const choices={tcp:'Choose TCP when correctness depends on a complete, ordered byte stream. Still define application framing, timeouts, authentication, reconnect policy and safe retry semantics.',udp:'Choose UDP when the application can tolerate loss or implement its own timeliness/reliability. Add sequence numbers, bounded packet size, rate control, duplicate handling and security.'};
+$$('.protocol-choice').forEach(b=>b.addEventListener('click',()=>{$('#choiceResult').innerHTML='<strong>'+b.dataset.choice.toUpperCase()+'</strong><br>'+choices[b.dataset.choice]}));
+
+// Header explorers
+function wireHeader(id,out){$$(id+' .field').forEach(btn=>btn.addEventListener('click',()=>{$$(id+' .field').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$(out).innerHTML='<h3>'+esc(btn.dataset.name)+'</h3><p>'+esc(btn.dataset.info)+'</p>'}))}
+wireHeader('#tcpHeader','#tcpFieldInfo'); wireHeader('#udpHeader','#udpFieldInfo');
+
+// Packet-line renderer
+function renderLifelines(el,steps,current){el.innerHTML='<div class="endpoint left">CLIENT</div><div class="endpoint right">SERVER</div><div class="life left"></div><div class="life right"></div>';
+ steps.forEach((s,i)=>{if(i>current)return;const line=document.createElement('div');line.className='packet-line done'+(s.dir==='rl'?' reverse':'')+(s.drop?' drop':'');line.style.top=(78+i*48)+'px';const label=document.createElement('span');label.className='packet-label';label.textContent=s.dir==='rl'?'← '+s.label:s.label+' →';line.appendChild(label);el.appendChild(line)});
+}
+const hsScenarios={
+ normal:[
+  {dir:'lr',label:'SYN  SEQ=1000',cs:'SYN-SENT',ss:'LISTEN',note:'Client actively opens. It chooses ISN 1000, sends SYN and waits for a matching response.'},
+  {dir:'rl',label:'SYN,ACK  SEQ=5000 ACK=1001',cs:'SYN-SENT',ss:'SYN-RECEIVED',note:'Server acknowledges the client SYN and advertises its own sequence space. Options such as MSS, SACK-permitted, timestamps and window scale may appear.'},
+  {dir:'lr',label:'ACK  SEQ=1001 ACK=5001',cs:'ESTABLISHED',ss:'ESTABLISHED',note:'Client acknowledges the server SYN. Both sides can now deliver application data.'}],
+ synlost:[
+  {dir:'lr',label:'SYN  SEQ=1000',drop:true,cs:'SYN-SENT',ss:'LISTEN',note:'The SYN is lost. The server sees nothing; the client remains SYN-SENT.'},
+  {dir:'lr',label:'SYN retransmission  SEQ=1000',cs:'SYN-SENT',ss:'LISTEN',note:'After the retransmission timer expires, the client retransmits the same SYN sequence number.'},
+  {dir:'rl',label:'SYN,ACK  SEQ=5000 ACK=1001',cs:'SYN-SENT',ss:'SYN-RECEIVED',note:'The server responds to the retransmitted SYN.'},
+  {dir:'lr',label:'ACK  ACK=5001',cs:'ESTABLISHED',ss:'ESTABLISHED',note:'Handshake completes. The setup took longer, but application semantics are unchanged.'}],
+ synacklost:[
+  {dir:'lr',label:'SYN  SEQ=1000',cs:'SYN-SENT',ss:'LISTEN',note:'Client sends SYN.'},
+  {dir:'rl',label:'SYN,ACK  ACK=1001',drop:true,cs:'SYN-SENT',ss:'SYN-RECEIVED',note:'Server created embryonic connection state, but SYN-ACK was lost.'},
+  {dir:'rl',label:'SYN,ACK retransmission',cs:'SYN-SENT',ss:'SYN-RECEIVED',note:'Server retransmits SYN-ACK because final acknowledgment did not arrive.'},
+  {dir:'lr',label:'ACK  ACK=5001',cs:'ESTABLISHED',ss:'ESTABLISHED',note:'Client receives the retry and completes the connection.'}],
+ finalacklost:[
+  {dir:'lr',label:'SYN  SEQ=1000',cs:'SYN-SENT',ss:'LISTEN',note:'Client sends SYN.'},
+  {dir:'rl',label:'SYN,ACK  ACK=1001',cs:'SYN-SENT',ss:'SYN-RECEIVED',note:'Server responds and waits for the final acknowledgment.'},
+  {dir:'lr',label:'ACK  ACK=5001',drop:true,cs:'ESTABLISHED',ss:'SYN-RECEIVED',note:'Final ACK is lost. Client is ESTABLISHED, server is still SYN-RECEIVED.'},
+  {dir:'rl',label:'SYN,ACK retransmission',cs:'ESTABLISHED',ss:'SYN-RECEIVED',note:'Server retransmits SYN-ACK. The established client recognizes it as a duplicate synchronization attempt for this connection.'},
+  {dir:'lr',label:'ACK  ACK=5001',cs:'ESTABLISHED',ss:'ESTABLISHED',note:'Client ACKs again; server reaches ESTABLISHED.'}],
+ simopen:[
+  {dir:'lr',label:'SYN  A:1000 → B',cs:'SYN-SENT',ss:'CLOSED',note:'Endpoint A actively opens while B is also about to actively open.'},
+  {dir:'rl',label:'SYN  B:5000 → A',cs:'SYN-SENT',ss:'SYN-SENT',note:'Crossing SYNs are valid. Each endpoint receives a SYN while in SYN-SENT.'},
+  {dir:'lr',label:'SYN,ACK  A ACK=5001',cs:'SYN-RECEIVED',ss:'SYN-SENT',note:'A acknowledges B while repeating its own SYN information.'},
+  {dir:'rl',label:'SYN,ACK  B ACK=1001',cs:'SYN-RECEIVED',ss:'SYN-RECEIVED',note:'B does the same.'},
+  {dir:'lr',label:'ACK',cs:'ESTABLISHED',ss:'SYN-RECEIVED',note:'One side sends the confirming ACK.'},
+  {dir:'rl',label:'ACK',cs:'ESTABLISHED',ss:'ESTABLISHED',note:'Both reach ESTABLISHED. Simultaneous open is valid but uncommon.'}]
+};
+let hsIndex=-1,hsTimer=null;
+function hsRender(){const arr=hsScenarios[$('#hsScenario').value];renderLifelines($('#hsLines'),arr,hsIndex);const s=arr[hsIndex];$('#clientState').textContent=s?s.cs:'CLOSED';$('#serverState').textContent=s?s.ss:'LISTEN';$('#hsNote').innerHTML=s?esc(s.note):'Press <strong>Next step</strong>. Example initial sequence numbers: client 1000, server 5000.'}
+function hsReset(){clearInterval(hsTimer);hsTimer=null;$('#hsAuto').textContent='Auto play';hsIndex=-1;hsRender()}
+$('#hsNext').onclick=()=>{const a=hsScenarios[$('#hsScenario').value];hsIndex=Math.min(a.length-1,hsIndex+1);hsRender()};
+$('#hsPrev').onclick=()=>{hsIndex=Math.max(-1,hsIndex-1);hsRender()};$('#hsReset').onclick=hsReset;$('#hsScenario').onchange=hsReset;
+$('#hsAuto').onclick=()=>{if(hsTimer){hsReset();return}$('#hsAuto').textContent='Stop';hsTimer=setInterval(()=>{const a=hsScenarios[$('#hsScenario').value];if(hsIndex>=a.length-1){clearInterval(hsTimer);hsTimer=null;$('#hsAuto').textContent='Auto play';return}hsIndex++;hsRender()},1150)};hsRender();
+
+// Transfer simulator
+function syncRanges(){$('#payloadOut').textContent=$('#payload').value+' B';$('#mssOut').textContent=$('#mss').value+' B';$('#lossOut').textContent=$('#lossSeg').value==='0'?'none':$('#lossSeg').value}
+['payload','mss','lossSeg'].forEach(id=>$('#'+id).addEventListener('input',syncRanges));syncRanges();
+let transferSegments=[];
+function renderSegments(){const track=$('#segmentTrack');track.innerHTML='';transferSegments.forEach(s=>{const d=document.createElement('div');d.className='segment '+s.status;d.innerHTML='<strong>#'+s.i+'</strong><br>SEQ '+s.seq+'<br>'+s.len+' B';track.appendChild(d)})}
+$('#runTransfer').onclick=()=>{const payload=+$(' #payload'.trim()).value,mss=+$('#mss').value,loss=+$('#lossSeg').value;transferSegments=[];let seq=1001,i=1,remain=payload;while(remain>0){const len=Math.min(mss,remain);transferSegments.push({i,seq,len,status:i===loss?'lost':'acked'});seq+=len;remain-=len;i++}renderSegments();const lost=transferSegments.find(x=>x.status==='lost');if(!lost){$('#transferText').innerHTML='<strong>All data acknowledged.</strong> Final cumulative ACK would be '+seq+'.';return}const later=transferSegments.filter(x=>x.i>lost.i && x.status==='acked');const sack=$('#sack').checked;$('#transferText').innerHTML='<strong>Gap at SEQ '+lost.seq+'.</strong> Receiver keeps cumulatively acknowledging '+lost.seq+'. '+(later.length?(sack?'SACK can additionally report later received blocks, so the sender can target the missing bytes.':'Without SACK, duplicate cumulative ACKs reveal a gap but provide less detail about later blocks.'):'No later segment arrived, so repair likely waits for a retransmission timer.')};
+$('#ackAll').onclick=()=>{const lost=transferSegments.find(x=>x.status==='lost');if(!lost){$('#transferText').textContent='No outstanding loss to repair.';return}lost.status='acked retx';renderSegments();const end=transferSegments.reduce((n,s)=>Math.max(n,s.seq+s.len),1001);$('#transferText').innerHTML='<strong>Retransmitted segment #'+lost.i+' filled the gap.</strong> The receiver can now cumulatively ACK '+end+'. Delivery to the application remains ordered.'};
+$('#resetTransfer').onclick=()=>{transferSegments=[];renderSegments();$('#transferText').textContent='Set values and run the transfer. Segment numbers are pedagogical labels; sequence numbers represent byte positions.'};
+$('#rwnd').oninput=()=>{const v=+$('#rwnd').value;$('#rwndMeter').style.width=v+'%';$('#rwndOut').textContent=v+'%';$('#rwndText').textContent=v===0?'Zero window: sender stops new data and periodically probes so a lost window update does not deadlock the connection.':v<25?'Small window: receiver is applying backpressure.':'Sender may continue within the advertised window.'};
+
+// Congestion canvas
+function drawCongestion(){const c=$('#cwndCanvas'),ctx=c.getContext('2d'),mode=$('#ccLoss').value;const css=getComputedStyle(document.documentElement),line=css.getPropertyValue('--line').trim(),text=css.getPropertyValue('--text').trim(),accent=css.getPropertyValue('--accent').trim(),bad=css.getPropertyValue('--bad').trim();ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle=line;ctx.fillStyle=text;ctx.font='12px sans-serif';for(let i=0;i<=8;i++){const y=20+i*28;ctx.beginPath();ctx.moveTo(45,y);ctx.lineTo(c.width-15,y);ctx.stroke()}let cwnd=1,ssthresh=16,vals=[];for(let r=1;r<=16;r++){if(r===9&&mode!=='none'){if(mode==='timeout'){ssthresh=Math.max(2,cwnd/2);cwnd=1}else{ssthresh=Math.max(2,cwnd/2);cwnd=ssthresh}}vals.push(cwnd);cwnd=cwnd<ssthresh?Math.min(32,cwnd*2):Math.min(32,cwnd+1)}const max=34;ctx.strokeStyle=accent;ctx.lineWidth=3;ctx.beginPath();vals.forEach((v,i)=>{const x=48+i*(c.width-72)/15,y=c.height-24-v/max*(c.height-54);i?ctx.lineTo(x,y):ctx.moveTo(x,y);ctx.fillStyle=text;ctx.fillText(String(i+1),x-4,c.height-8)});ctx.stroke();if(mode!=='none'){const x=48+8*(c.width-72)/15;ctx.strokeStyle=bad;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x,18);ctx.lineTo(x,c.height-24);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=bad;ctx.fillText(mode==='timeout'?'RTO loss':'duplicate ACK loss',x-38,16)}ctx.fillStyle=text;ctx.fillText('cwnd (segments)',4,15);$('#ccText').innerHTML=mode==='none'?'No loss: growth transitions from exponential slow start to roughly linear congestion avoidance in this teaching model.':mode==='timeout'?'Timeout model: ssthresh is reduced and cwnd restarts from a small value.':'Fast-recovery model: inferred isolated loss reduces the window, but not as drastically as a timeout in classic Reno-style behavior.'}
+$('#drawCwnd').onclick=drawCongestion;$('#ccLoss').onchange=drawCongestion;drawCongestion();
+
+// Termination
+const termScenarios={
+ normal:[
+  {dir:'lr',label:'FIN,ACK  SEQ=9000',cs:'FIN-WAIT-1',ss:'ESTABLISHED',active:'FIN-WAIT-1',note:'Client application closes its sending direction. Client enters FIN-WAIT-1.'},
+  {dir:'rl',label:'ACK  ACK=9001',cs:'FIN-WAIT-2',ss:'CLOSE-WAIT',active:'FIN-WAIT-2',note:'Server acknowledges FIN. Server application can still send remaining response data.'},
+  {dir:'rl',label:'FIN,ACK  SEQ=12000',cs:'FIN-WAIT-2',ss:'LAST-ACK',active:'LAST-ACK',note:'Server application closes its direction and waits for final ACK.'},
+  {dir:'lr',label:'ACK  ACK=12001',cs:'TIME-WAIT',ss:'CLOSED',active:'TIME-WAIT',note:'Client acknowledges server FIN and enters TIME-WAIT. Server can discard the connection state.'},
+  {dir:'lr',label:'2 MSL expires',cs:'CLOSED',ss:'CLOSED',active:'CLOSED',note:'After TIME-WAIT expires, the active closer removes its remaining connection state.'}],
+ half:[
+  {dir:'lr',label:'FIN,ACK  request complete',cs:'FIN-WAIT-1',ss:'ESTABLISHED',active:'FIN-WAIT-1',note:'Client half-closes: no more request bytes, but it still reads.'},
+  {dir:'rl',label:'ACK',cs:'FIN-WAIT-2',ss:'CLOSE-WAIT',active:'CLOSE-WAIT',note:'Server sees end-of-stream on receive side, processes the request and keeps its send side open.'},
+  {dir:'rl',label:'response DATA',cs:'FIN-WAIT-2',ss:'CLOSE-WAIT',active:'FIN-WAIT-2',note:'Server sends response after receiving client FIN. Half-close makes this legal.'},
+  {dir:'rl',label:'FIN,ACK',cs:'FIN-WAIT-2',ss:'LAST-ACK',active:'LAST-ACK',note:'Server finishes response and closes.'},
+  {dir:'lr',label:'ACK',cs:'TIME-WAIT',ss:'CLOSED',active:'TIME-WAIT',note:'Client acknowledges and enters TIME-WAIT.'}],
+ sim:[
+  {dir:'lr',label:'FIN,ACK',cs:'FIN-WAIT-1',ss:'ESTABLISHED',active:'FIN-WAIT-1',note:'Client sends FIN.'},
+  {dir:'rl',label:'FIN,ACK crosses',cs:'FIN-WAIT-1',ss:'FIN-WAIT-1',active:'FIN-WAIT-1',note:'Server independently sends FIN before receiving the client FIN.'},
+  {dir:'lr',label:'ACK of server FIN',cs:'CLOSING',ss:'FIN-WAIT-1',active:'CLOSING',note:'Client has sent and received FIN but awaits acknowledgment of its own FIN.'},
+  {dir:'rl',label:'ACK of client FIN',cs:'TIME-WAIT',ss:'TIME-WAIT',active:'TIME-WAIT',note:'Both FINs are acknowledged; simultaneous close converges through CLOSING/TIME-WAIT paths.'}],
+ rst:[
+  {dir:'rl',label:'RST  immediate abort',cs:'CLOSED',ss:'CLOSED',active:'CLOSED',note:'RST aborts rather than gracefully drains both byte streams. Applications receive an error; unread data may be lost.'}]
+};
+let termIndex=-1;
+function highlightState(name){$$('#stateSvg .state-node').forEach(n=>n.classList.remove('active'));const g=$('#stateSvg [data-state="'+name+'"]');if(g) $('.state-node',g).classList.add('active')}
+function termRender(){const a=termScenarios[$('#termScenario').value];renderLifelines($('#termLines'),a,termIndex);const s=a[termIndex];$('#termClient').textContent=s?s.cs:'ESTABLISHED';$('#termServer').textContent=s?s.ss:'ESTABLISHED';$('#termNote').textContent=s?s.note:'Select a close type, then advance.';highlightState(s?s.active:'ESTABLISHED')}
+$('#termNext').onclick=()=>{const a=termScenarios[$('#termScenario').value];termIndex=Math.min(a.length-1,termIndex+1);termRender()};$('#termReset').onclick=()=>{termIndex=-1;termRender()};$('#termScenario').onchange=()=>{termIndex=-1;termRender()};termRender();
+
+// Recovery explorer
+const recovery={download:'Reconnect, validate the object version/ETag, then request a remaining byte range. Verify final size and integrity. Do not append blindly if the server object changed.',payment:'Reconnect and query by the original idempotency key or transaction ID. Retry only according to server semantics. A missing reply does not prove the payment failed.',shell:'A raw SSH TCP session normally does not survive. Use a terminal multiplexer on the server (tmux/screen) or a roaming/session protocol designed for reconnectability.',stream:'Reconnect and resume from the last acknowledged sequence/timestamp when history exists; otherwise accept a gap and continue with fresh samples. Bound replay and buffer growth.',upload:'Use chunk identifiers, checksums and a server-side upload session. Query committed chunks, then send only missing chunks; finalize atomically.'};
+function showRecovery(){$('#recoveryResult').innerHTML='<strong>Recommended pattern</strong><p>'+recovery[$('#recoveryScenario').value]+'</p>'}$('#showRecovery').onclick=showRecovery;showRecovery();
+
+// UDP animation
+let udpRun=0;
+$('#udpSend').onclick=()=>{const stage=$('#udpStage'),effect=$('#udpEffect').value,reliable=$('#udpReliable').checked;$$('.dgram',stage).forEach(x=>x.remove());const outcomes=[];for(let i=1;i<=3;i++){const d=document.createElement('div');d.className='dgram';d.textContent='D'+i+' seq='+i;d.style.top=(58+i*44)+'px';let cls='fly';if(effect==='loss'&&i===2){cls='drop';outcomes.push('D2 lost')}else if(effect==='duplicate'&&i===2){cls='fly dup';outcomes.push('D2 duplicated')}else if(effect==='reorder'&&i===2){cls='fly reorder';d.style.top='190px';outcomes.push('arrival order changed')}d.className+=' '+cls;d.style.animationDelay=(i*.15)+'s';stage.appendChild(d);if(effect==='duplicate'&&i===2){const du=d.cloneNode(true);du.style.top='165px';du.style.animationDelay='.7s';stage.appendChild(du)}}udpRun++;let text=outcomes.length?outcomes.join('; '):'all three delivered in order';if(reliable)text+='; application sequence numbers detect anomalies and its ACK/retry policy attempts repair';else text+='; UDP itself provides no repair';$('#udpText').innerHTML='<strong>Run '+udpRun+':</strong> '+esc(text)+'.'};
+$('#udpClear').onclick=()=>{$$('#udpStage .dgram').forEach(x=>x.remove());$('#udpText').textContent='Send three datagrams and observe that each is independent.'};
+
+// Copy buttons
+$$('.copy').forEach(b=>b.addEventListener('click',async()=>{const code=$('code',b.parentElement).innerText;try{await navigator.clipboard.writeText(code);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}catch{b.textContent='Select text';}}));
+
+// Quiz
+$('#quizForm').addEventListener('submit',e=>{e.preventDefault();let score=0;$$('.quiz-q').forEach(q=>{const selected=$('input:checked',q),ok=selected&&selected.value===q.dataset.answer;score+=ok?1:0;const f=$('.quiz-feedback',q);f.textContent=selected?(ok?'✓ Correct':'✗ Review this section'):'No answer';f.style.color=ok?'var(--good)':'var(--bad)'});$('#score').textContent='Score: '+score+'/6 — '+(score===6?'Ready to explain it.':score>=4?'Good foundation; revisit missed concepts.':'Repeat the simulations and labs before moving on.');safeStore.setItem('tcpudp-score',score)});
+
+// Troubleshooting decision tree
+const diagData={
+  refused:{title:'Connection refused',summary:'The destination host is usually reachable and actively rejected the TCP open because no usable listener accepted the address/port, or a firewall sent a reject.',evidence:['Typical capture: SYN followed immediately by RST,ACK','The error arrives quickly instead of after multiple SYN retries','A service bound only to loopback will not accept traffic sent to another address'],commands:["ss -lntp 'sport = :PORT'","ip route get DESTINATION","tcpdump -ni any 'host DESTINATION and tcp port PORT'"],trap:'A valid RST proves a reply path existed; do not call it a routing timeout.'},
+  timeout:{title:'Connection attempt timeout',summary:'The client received no usable SYN-ACK or RST before retry policy expired. Filtering, route failure, host outage and asymmetric return paths are common causes.',evidence:['Repeated SYN packets with no reply','SYN at client but not server: forward-path problem','SYN-ACK at server but not client: return-path problem'],commands:['ip route get DESTINATION','tracepath DESTINATION',"tcpdump -ni any 'host DESTINATION and tcp port PORT'"],trap:'A timeout does not prove the server application is stopped.'},
+  reset:{title:'Reset after establishment',summary:'An endpoint or middlebox aborted the established connection. Identify the first RST sender and the traffic immediately before it.',evidence:['The handshake completed before the RST','RST can follow abortive close, process restart, protocol rejection or timeout','Retransmissions before the RST may make the reset a consequence'],commands:['ss -tinp','journalctl -u SERVICE --since -10min',"tcpdump -ni any -s0 -w reset.pcap 'tcp port PORT'"],trap:'“Connection reset by peer” describes the socket result, not the root cause.'},
+  stall:{title:'Handshake succeeds, larger data stalls',summary:'Investigate PMTU failure, asymmetric filtering, receive-window pressure, application deadlock or payload-inspecting middleboxes.',evidence:['Small packets pass while larger packets retransmit','ICMP Packet Too Big / Fragmentation Needed may be missing','ZeroWindow points toward receiver pressure rather than PMTU'],commands:['tracepath DESTINATION','ping -M do -s 1400 DESTINATION','ss -tinp',"tcpdump -ni any 'host DESTINATION'"],trap:'Do not lower MTU permanently without controlled evidence.'},
+  retrans:{title:'Frequent retransmissions or slow transfer',summary:'Loss, reordering, congestion, endpoint overload and capture offload can look similar. Correlate sender retransmissions with ACK/SACK behavior and counters.',evidence:['Duplicate ACKs or SACK blocks show a byte gap','RTO is stronger evidence of missing feedback than one duplicate ACK','Offload can distort apparent checksums and segment sizes'],commands:['ss -tinp','nstat -az | grep -i retrans','tc -s qdisc show','ethtool -S INTERFACE'],trap:'Wireshark analysis labels are inferences from one capture point.'},
+  zerowin:{title:'Zero receive window',summary:'The receiver advertised no buffer space, usually because the application is not consuming data fast enough or is blocked.',evidence:['Window advertisement falls to zero','Zero-window probes appear while the sender waits','CPU, disk or application locks may be the actual bottleneck'],commands:['ss -tinp','pidstat -p PID 1','strace -p PID -e trace=network,read,write'],trap:'Larger buffers can hide rather than fix a stalled reader.'},
+  udp:{title:'UDP request with no reply',summary:'UDP has no handshake or transport ACK. The request, response, application, NAT state or ICMP feedback might be missing.',evidence:['An outbound datagram proves only the local send','ICMP Port Unreachable suggests no listener at that moment','No ICMP is inconclusive because it can be filtered or rate-limited'],commands:["ss -lunp 'sport = :PORT'","tcpdump -ni any 'udp port PORT or icmp or icmp6'",'nstat -az | grep -E "Udp(NoPorts|InErrors)"'],trap:'A successful send() does not confirm remote delivery or processing.'}
+};
+function renderDiag(){const d=diagData[$('#diagSymptom').value];$('#diagResult').innerHTML='<h3>'+esc(d.title)+'</h3><p>'+esc(d.summary)+'</p><div class="evidence-list">'+d.evidence.map(x=>'<div class="evidence-item">'+esc(x)+'</div>').join('')+'</div><h4>Commands to correlate</h4><pre><code>'+esc(d.commands.join('\n'))+'</code></pre><div class="callout warn"><strong>Common trap:</strong> '+esc(d.trap)+'</div>'}
+$('#diagRun').onclick=renderDiag;$('#diagSymptom').onchange=renderDiag;renderDiag();
+
+// QUIC comparison
+function resetQuic(){$$('#h2Track .stream-block,#quicA .stream-block,#quicB .stream-block').forEach(x=>x.classList.remove('lost','stalled','recovered'));$('#quicNote').textContent='Inject a loss or simulate a client IP/network change.'}
+$('#quicLoss').onclick=()=>{resetQuic();const h2=$$('#h2Track .stream-block'),qb=$$('#quicB .stream-block');h2[1].classList.add('lost');h2.slice(2).forEach(x=>x.classList.add('stalled'));qb[1].classList.add('lost');qb[2].classList.add('stalled');$$('#quicA .stream-block').forEach(x=>x.classList.add('recovered'));$('#quicNote').innerHTML='<strong>Loss comparison:</strong> TCP must restore the missing byte before later bytes from any multiplexed HTTP/2 stream can be delivered in order. QUIC restores Stream B independently, so Stream A can continue, although shared congestion control may still slow the connection.'};
+$('#quicMigrate').onclick=()=>{resetQuic();$('#quicNote').innerHTML='<strong>Path migration:</strong> the client address/path changes. QUIC connection IDs can preserve connection identity while the new path is validated. Migration support does not guarantee every network or server policy will permit it.'};
+$('#quicReset').onclick=resetQuic;
+
+// Calculators
+const positiveNumber=id=>{const n=Number($(id).value);return Number.isFinite(n)&&n>0?n:null};
+function formatBytes(n){if(n>=1024**3)return (n/1024**3).toFixed(2)+' GiB';if(n>=1024**2)return (n/1024**2).toFixed(2)+' MiB';if(n>=1024)return (n/1024).toFixed(2)+' KiB';return Math.round(n)+' bytes'}
+function calculateBdp(){const rate=positiveNumber('#bdpRate'),rtt=Number($('#bdpRtt').value);if(!rate||!Number.isFinite(rtt)||rtt<0){$('#bdpResult').textContent='Enter valid non-negative values.';return}const bytes=rate*rtt*125;$('#bdpResult').innerHTML='BDP ≈ <strong>'+formatBytes(bytes)+'</strong> ('+Math.round(bytes).toLocaleString()+' bytes). The effective in-flight allowance must be around this value to fill the path; real designs need margin and latency control.'}
+function calculateMss(){const mtu=positiveNumber('#mtuValue'),ip=$('#ipVersion').value==='6'?40:20,opt=Number($('#tcpOptions').value);if(!mtu||!Number.isFinite(opt)||opt<0||opt>40){$('#mssResult').textContent='Enter a valid MTU and 0–40 option bytes.';return}const tcp=mtu-ip-20-opt,udp=mtu-ip-8;if(tcp<=0||udp<=0){$('#mssResult').textContent='Headers exceed the selected MTU.';return}$('#mssResult').innerHTML='TCP payload/MSS estimate: <strong>'+tcp+' bytes</strong>.<br>UDP payload fitting this MTU without IP fragmentation: <strong>'+udp+' bytes</strong>.<br><span class="small">Absolute IPv4 and normal IPv6 UDP limits are much larger, but the path MTU is usually the practical limit.</span>'}
+function calculateTime(){const mib=positiveNumber('#fileMib'),rate=positiveNumber('#fileRate'),rtt=Number($('#fileRtt').value),setup=Number($('#setupRtts').value);if(!mib||!rate||rtt<0||setup<0){$('#timeResult').textContent='Enter valid values.';return}const dataSeconds=mib*1024*1024*8/(rate*1e6),setupSeconds=setup*rtt/1000,total=dataSeconds+setupSeconds;$('#timeResult').innerHTML='Ideal payload time: <strong>'+dataSeconds.toFixed(2)+' s</strong>.<br>Setup allowance: '+setupSeconds.toFixed(3)+' s.<br>Ideal total: <strong>'+total.toFixed(2)+' s</strong>. Real transfers are normally slower.'}
+function calculatePps(){const rate=positiveNumber('#ppsRate'),size=positiveNumber('#ppsSize');if(!rate||!size){$('#ppsResult').textContent='Enter valid values.';return}const pps=rate*1e6/(size*8);$('#ppsResult').innerHTML='Approximate packet rate: <strong>'+Math.round(pps).toLocaleString()+' packets/s</strong> when counting only the entered bytes. Link framing and encapsulation reduce payload efficiency.'}
+$('#calcBdp').onclick=calculateBdp;$('#calcMss').onclick=calculateMss;$('#calcTime').onclick=calculateTime;$('#calcPps').onclick=calculatePps;calculateBdp();calculateMss();calculateTime();calculatePps();
+
+// Security explorer
+const securityData={
+ syn:{title:'SYN backlog pressure',severity:'high',mechanism:'Many opens remain incomplete, consuming listener/backlog resources until completion or expiry.',evidence:'Rising SYN-RECV counts, listen drops/overflows, retransmitted SYN-ACKs and possibly SYN-cookie counters. Flash traffic can look similar.',controls:'Upstream filtering, backlog capacity, SYN cookies where appropriate, rate limits and application admission controls.'},
+ amp:{title:'UDP reflection and amplification',severity:'high',mechanism:'A spoofed victim source address is used with a UDP service whose response is larger than the request.',evidence:'Replies to destinations that did not send legitimate local requests, high response/request ratio and distributed reflectors.',controls:'Source-address validation, disable open recursion/misuse, response-rate limiting, authenticated requests and upstream mitigation.'},
+ scan:{title:'Port scanning',severity:'medium',mechanism:'A source probes address/port combinations to infer reachable services.',evidence:'Short probes across many ports, many RSTs or ICMP unreachables and a low completed-session ratio. Authorized scanners can look similar.',controls:'Minimize exposure, firewall policy, segmentation, rate-aware detection and service hardening.'},
+ rst:{title:'Unexpected RST or aborts',severity:'medium',mechanism:'Endpoints, middleboxes or valid in-window forged resets terminate TCP abruptly.',evidence:'Identify the first RST direction, sequence validity and endpoint logs. A reset after an application error is usually legitimate.',controls:'TLS/application authentication, modern TCP challenge-ACK behavior, middlebox review and correct timeout/close handling.'},
+ idle:{title:'Idle connection exhaustion',severity:'high',mechanism:'Many connections hold descriptors, memory or workers while doing little useful work.',evidence:'Large ESTAB counts, low byte rates, long ages, worker saturation and descriptor pressure.',controls:'Read/idle timeouts, per-client caps, event-driven servers, quotas and load-balancer protections.'},
+ spoof:{title:'Source-address spoofing',severity:'high',mechanism:'IP source addresses are forged; UDP is useful to attackers because no handshake proves return-path reachability.',evidence:'Impossible source ranges, reverse-path anomalies and replies sent to unrelated victims.',controls:'Ingress/egress filtering, uRPF where suitable, cryptographic authentication and cookies before expensive UDP replies.'}
+};
+$$('.security-node').forEach(b=>b.onclick=()=>{$$('.security-node').forEach(x=>x.classList.remove('active'));b.classList.add('active');const d=securityData[b.dataset.security];$('#securityResult').innerHTML='<span class="severity '+d.severity+'">'+d.severity.toUpperCase()+' operational risk</span><h3>'+esc(d.title)+'</h3><p><strong>Mechanism:</strong> '+esc(d.mechanism)+'</p><p><strong>Evidence:</strong> '+esc(d.evidence)+'</p><p><strong>Controls:</strong> '+esc(d.controls)+'</p>'});
+
+
+// Basic self-test for required DOM and scenario data
+(function selfTest(){const required=['hsLines','termLines','cwndCanvas','udpStage','diagResult','quicNote','bdpResult','securityResult','quizForm'];const missing=required.filter(id=>!document.getElementById(id));if(missing.length)console.error('Training document self-test failed. Missing:',missing);for(const [k,v] of Object.entries(hsScenarios))if(!v.length)console.error('Empty handshake scenario',k);for(const [k,v] of Object.entries(termScenarios))if(!v.length)console.error('Empty termination scenario',k);})();
+</script>
+</body>
+</html>
