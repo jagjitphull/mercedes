@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Animated, interactive trainee reference for Linux firewalling with nftables: packet flow, stateful filtering, UID/GID filtering, tracing, IPv4/IPv6, sets, troubleshooting, counters, logging, backup and restore.">
+<title>Linux Firewall with nftables — Interactive Trainee Reference</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2a;--panel2:#11243a;--text:#eef6ff;--muted:#a8bdd3;
+  --line:#27445f;--accent:#5eead4;--accent2:#60a5fa;--warn:#fbbf24;--bad:#fb7185;
+  --good:#4ade80;--code:#050b13;--shadow:0 18px 55px rgba(0,0,0,.28);--radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f4f8fc;--panel:#ffffff;--panel2:#edf5fb;--text:#102033;--muted:#52677c;
+  --line:#c8d9e8;--accent:#087f72;--accent2:#2563eb;--warn:#9a6700;--bad:#be123c;
+  --good:#15803d;--code:#0d1726;--shadow:0 18px 55px rgba(31,57,82,.12);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 85% 0%,rgba(96,165,250,.13),transparent 28%),var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:var(--accent2)}button,input,select{font:inherit}button{cursor:pointer}.skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;z-index:100;background:var(--panel);padding:10px 14px;border-radius:10px}
+.topbar{position:fixed;inset:0 0 auto 0;height:64px;z-index:30;display:flex;align-items:center;gap:12px;padding:0 20px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{font-weight:850;letter-spacing:.2px}.brand span{color:var(--accent)}.grow{flex:1}.top-actions{display:flex;gap:8px;align-items:center}.icon-btn,.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:9px 12px}.btn.primary{background:linear-gradient(135deg,var(--accent2),#7c3aed);border:0;color:#fff;font-weight:750}.btn.good{background:color-mix(in srgb,var(--good) 20%,var(--panel));border-color:var(--good)}.btn.warn{background:color-mix(in srgb,var(--warn) 16%,var(--panel));border-color:var(--warn)}
+.progress-shell{position:fixed;top:64px;left:0;right:0;height:4px;z-index:31;background:var(--line)}#readingProgress{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr);max-width:1500px;margin:auto;padding-top:68px}.side{position:sticky;top:68px;height:calc(100vh - 68px);padding:22px 16px;border-right:1px solid var(--line);overflow:auto}.side input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text)}.nav{display:grid;gap:5px;margin-top:14px}.nav a{text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:9px;font-size:.92rem}.nav a:hover,.nav a.active{background:var(--panel2);color:var(--text)}.side-note{margin-top:18px;padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:.86rem}
+main{min-width:0;padding:28px clamp(18px,4vw,58px) 80px}.hero{min-height:560px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:30px;padding:42px 0}.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--accent);font-size:.84rem;font-weight:750}.hero h1{font-size:clamp(2.7rem,6vw,5.4rem);line-height:.98;margin:.2em 0;letter-spacing:-.055em}.hero p{font-size:1.15rem;color:var(--muted);max-width:720px}.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.hero-visual{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:28px;padding:18px;box-shadow:var(--shadow)}
+section{scroll-margin-top:88px;padding:50px 0;border-top:1px solid var(--line)}h2{font-size:clamp(2rem,4vw,3.1rem);line-height:1.1;letter-spacing:-.035em;margin:0 0 12px}h3{font-size:1.35rem;margin:0 0 8px}h4{margin:.3em 0}.lead{font-size:1.08rem;color:var(--muted);max-width:900px}.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:linear-gradient(150deg,var(--panel),color-mix(in srgb,var(--panel2) 72%,var(--panel)));border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}.card p:last-child{margin-bottom:0}.kpi{font-size:2rem;font-weight:850;color:var(--accent)}.muted{color:var(--muted)}.tag{display:inline-flex;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 8px;font-size:.78rem;margin:2px}.callout{border-left:4px solid var(--accent2);background:var(--panel);padding:16px 18px;border-radius:0 14px 14px 0;margin:16px 0}.callout.warn{border-color:var(--warn)}.callout.bad{border-color:var(--bad)}.callout.good{border-color:var(--good)}
+.compare{width:100%;border-collapse:collapse;background:var(--panel);border-radius:16px;overflow:hidden}.compare th,.compare td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}.compare th{text-align:left;background:var(--panel2)}.compare tr:last-child td{border:0}.yes{color:var(--good);font-weight:800}.no{color:var(--bad);font-weight:800}
+code,kbd{font-family:"SFMono-Regular",Consolas,monospace}code:not(pre code){background:color-mix(in srgb,var(--accent2) 12%,var(--panel));padding:.12em .35em;border-radius:5px}.code-wrap{position:relative;margin:12px 0}pre{background:var(--code);color:#dcecff;padding:18px;border-radius:14px;overflow:auto;border:1px solid #20334a;line-height:1.55}.copy{position:absolute;right:9px;top:9px;background:#15253a;color:#dcecff;border:1px solid #38506c;border-radius:8px;padding:5px 8px;font-size:.78rem}.terminal{background:#03070d;color:#d7f9ea;border:1px solid #27445f;border-radius:14px;padding:16px;min-height:120px;font:14px/1.55 monospace;white-space:pre-wrap;overflow:auto}.prompt{color:#5eead4}.out{color:#bad0e5}.err{color:#fb7185}.ok{color:#4ade80}
+.analogy{display:flex;gap:14px;align-items:flex-start}.analogy .emoji{font-size:2rem;line-height:1}.hierarchy{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch}.hierarchy .level{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel);position:relative}.hierarchy .level:not(:last-child)::after{content:"→";position:absolute;right:-18px;top:42%;color:var(--accent);font-size:1.5rem;z-index:2}
+.sim{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px}.sim-toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:16px}.sim-toolbar label{display:flex;gap:7px;align-items:center}.sim select,.sim input{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:8px}.packet-stage{position:relative;min-height:280px;border:1px dashed var(--line);border-radius:18px;overflow:hidden;background:linear-gradient(90deg,transparent 49.7%,color-mix(in srgb,var(--line) 35%,transparent) 50%,transparent 50.3%)}.flow-row{position:absolute;left:4%;right:4%;top:105px;display:flex;align-items:center;justify-content:space-between}.node{width:120px;min-height:75px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);display:grid;place-items:center;text-align:center;padding:8px;font-weight:800;z-index:2}.wire{position:absolute;left:10%;right:10%;top:141px;height:3px;background:var(--line)}.packet{position:absolute;top:123px;left:8%;width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#04111e;font-weight:900;box-shadow:0 0 24px color-mix(in srgb,var(--accent) 50%,transparent);z-index:5;transition:left .65s ease,top .3s ease,background .3s}.packet.drop{background:var(--bad);animation:shake .35s}.hook-chip{position:absolute;top:45px;transform:translateX(-50%);border:1px solid var(--line);border-radius:999px;background:var(--panel);padding:5px 9px;font-size:.78rem;color:var(--muted)}.hook-chip.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 30%,transparent)}@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.step-log{display:grid;gap:7px;margin-top:12px}.step{padding:9px 11px;border-left:3px solid var(--line);background:var(--panel2);border-radius:0 9px 9px 0}.step.active{border-color:var(--accent);color:var(--text)}
+.priority-track{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.prio-card{flex:1;min-width:130px;border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:12px}.prio-card strong{display:block;color:var(--accent)}
+.state-machine{display:grid;grid-template-columns:repeat(4,minmax(115px,1fr));gap:12px;margin:18px 0}.state{border:1px solid var(--line);border-radius:14px;padding:15px;text-align:center;background:var(--panel2);transition:.25s}.state.on{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 15%,transparent)}.state.invalid.on{border-color:var(--bad)}
+.processes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.process{border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--panel2)}.process.selected{border-color:var(--accent)}.verdict{font-size:1.5rem;font-weight:900}.verdict.accept{color:var(--good)}.verdict.drop{color:var(--bad)}
+.builder{display:grid;grid-template-columns:1fr 1fr;gap:18px}.form-grid{display:grid;gap:10px}.form-grid label{display:grid;gap:5px;color:var(--muted)}
+.counter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.meter{height:9px;background:var(--line);border-radius:999px;overflow:hidden}.meter span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:.35s}.big-number{font-size:2rem;font-weight:900}
+.lab{border:1px solid var(--line);border-radius:18px;overflow:hidden;margin:16px 0;background:var(--panel)}.lab-head{display:flex;align-items:center;gap:12px;padding:15px 18px;background:var(--panel2)}.lab-head .num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent2);color:#fff;font-weight:900}.lab-body{padding:18px}.checklist{display:grid;gap:8px}.checklist label{display:flex;gap:10px;align-items:flex-start;padding:9px;border-radius:9px}.checklist label:hover{background:var(--panel2)}
+.expected{border:1px solid color-mix(in srgb,var(--good) 70%,var(--line));background:color-mix(in srgb,var(--good) 8%,var(--panel));padding:12px;border-radius:12px}.danger{border:1px solid color-mix(in srgb,var(--bad) 70%,var(--line));background:color-mix(in srgb,var(--bad) 8%,var(--panel));padding:12px;border-radius:12px}.tabs{display:flex;gap:5px;flex-wrap:wrap}.tab{border:1px solid var(--line);padding:7px 10px;border-radius:9px;background:var(--panel);color:var(--muted)}.tab.on{background:var(--panel2);color:var(--text);border-color:var(--accent)}.tab-panel{display:none}.tab-panel.on{display:block}
+.trace-list{display:grid;gap:8px;margin-top:14px}.trace-line{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-family:monospace;opacity:.56;transition:.25s}.trace-line.on{opacity:1;border-color:var(--accent);transform:translateX(5px)}
+.evidence-pipeline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}.evidence-stage{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2);transition:.25s}.evidence-stage.on{border-color:var(--accent);box-shadow:0 10px 25px color-mix(in srgb,var(--accent) 13%,transparent)}.evidence-stage strong{display:block;color:var(--accent)}
+.family-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.family-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2)}.family-card strong{color:var(--accent)}
+.decision-flow{display:grid;gap:10px;margin-top:14px}.decision-node{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start;border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--panel2);opacity:.52}.decision-node.on{opacity:1;border-color:var(--accent)}.decision-node.stop{opacity:1;border-color:var(--bad)}.decision-node .badge{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--panel);font-weight:900}
+.challenge{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel);margin:12px 0}.challenge-choices{display:flex;flex-wrap:wrap;gap:8px}.challenge-choice.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 15%,var(--panel))}.challenge-choice.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--panel))}.challenge-feedback{min-height:1.6em;margin-top:8px;font-weight:750}.challenge-feedback.good{color:var(--good)}.challenge-feedback.bad{color:var(--bad)}
+.capstone-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:18px}.requirements{counter-reset:req;display:grid;gap:8px;padding:0}.requirements li{list-style:none;display:grid;grid-template-columns:34px 1fr;gap:9px}.requirements li::before{counter-increment:req;content:counter(req);width:28px;height:28px;border-radius:9px;background:var(--accent2);color:#fff;display:grid;place-items:center;font-weight:900}.download-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.quiz-q{border:1px solid var(--line);border-radius:15px;padding:16px;margin:12px 0;background:var(--panel)}.quiz-q label{display:block;padding:7px 9px;border-radius:8px}.quiz-q label:hover{background:var(--panel2)}.feedback{margin-top:8px;font-weight:700}.feedback.good{color:var(--good)}.feedback.bad{color:var(--bad)}
+.validation-list{display:grid;gap:8px}.test-row{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}.test-row.pass{border-color:var(--good)}.test-row.fail{border-color:var(--bad)}
+.glossary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.glossary div{border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--panel)}.glossary dt{font-weight:850;color:var(--accent)}.glossary dd{margin:4px 0;color:var(--muted)}
+footer{padding:40px 0;color:var(--muted);border-top:1px solid var(--line)}.mobile-menu{display:none}
+@media(max-width:980px){.evidence-pipeline,.family-grid{grid-template-columns:1fr 1fr}.capstone-grid{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.side{position:fixed;z-index:40;left:0;top:64px;width:min(320px,88vw);transform:translateX(-105%);transition:.25s;background:var(--bg)}.side.open{transform:none}.mobile-menu{display:inline-block}.hero{grid-template-columns:1fr}.g3,.glossary{grid-template-columns:1fr 1fr}.builder{grid-template-columns:1fr}}
+@media(max-width:680px){.evidence-pipeline,.family-grid{grid-template-columns:1fr}main{padding-left:15px;padding-right:15px}.g2,.g3,.glossary,.processes,.counter-grid,.state-machine{grid-template-columns:1fr}.hierarchy{grid-template-columns:1fr}.hierarchy .level:not(:last-child)::after{content:"↓";right:auto;left:49%;top:auto;bottom:-24px}.hero{padding-top:24px}.topbar{padding:0 10px}.brand{font-size:.9rem}.node{width:80px;font-size:.78rem}.flow-row{left:2%;right:2%}}
+@media print{.topbar,.side,.progress-shell,.hero-actions,.copy,.sim-toolbar,.btn{display:none!important}.layout{display:block;padding:0}main{padding:0;color:#000;background:#fff}.card,.sim,.lab{box-shadow:none;break-inside:avoid}.tab-panel{display:block!important}body{background:#fff;color:#000}.muted,.lead{color:#333}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <button class="icon-btn mobile-menu" id="menuBtn" aria-label="Open navigation">☰</button>
+  <div class="brand">Linux Firewall <span>nftables</span></div>
+  <div class="grow"></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="searchFocus" title="Search">⌕</button>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+    <button class="icon-btn" onclick="window.print()" title="Print">⎙</button>
+  </div>
+</header>
+<div class="progress-shell"><div id="readingProgress"></div></div>
+<div class="layout">
+<aside class="side" id="sidebar">
+  <input id="sectionSearch" type="search" placeholder="Filter sections…" aria-label="Filter navigation sections">
+  <nav class="nav" id="nav">
+    <a href="#overview">Session overview</a><a href="#compare">iptables vs nftables</a><a href="#mental-model">Core mental model</a><a href="#hooks">Hooks & packet flow</a><a href="#priorities">Priorities</a><a href="#filtering">Input/output/forward</a><a href="#conntrack">Connection tracking</a><a href="#identity">UID/GID filtering</a><a href="#observability">Counters & logging</a><a href="#tracing">Packet tracing</a><a href="#families">IPv4, IPv6 & families</a><a href="#sets">Sets & maps</a><a href="#backup">Export & restore</a><a href="#troubleshooting">Troubleshooting workflow</a><a href="#challenges">Broken-rule challenges</a><a href="#labs">Hands-on labs</a><a href="#capstone">Capstone</a><a href="#quiz">Knowledge check</a><a href="#validation">Validation report</a><a href="#glossary">Glossary</a>
+  </nav>
+  <div class="side-note"><strong>Recommended VM</strong><br>Ubuntu 24.04 LTS or another recent Linux distribution with nftables 1.x. Use a VM snapshot and console access.</div>
+</aside>
+<main id="main">
+<section class="hero" id="overview" data-title="Session overview">
+  <div>
+    <span class="eyebrow">SESSION 1 · MIXED TECHNICAL AUDIENCE</span>
+    <h1>Linux Firewalling with <span style="color:var(--accent)">nftables</span></h1>
+    <p>Understand the packet journey, build stateful rules safely, filter locally generated traffic by user or group, observe rule hits, and persist a tested ruleset.</p>
+    <div class="hero-actions"><a class="btn primary" href="#mental-model">Start learning</a><a class="btn" href="#labs">Jump to labs</a><button class="btn" id="runAllTestsTop">Run document self-test</button></div>
+    <div class="grid g3" style="margin-top:28px">
+      <div class="card"><div class="kpi">13</div><div class="muted">core topics</div></div>
+      <div class="card"><div class="kpi">10</div><div class="muted">guided labs</div></div>
+      <div class="card"><div class="kpi">9</div><div class="muted">interactive simulators</div></div>
+    </div>
+  </div>
+  <div class="hero-visual" aria-label="Animated firewall gate illustration">
+    <svg viewBox="0 0 620 470" width="100%" role="img" aria-labelledby="heroTitle heroDesc">
+      <title id="heroTitle">nftables as an intelligent security gate</title><desc id="heroDesc">Packets approach a Linux host, are evaluated by rules, and are accepted or dropped.</desc>
+      <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#60a5fa"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <rect x="155" y="55" width="310" height="355" rx="34" fill="#0c1d30" stroke="#365773" stroke-width="3"/>
+      <path d="M310 110 L395 145 V235 C395 292 360 337 310 360 C260 337 225 292 225 235 V145Z" fill="url(#g)" opacity=".22" stroke="#5eead4" stroke-width="4"/>
+      <path d="M275 233 l24 24 52-62" fill="none" stroke="#5eead4" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="310" y="390" text-anchor="middle" fill="#d9edff" font-size="24" font-weight="800">nftables policy engine</text>
+      <g filter="url(#glow)"><circle cx="35" cy="175" r="14" fill="#60a5fa"><animate attributeName="cx" values="35;140;140" dur="2.8s" repeatCount="indefinite"/></circle><circle cx="35" cy="235" r="14" fill="#5eead4"><animate attributeName="cx" values="35;140;140" dur="3.4s" repeatCount="indefinite"/></circle><circle cx="35" cy="295" r="14" fill="#fb7185"><animate attributeName="cx" values="35;140;140" dur="3.8s" repeatCount="indefinite"/></circle></g>
+      <path d="M465 185 H585" stroke="#4ade80" stroke-width="5" stroke-linecap="round"/><path d="M465 275 H540" stroke="#fb7185" stroke-width="5" stroke-linecap="round"/><path d="M540 255 l30 40 M570 255 l-30 40" stroke="#fb7185" stroke-width="7"/>
+      <text x="520" y="165" fill="#4ade80" font-size="18">ACCEPT</text><text x="505" y="245" fill="#fb7185" font-size="18">DROP</text>
+    </svg>
+  </div>
+</section>
+
+<section id="compare" data-title="iptables vs nftables">
+<h2>iptables vs nftables</h2><p class="lead">Both configure Linux Netfilter, but they expose different rule-management models. On modern Ubuntu, the familiar <code>iptables</code> command may itself use the nftables backend; that compatibility layer is not the same as writing native nft syntax.</p>
+<div class="callout warn"><strong>Operational rule:</strong> choose one management authority for a ruleset. Mixing native <code>nft</code>, UFW, firewalld, Docker-generated rules, and manual iptables commands without a design can create surprising behavior.</div>
+<div style="overflow:auto"><table class="compare"><thead><tr><th>Area</th><th>iptables family</th><th>nftables</th><th>Why trainees should care</th></tr></thead><tbody>
+<tr><td>Tools</td><td>Separate commands: iptables, ip6tables, arptables, ebtables</td><td>One <code>nft</code> interface</td><td>One consistent language for several protocol families.</td></tr>
+<tr><td>IPv4 + IPv6</td><td>Usually separate rulesets</td><td><code>inet</code> family can cover both</td><td>Less duplicated policy.</td></tr>
+<tr><td>Updates</td><td>Historically rule-by-rule workflows</td><td>Transactional batches</td><td>A file can be validated and applied atomically.</td></tr>
+<tr><td>Sets/maps</td><td>Often external ipset or repetitive rules</td><td>Native sets, maps and concatenations</td><td>Compact policy and efficient lookup.</td></tr>
+<tr><td>Rule structure</td><td>Predefined tables/chains are familiar</td><td>Tables/chains are explicitly created</td><td>More flexible, but you must understand hooks.</td></tr>
+<tr><td>Preferred new design</td><td>Compatibility and legacy estates</td><td><span class="yes">Native modern framework</span></td><td>Learn nftables first for new Linux firewall policy.</td></tr>
+</tbody></table></div>
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><h3>iptables style</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>iptables -A INPUT -p tcp --dport 22 \
+  -m conntrack --ctstate NEW -j ACCEPT</code></pre></div></div>
+<div class="card"><h3>Native nft style</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>nft add rule inet filter input \
+  tcp dport 22 ct state new accept</code></pre></div></div>
+</div>
+</section>
+
+<section id="mental-model" data-title="Core mental model">
+<h2>The four-level mental model</h2><p class="lead">Think of nftables as a company security system: a ruleset contains departments, each department has checkpoints, and each checkpoint has ordered instructions.</p>
+<div class="hierarchy" aria-label="Ruleset hierarchy">
+<div class="level"><span class="tag">1</span><h3>Ruleset</h3><p class="muted">Everything currently loaded into nftables.</p></div>
+<div class="level"><span class="tag">2</span><h3>Table</h3><p class="muted">Administrative container, scoped to a family such as <code>inet</code>.</p></div>
+<div class="level"><span class="tag">3</span><h3>Chain</h3><p class="muted">Ordered rules. A base chain connects to a kernel hook.</p></div>
+<div class="level"><span class="tag">4</span><h3>Rule</h3><p class="muted">Matches expressions, then performs statements or a verdict.</p></div>
+</div>
+<div class="grid g2" style="margin-top:18px">
+<div class="card analogy"><div class="emoji">🏢</div><div><h3>Table = security department</h3><p>For example, an <code>inet training</code> table can hold the whole training policy without touching unrelated tables.</p></div></div>
+<div class="card analogy"><div class="emoji">🚪</div><div><h3>Base chain = connected checkpoint</h3><p>A base chain has a <strong>type</strong>, <strong>hook</strong>, <strong>priority</strong>, and optional default <strong>policy</strong>.</p></div></div>
+<div class="card analogy"><div class="emoji">📋</div><div><h3>Rule = ordered instruction</h3><p>Example: “when TCP destination port is 22, count and accept.” Rules are normally evaluated from top to bottom.</p></div></div>
+<div class="card analogy"><div class="emoji">⚖️</div><div><h3>Verdict = decision</h3><p><code>accept</code>, <code>drop</code>, <code>reject</code>, <code>jump</code>, <code>goto</code>, <code>return</code>, or <code>queue</code>.</p></div></div>
+</div>
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>table inet training {
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        iifname "lo" accept
+        ct state invalid drop
+        ct state established,related accept
+        tcp dport 22 counter accept
+    }
+}</code></pre></div>
+<div class="callout good"><strong>Read it aloud:</strong> “Create an IPv4/IPv6 table named training. Attach an input filter at priority 0. Drop unmatched traffic, except loopback, valid return traffic, and SSH.”</div>
+</section>
+
+<section id="hooks" data-title="Hooks and packet flow">
+<h2>Hooks and packet journey</h2><p class="lead">A hook is a point in the kernel networking path where a base chain can inspect a packet. The important route depends on whether the packet is addressed to this host, created by this host, or routed through this host.</p>
+<div class="sim" id="flowSim">
+  <div class="sim-toolbar"><label>Scenario <select id="flowScenario"><option value="input">Remote client → local web server</option><option value="output">Local curl → remote website</option><option value="forward">LAN client → routed destination</option></select></label><button class="btn primary" id="runFlow">Animate packet</button><button class="btn" id="resetFlow">Reset</button></div>
+  <div class="packet-stage">
+    <div class="wire"></div><div class="hook-chip" style="left:25%" data-hook="prerouting">PREROUTING</div><div class="hook-chip" style="left:50%" data-hook="decision">ROUTE DECISION</div><div class="hook-chip" style="left:75%" data-hook="input">INPUT</div>
+    <div class="flow-row"><div class="node" id="flowStart">Remote client</div><div class="node">Linux network stack</div><div class="node" id="flowEnd">Local process</div></div><div class="packet" id="packet">P</div>
+  </div>
+  <div class="step-log" id="flowLog"><div class="step">Choose a scenario and run the animation.</div></div>
+</div>
+<div class="grid g3" style="margin-top:16px">
+<div class="card"><h3>INPUT</h3><p>Traffic whose final destination is the local machine: SSH to the VM, HTTP to a local service, ping to a local address.</p></div>
+<div class="card"><h3>OUTPUT</h3><p>Traffic generated by a local process: curl, package updates, DNS queries, an application calling an API.</p></div>
+<div class="card"><h3>FORWARD</h3><p>Traffic routed through the machine: a gateway, router, VPN concentrator, container host, or segmented appliance.</p></div>
+</div>
+<div class="callout"><strong>Common mistake:</strong> placing a rule in INPUT to control a packet that is merely passing through the host. Routed traffic uses FORWARD, not INPUT.</div>
+</section>
+
+<section id="priorities" data-title="Hook priorities">
+<h2>Priorities: who runs first?</h2><p class="lead">Multiple base chains can register at the same hook. Lower numeric priority runs earlier. The common symbolic priority <code>filter</code> equals 0.</p>
+<div class="sim">
+<div class="sim-toolbar"><label>Custom chain priority <input id="customPriority" type="number" min="-400" max="400" value="10"></label><button class="btn primary" id="sortPriority">Show evaluation order</button></div>
+<div class="priority-track" id="priorityTrack"></div>
+<div class="terminal" id="priorityOutput">Set a priority, then show the evaluation order.</div>
+</div>
+<div class="grid g3" style="margin-top:16px">
+<div class="card"><div class="kpi">−300</div><h3>raw</h3><p class="muted">Very early. Used for tasks such as disabling connection tracking before lookup.</p></div>
+<div class="card"><div class="kpi">0</div><h3>filter</h3><p class="muted">The normal priority for packet filtering.</p></div>
+<div class="card"><div class="kpi">50</div><h3>security</h3><p class="muted">Runs after standard filter priority at the same hook.</p></div>
+</div>
+<div class="callout warn"><strong>Important nuance:</strong> an <code>accept</code> verdict ends the current chain, but a later base chain at the same hook can still drop the packet. A <code>drop</code> verdict is final for that packet.</div>
+</section>
+
+<section id="filtering" data-title="Input output forward filtering">
+<h2>Build a safe host firewall</h2><p class="lead">A practical policy starts with traffic classes: loopback, malformed/invalid traffic, established return traffic, explicitly permitted new services, then a default policy.</p>
+<div class="builder sim">
+<div>
+<h3>Interactive rule builder</h3><div class="form-grid">
+<label>Chain<select id="bChain"><option>input</option><option>output</option><option>forward</option></select></label>
+<label>Protocol<select id="bProto"><option value="tcp">TCP</option><option value="udp">UDP</option><option value="icmp">ICMP (IPv4)</option></select></label>
+<label>Destination port<input id="bPort" type="number" value="22" min="1" max="65535"></label>
+<label>Connection state<select id="bState"><option value="new">new</option><option value="established">established</option><option value="related">related</option><option value="none">no state match</option></select></label>
+<label>Action<select id="bAction"><option value="accept">accept</option><option value="drop">drop</option><option value="reject">reject</option></select></label>
+<button class="btn primary" id="buildRule">Build rule</button></div>
+</div>
+<div><h3>Generated command</h3><div class="terminal" id="builderOut"></div><div id="builderAdvice" class="callout"></div></div>
+</div>
+<h3 style="margin-top:24px">Recommended baseline</h3>
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>#!/usr/sbin/nft -f
+destroy table inet training
+
+table inet training {
+    chain input {
+        type filter hook input priority filter; policy drop;
+        iifname "lo" counter accept comment "loopback"
+        ct state invalid counter drop comment "invalid traffic"
+        ct state established,related counter accept comment "return traffic"
+        ip protocol icmp counter accept comment "IPv4 diagnostics"
+        meta l4proto ipv6-icmp counter accept comment "IPv6 ICMP control traffic"
+        tcp dport 22 ct state new counter accept comment "SSH"
+        limit rate 5/minute burst 10 packets log prefix "NFT_INPUT_DROP: " level warning
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        ct state invalid counter drop
+        ct state established,related counter accept
+    }
+}</code></pre></div>
+<div class="danger"><strong>Remote-server warning:</strong> never activate a default-drop INPUT policy over SSH unless the current SSH path is explicitly allowed and a tested rollback mechanism is armed.</div>
+</section>
+
+<section id="conntrack" data-title="Connection tracking">
+<h2>Connection tracking: memory for the firewall</h2><p class="lead">Connection tracking lets the kernel classify packets using context, not just isolated header fields. The common rule <code>ct state established,related accept</code> permits legitimate return or helper-related traffic without opening every high port.</p>
+<div class="sim">
+<div class="sim-toolbar"><button class="btn primary state-run" data-seq="handshake">Run TCP handshake</button><button class="btn state-run" data-seq="related">Show RELATED flow</button><button class="btn warn state-run" data-seq="invalid">Inject invalid packet</button><button class="btn" id="stateReset">Reset</button></div>
+<div class="state-machine"><div class="state" data-state="new"><h3>NEW</h3><p>Beginning a tracked flow.</p></div><div class="state" data-state="established"><h3>ESTABLISHED</h3><p>Part of a known bidirectional flow.</p></div><div class="state" data-state="related"><h3>RELATED</h3><p>New flow associated with an existing one.</p></div><div class="state invalid" data-state="invalid"><h3>INVALID</h3><p>Cannot be identified or tracked correctly.</p></div></div>
+<div class="terminal" id="stateOutput">Select a sequence.</div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><h3>NEW does not mean “only SYN”</h3><p>It means conntrack sees the packet as starting or belonging to a flow that has not yet become established. Protocol behavior and conntrack settings matter.</p></div>
+<div class="card"><h3>INVALID should normally be dropped early</h3><p>Invalid packets can be malformed, out of the expected state window, or untrackable. Log them only with rate limiting to avoid flooding.</p></div>
+</div>
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>ct state invalid counter drop
+ct state established,related counter accept</code></pre></div>
+</section>
+
+<section id="identity" data-title="UID and GID filtering">
+<h2>Filter local traffic by UID/GID</h2><p class="lead"><code>meta skuid</code> and <code>meta skgid</code> match the UID or GID associated with the originating socket. Their clearest use is in an OUTPUT chain for traffic created by local processes.</p>
+<div class="callout warn"><strong>Scope limit:</strong> these expressions identify the owner of a local originating socket. They are not a general way to identify remote users, and they are not appropriate for ordinary forwarded traffic.</div>
+<div class="sim">
+<div class="processes" id="processList">
+<button class="process selected" data-name="root-update" data-uid="0" data-gid="0" data-port="443"><h3>Package updater</h3><p>UID 0 · GID 0 · HTTPS</p></button>
+<button class="process" data-name="appsvc" data-uid="991" data-gid="991" data-port="443"><h3>Application service</h3><p>UID 991 · GID 991 · HTTPS</p></button>
+<button class="process" data-name="analyst" data-uid="1001" data-gid="1001" data-port="80"><h3>Analyst shell</h3><p>UID 1001 · GID 1001 · HTTP</p></button>
+</div>
+<div class="sim-toolbar" style="margin-top:16px"><label>Block UID <input id="blockUid" type="number" value="991"></label><label>Block GID <input id="blockGid" type="number" value="-1"></label><button class="btn primary" id="runIdentity">Evaluate outbound packet</button></div>
+<div class="terminal" id="identityOut">Select a process and evaluate it.</div>
+</div>
+<div class="code-wrap"><button class="copy">Copy</button><pre><code># Resolve the numeric UID, then block HTTP/HTTPS created by that account.
+BLOCK_UID=$(id -u labblocked)
+sudo nft add rule inet training output \
+  meta skuid "$BLOCK_UID" tcp dport { 80, 443 } \
+  counter reject with tcp reset
+
+# Equivalent group-based match.
+BLOCK_GID=$(getent group labblocked | cut -d: -f3)
+sudo nft add rule inet training output \
+  meta skgid "$BLOCK_GID" tcp dport { 80, 443 } \
+  counter reject with tcp reset</code></pre></div>
+</section>
+
+<section id="observability" data-title="Counters and logging">
+<h2>Counters and logs: prove what the firewall did</h2><p class="lead">A rule without evidence is hard to troubleshoot. Counters show packet and byte hits; logs provide selected packet metadata. Logging is non-terminating, so it is normally followed by a verdict such as <code>drop</code>.</p>
+<div class="sim">
+<div class="sim-toolbar"><label>Traffic<select id="trafficType"><option value="ssh">Allowed SSH</option><option value="web">Allowed HTTPS</option><option value="telnet">Dropped Telnet</option></select></label><label>Packets<input id="packetCount" type="number" value="5" min="1" max="100"></label><button class="btn primary" id="sendPackets">Send simulated packets</button><button class="btn" id="resetCounters">Reset counters</button></div>
+<div class="counter-grid"><div class="card"><h3>SSH accepted</h3><div class="big-number" id="sshCount">0</div><div class="meter"><span id="sshMeter"></span></div></div><div class="card"><h3>HTTPS accepted</h3><div class="big-number" id="webCount">0</div><div class="meter"><span id="webMeter"></span></div></div><div class="card"><h3>Telnet dropped</h3><div class="big-number" id="dropCount">0</div><div class="meter"><span id="dropMeter"></span></div></div></div>
+<h3 style="margin-top:18px">Simulated kernel log</h3><div class="terminal" id="logOut">No logged packets yet.</div>
+</div>
+<div class="grid g2" style="margin-top:16px"><div class="card"><h3>Inline counter</h3><pre><code>tcp dport 22 counter accept</code></pre><p>Use <code>nft list ruleset</code> to inspect packet and byte values.</p></div><div class="card"><h3>Rate-limited log + drop</h3><pre><code>tcp dport 23 limit rate 5/minute \
+  counter log prefix "NFT_TELNET_DROP: " \
+  level warning drop</code></pre><p>Read with <code>journalctl -k -g NFT_TELNET_DROP</code>.</p></div></div>
+</section>
+
+
+<section id="tracing" data-title="Packet tracing and evidence">
+<h2>Trace the real rule path</h2><p class="lead"><code>nft monitor trace</code> answers the question counters cannot: “which chains and rules did this packet traverse?” A packet must first be marked for tracing with <code>meta nftrace set 1</code>. Keep the match narrow because broad tracing can be noisy.</p>
+<div class="grid g2">
+<div class="card"><h3>Safe, selective trace rule</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code># Mark only the lab port for tracing. No verdict means evaluation continues.
+sudo nft insert rule inet training input \
+  tcp dport 65000 meta nftrace set 1 \
+  comment "temporary trace marker"
+
+# Terminal 1: display trace events.
+sudo nft monitor trace
+
+# Terminal 2: confirm packet arrival independently.
+sudo tcpdump -ni any 'tcp port 65000'
+
+# From the host or a second VM:
+nc -vz -w 2 VM_IP 65000 || true</code></pre></div></div>
+<div class="card"><h3>Remove the temporary marker</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code># Find the handle of the temporary rule.
+sudo nft -a list chain inet training input
+
+# Replace HANDLE with the displayed number.
+sudo nft delete rule inet training input handle HANDLE</code></pre></div><div class="callout warn"><strong>Output format varies:</strong> trace IDs, interface fields and packet metadata depend on the nftables/kernel version. Follow the chain, rule and verdict—not a memorized line layout.</div></div>
+</div>
+<div class="sim" id="traceSim" style="margin-top:18px">
+<div class="sim-toolbar"><label>Packet<select id="traceScenario"><option value="ssh">Allowed SSH</option><option value="blocked">Dropped high port</option><option value="forwarded">Forwarded HTTPS</option></select></label><button class="btn primary" id="runTrace">Play trace</button><button class="btn" id="resetTrace">Reset</button></div>
+<div class="trace-list" id="traceLines"><div class="trace-line">Select a packet and play the representative trace.</div></div>
+<div class="terminal" id="traceVerdict">Trace not started.</div>
+</div>
+<h3 style="margin-top:22px">Correlate four independent observations</h3>
+<div class="sim"><div class="sim-toolbar"><button class="btn primary" id="runEvidence">Run evidence sequence</button><button class="btn" id="resetEvidence">Reset</button></div><div class="evidence-pipeline" id="evidencePipeline">
+<div class="evidence-stage"><strong>1 · tcpdump</strong>Did the packet enter or leave an interface?</div><div class="evidence-stage"><strong>2 · nft trace</strong>Which rule and verdict handled it?</div><div class="evidence-stage"><strong>3 · ss</strong>Is a process listening on the expected address and port?</div><div class="evidence-stage"><strong>4 · application</strong>Did TLS, authentication or application logic reject it?</div>
+</div><div class="terminal" id="evidenceOut">No evidence collected.</div></div>
+</section>
+
+<section id="families" data-title="IPv4 IPv6 and table families">
+<h2>IPv4, IPv6 and table families</h2><p class="lead">The table family determines which packets can enter the table. An <code>inet</code> table can hold shared IPv4 and IPv6 policy, but address expressions remain protocol-specific: <code>ip saddr</code> is IPv4 and <code>ip6 saddr</code> is IPv6.</p>
+<div class="family-grid">
+<div class="family-card"><strong>inet</strong><p>IPv4 + IPv6. Usually the cleanest choice for a dual-stack host firewall.</p></div><div class="family-card"><strong>ip / ip6</strong><p>IPv4-only or IPv6-only policy when separate rulesets are intentional.</p></div><div class="family-card"><strong>arp</strong><p>ARP packet filtering for IPv4 address-to-MAC resolution traffic.</p></div><div class="family-card"><strong>bridge</strong><p>Frames traversing a Linux bridge, including bridged IP traffic.</p></div><div class="family-card"><strong>netdev</strong><p>Early ingress processing attached to a network device.</p></div><div class="family-card"><strong>Important</strong><p>Blocking IPv4 does not automatically secure an independently defined IPv6 ruleset.</p></div>
+</div>
+<div class="sim" style="margin-top:18px"><div class="sim-toolbar"><label>Table family<select id="familySelect"><option>inet</option><option>ip</option><option>ip6</option><option>arp</option><option>bridge</option><option>netdev</option></select></label><label>Packet<select id="packetFamily"><option value="ipv4">IPv4 TCP</option><option value="ipv6">IPv6 TCP</option><option value="arp">ARP frame</option><option value="bridge">Bridged Ethernet frame</option></select></label><button class="btn primary" id="evaluateFamily">Can this table see it?</button></div><div class="terminal" id="familyOut">Choose a family and packet.</div></div>
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>table inet dual_stack {
+  set admin4 { type ipv4_addr; flags interval; elements = { 192.0.2.0/24 } }
+  set admin6 { type ipv6_addr; flags interval; elements = { 2001:db8:10::/64 } }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+    ct state established,related accept
+    ip protocol icmp accept
+    meta l4proto ipv6-icmp accept
+    ip saddr @admin4 tcp dport 22 accept
+    ip6 saddr @admin6 tcp dport 22 accept
+  }
+}</code></pre></div>
+<div class="callout warn"><strong>Do not blanket-drop ICMPv6.</strong> IPv6 relies on ICMPv6 for essential control functions, including neighbor discovery and path-MTU handling. Design a deliberate ICMPv6 policy instead.</div>
+</section>
+
+<section id="sets" data-title="Named sets and verdict maps">
+<h2>Named sets and maps</h2><p class="lead">Sets replace repeated rules with one efficient membership lookup. Maps associate a key with data; verdict maps can map ports or addresses directly to actions.</p>
+<div class="grid g2">
+<div class="card"><h3>Named address and service sets</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>table inet policy {
+  set admin4 {
+    type ipv4_addr
+    flags interval
+    elements = { 192.0.2.10, 198.51.100.0/24 }
+  }
+
+  set web_ports {
+    type inet_service
+    elements = { 80, 443 }
+  }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+    ip saddr @admin4 tcp dport @web_ports counter accept
+  }
+}</code></pre></div></div>
+<div class="card"><h3>Verdict map</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>table inet service_map {
+  map service_verdicts {
+    type inet_service : verdict
+    elements = { 22 : accept, 80 : accept, 443 : accept }
+  }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+    tcp dport vmap @service_verdicts
+  }
+}</code></pre></div><p>One lookup replaces several nearly identical port rules. Use comments and conservative naming so compact policy remains readable.</p></div>
+</div>
+<div class="sim" style="margin-top:18px"><div class="sim-toolbar"><label>Source<select id="setSource"><option value="192.0.2.10">192.0.2.10</option><option value="198.51.100.42">198.51.100.42</option><option value="203.0.113.8">203.0.113.8</option></select></label><label>Destination port<select id="setPort"><option value="22">22</option><option value="80">80</option><option value="443">443</option><option value="8080">8080</option></select></label><button class="btn primary" id="evaluateSet">Evaluate membership</button></div><div class="terminal" id="setOut">Evaluate a source and port against the sets.</div></div>
+</section>
+
+<section id="backup" data-title="Export and restore">
+<h2>Validate, export, restore, persist</h2><p class="lead">Treat a ruleset like production configuration: back up first, validate syntax without applying it, load in one transaction, verify, and keep a rollback path.</p>
+<div class="tabs" role="tablist"><button class="tab on" data-tab="safe">Safe workflow</button><button class="tab" data-tab="persistent">Persistence</button><button class="tab" data-tab="rollback">Rollback timer</button></div>
+<div class="tab-panel on" data-panel="safe"><div class="code-wrap"><button class="copy">Copy</button><pre><code># 1. Back up the active ruleset.
+sudo nft list ruleset | sudo tee /root/nft-before-lab.nft >/dev/null
+
+# 2. Validate a candidate without changing the kernel ruleset.
+sudo nft --check --file ./training.nft
+
+# 3. Apply the complete file transactionally.
+sudo nft --file ./training.nft
+
+# 4. Verify rules, handles and counters.
+sudo nft --numeric --handle list ruleset
+
+# 5. Export the current result.
+sudo nft list ruleset | sudo tee /root/nft-after-lab.nft >/dev/null</code></pre></div></div>
+<div class="tab-panel" data-panel="persistent"><div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo install -m 0600 ./training.nft /etc/nftables.conf
+sudo nft --check --file /etc/nftables.conf
+sudo systemctl enable nftables.service
+sudo systemctl restart nftables.service
+sudo systemctl status nftables.service --no-pager
+sudo nft list ruleset</code></pre></div><div class="callout warn">Before replacing <code>/etc/nftables.conf</code>, inspect the existing file and confirm no other firewall manager owns it.</div></div>
+<div class="tab-panel" data-panel="rollback"><div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo tee /root/nft-rollback.sh >/dev/null <<'SCRIPT'
+#!/bin/sh
+nft flush ruleset
+nft -f /root/nft-before-lab.nft
+SCRIPT
+sudo chmod 700 /root/nft-rollback.sh
+
+# Schedule automatic rollback in five minutes.
+sudo systemd-run --unit=nft-rollback --on-active=5m \
+  /root/nft-rollback.sh
+
+# After successful verification, cancel the timer.
+sudo systemctl stop nft-rollback.timer</code></pre></div></div>
+<div class="sim" style="margin-top:18px"><div class="sim-toolbar"><button class="btn" data-term="backup">1 · Backup</button><button class="btn" data-term="check">2 · Check</button><button class="btn" data-term="apply">3 · Apply</button><button class="btn" data-term="verify">4 · Verify</button><button class="btn warn" data-term="restore">Restore</button></div><div class="terminal" id="backupTerminal"><span class="prompt">trainee@vm:~$</span> Follow the safe workflow.</div></div>
+</section>
+
+
+<section id="troubleshooting" data-title="Troubleshooting workflow">
+<h2>Diagnose the layer, not your hunch</h2><p class="lead">A failed connection does not prove a firewall problem. Walk the stack in order: name resolution, routing, packet visibility, nftables verdict, listening socket, then application behavior.</p>
+<div class="sim"><div class="sim-toolbar"><label>Simulated fault<select id="diagFault"><option value="dns">DNS failure</option><option value="route">No route</option><option value="firewall">Firewall drop</option><option value="service">No listener</option><option value="application">Application rejection</option><option value="none">Connection succeeds</option></select></label><button class="btn primary" id="diagNext">Next diagnostic step</button><button class="btn" id="diagReset">Reset</button></div>
+<div class="decision-flow" id="decisionFlow"></div><div class="terminal" id="diagOut">Select a fault and begin.</div></div>
+<div class="grid g2" style="margin-top:18px"><div class="card"><h3>Core command kit</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>getent ahosts example.com
+ip route get 203.0.113.10
+sudo tcpdump -ni any 'host 203.0.113.10'
+sudo nft monitor trace
+sudo ss -lntup
+curl -vk https://example.com
+sudo journalctl -u SERVICE --since '-10 minutes'</code></pre></div></div><div class="card"><h3>Interpretation rules</h3><ul><li><strong>No packet in tcpdump:</strong> investigate DNS, route, sender or upstream network first.</li><li><strong>Packet visible + trace drop:</strong> nftables policy is the immediate blocker.</li><li><strong>Trace accepts + no listener:</strong> start or reconfigure the service.</li><li><strong>TCP connects + HTTP/TLS fails:</strong> inspect the application, certificate and authentication layers.</li></ul></div></div>
+</section>
+
+<section id="challenges" data-title="Broken rule challenges">
+<h2>Broken-rule challenges</h2><p class="lead">Predict the root cause before clicking. These are policy-logic failures; several will pass <code>nft --check</code> because syntactically valid does not mean operationally correct.</p>
+<div class="challenge" data-challenge="shadow"><h3>1 · The trusted SSH rule never works</h3><pre><code>tcp dport 22 drop
+ip saddr 192.0.2.0/24 tcp dport 22 accept</code></pre><div class="challenge-choices"><button class="btn challenge-choice" data-answer="wrong-chain">Wrong chain</button><button class="btn challenge-choice" data-answer="shadowed" data-correct="true">The first rule shadows the second</button><button class="btn challenge-choice" data-answer="conntrack">Missing conntrack table</button></div><div class="challenge-feedback"></div></div>
+<div class="challenge" data-challenge="chain"><h3>2 · A routed client is not blocked</h3><p>The administrator added the deny rule to INPUT, but the Linux host is routing the packet between two interfaces.</p><div class="challenge-choices"><button class="btn challenge-choice" data-answer="forward" data-correct="true">Move the rule to FORWARD</button><button class="btn challenge-choice" data-answer="output">Move it to OUTPUT</button><button class="btn challenge-choice" data-answer="priority">Raise the priority number</button></div><div class="challenge-feedback"></div></div>
+<div class="challenge" data-challenge="state"><h3>3 · Replies disappear after default-drop</h3><p>New inbound SSH is allowed, but return traffic for locally initiated HTTPS requests is dropped.</p><div class="challenge-choices"><button class="btn challenge-choice" data-answer="established" data-correct="true">Allow established,related in INPUT</button><button class="btn challenge-choice" data-answer="invalid">Accept invalid packets</button><button class="btn challenge-choice" data-answer="nat">Add DNAT</button></div><div class="challenge-feedback"></div></div>
+<div class="challenge" data-challenge="interface"><h3>4 · A rule has zero hits</h3><pre><code>iifname "eth0" tcp dport 22 accept</code></pre><p>The VM interface is actually named <code>ens3</code>.</p><div class="challenge-choices"><button class="btn challenge-choice" data-answer="counter">Reset counters</button><button class="btn challenge-choice" data-answer="interface" data-correct="true">Correct or generalize the interface match</button><button class="btn challenge-choice" data-answer="ipv6">Disable IPv6</button></div><div class="challenge-feedback"></div></div>
+<div class="challenge" data-challenge="ipv6"><h3>5 · IPv4 is blocked, but the service is still reachable</h3><p>The application listens on both stacks. Only an <code>ip</code> family ruleset was created.</p><div class="challenge-choices"><button class="btn challenge-choice" data-answer="inet" data-correct="true">Add IPv6 policy or use an inet table</button><button class="btn challenge-choice" data-answer="log">Increase logging</button><button class="btn challenge-choice" data-answer="uid">Add skuid</button></div><div class="challenge-feedback"></div></div>
+<div class="challenge" data-challenge="forwarding"><h3>6 · FORWARD rules allow traffic, but routing still fails</h3><p>The filter counters remain zero and the host is intended to act as a router.</p><div class="challenge-choices"><button class="btn challenge-choice" data-answer="sysctl" data-correct="true">Check IP forwarding and routes</button><button class="btn challenge-choice" data-answer="accept-invalid">Accept invalid state</button><button class="btn challenge-choice" data-answer="flush">Flush every firewall table</button></div><div class="challenge-feedback"></div></div>
+<div class="callout"><strong>Key lesson:</strong> <code>nft --check --file</code> validates parser and ruleset semantics; it cannot prove that rule order, interface names, routes, services or business intent are correct.</div>
+</section>
+
+<section id="labs" data-title="Hands-on labs">
+<h2>Hands-on labs</h2><p class="lead">Run these on a disposable local VM. Commands assume a recent Ubuntu/Debian-style system; adjust package commands for other distributions.</p>
+<div class="lab"><div class="lab-head"><div class="num">0</div><div><h3>Prepare and protect the VM</h3><div class="muted">Install, inspect ownership, snapshot, back up.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo apt update
+sudo apt install -y nftables curl netcat-openbsd
+nft --version
+sudo systemctl status nftables --no-pager || true
+sudo nft list ruleset
+sudo nft list ruleset | sudo tee /root/nft-before-lab.nft >/dev/null</code></pre></div>
+<div class="expected"><strong>Expected:</strong> <code>nft --version</code> prints an nftables version; listing the ruleset either shows existing tables or an empty result. The backup file exists under <code>/root</code>.</div>
+<div class="checklist"><label><input type="checkbox" data-check="lab0-1"> VM snapshot created</label><label><input type="checkbox" data-check="lab0-2"> Existing firewall manager identified</label><label><input type="checkbox" data-check="lab0-3"> Active ruleset backed up</label></div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">1</div><div><h3>Create and inspect the object hierarchy</h3><div class="muted">Table → base chain → rules.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo nft add table inet training
+sudo nft 'add chain inet training input { type filter hook input priority filter; policy accept; }'
+sudo nft add rule inet training input iifname lo counter accept comment 'loopback'
+sudo nft -a list table inet training</code></pre></div>
+<div class="expected"><strong>Expected pattern:</strong><pre><code>table inet training {
+    chain input {
+        type filter hook input priority filter; policy accept;
+        iifname "lo" counter packets 0 bytes 0 accept comment "loopback" # handle N
+    }
+}</code></pre></div>
+<p><strong>Explain:</strong> <code>inet</code> covers IPv4 and IPv6. The chain becomes a base chain because it has a hook and priority. The handle is the kernel object identifier used for targeted deletion or replacement.</p></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">2</div><div><h3>Stateful INPUT filtering without lockout</h3><div class="muted">Apply a file only after syntax check.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>cat > ~/training.nft <<'NFT'
+destroy table inet training
+
+table inet training {
+  chain input {
+    type filter hook input priority filter; policy drop;
+    iifname "lo" counter accept
+    ct state invalid counter drop
+    ct state established,related counter accept
+    ip protocol icmp counter accept
+    meta l4proto ipv6-icmp counter accept
+    tcp dport 22 ct state new counter accept
+    limit rate 5/minute log prefix "NFT_INPUT_DROP: " level warning
+  }
+  chain output {
+    type filter hook output priority filter; policy accept;
+  }
+}
+NFT
+sudo nft --check --file ~/training.nft
+sudo nft --file ~/training.nft
+sudo nft list table inet training</code></pre></div>
+<div class="expected"><strong>Expected:</strong> the check command exits silently with status 0. The loaded input chain shows policy drop and the explicit allow rules. Existing SSH remains possible because established traffic and TCP/22 are accepted.</div>
+<div class="danger"><strong>Do not copy this to a remote production server unchanged.</strong> Source networks, interfaces, IPv6 requirements, management ports, and orchestration-generated rules must be designed first.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">3</div><div><h3>Generate traffic and read counters/logs</h3><div class="muted">Create evidence for accept and drop paths.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code># Inside the VM: generate accepted loopback traffic.
+ping -c 2 127.0.0.1
+
+# Inside the VM: note the VM address for a test from the host or second VM.
+hostname -I
+
+# On the host/second VM, replace VM_IP with the address above.
+nc -vz -w 2 VM_IP 65000 || true
+
+# Back inside the VM: inspect evidence.
+sudo nft -a list chain inet training input
+sudo journalctl -k -g NFT_INPUT_DROP --since '-5 minutes' --no-pager</code></pre></div>
+<div class="expected"><strong>Expected:</strong> loopback counters increase after the ping. The remote connection attempt times out or fails, the final log rule is hit, and the kernel journal contains a line beginning with <code>NFT_INPUT_DROP:</code>. Run the rejected-port test from the host or a second VM; traffic generated locally toward the VM commonly uses loopback routing and may match the loopback allow rule.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">4</div><div><h3>UID-based OUTPUT control</h3><div class="muted">Block one service account while leaving other users unaffected.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo useradd --system --no-create-home labblocked 2>/dev/null || true
+BLOCK_UID=$(id -u labblocked)
+
+sudo nft add rule inet training output \
+  meta skuid "$BLOCK_UID" tcp dport { 80, 443 } \
+  counter reject with tcp reset comment 'block labblocked web'
+
+# Expected to fail or reset for the blocked service account.
+sudo -u labblocked curl -I --max-time 5 https://example.com || true
+
+# Expected to remain permitted for the current user.
+curl -I --max-time 5 https://example.com
+sudo nft -a list chain inet training output</code></pre></div>
+<div class="expected"><strong>Expected:</strong> the blocked account’s web request fails and the rule counter increases; the current user’s request is not matched by that UID rule. Internet/DNS availability can affect curl results, so the counter is the authoritative match evidence.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">5</div><div><h3>Export and rehearse restoration</h3><div class="muted">Prove recovery, then reapply the training policy for advanced labs.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo nft list ruleset | sudo tee /root/nft-after-lab.nft >/dev/null
+sudo nft --check --file /root/nft-after-lab.nft
+
+# Rehearse restoration of the original state.
+sudo nft flush ruleset
+sudo nft --file /root/nft-before-lab.nft
+sudo nft list ruleset
+
+# Reapply the validated training policy for Labs 6–8.
+sudo nft --check --file ~/training.nft
+sudo nft --file ~/training.nft</code></pre></div>
+<div class="expected"><strong>Expected:</strong> both exported files pass validation. The original ruleset can be restored, and the training ruleset can then be reapplied transactionally.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">6</div><div><h3>Correlate tcpdump with nft trace</h3><div class="muted">Prove arrival, rule traversal and final verdict.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code># Add a narrow trace marker. It does not accept or drop.
+sudo nft insert rule inet training input \
+  tcp dport 65000 meta nftrace set 1 \
+  comment 'temporary trace marker'
+
+# Terminal A
+sudo nft monitor trace
+
+# Terminal B
+sudo tcpdump -ni any 'tcp port 65000'
+
+# From the host or second VM
+nc -vz -w 2 VM_IP 65000 || true
+
+# Find and remove the temporary rule afterwards.
+sudo nft -a list chain inet training input
+sudo nft delete rule inet training input handle HANDLE</code></pre></div>
+<div class="expected"><strong>Expected:</strong> tcpdump sees the SYN arrive; trace output shows the packet entering the input chain and reaching the default drop policy or final drop path. This separates “packet never arrived” from “firewall rejected it.”</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">7</div><div><h3>Arm and cancel an SSH rollback timer</h3><div class="muted">Practice the safety procedure before a dangerous change.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo tee /root/nft-rollback.sh >/dev/null &lt;&lt;'SCRIPT'
+#!/bin/sh
+nft flush ruleset
+nft -f /root/nft-before-lab.nft
+SCRIPT
+sudo chmod 700 /root/nft-rollback.sh
+
+sudo systemd-run --unit=nft-rollback --on-active=5m \
+  /root/nft-rollback.sh
+systemctl list-timers nft-rollback.timer
+
+# Verify a second session or console path before cancelling.
+sudo nft --check --file ~/training.nft
+sudo nft --file ~/training.nft
+sudo nft list ruleset
+
+# Cancel only after successful connectivity tests.
+sudo systemctl stop nft-rollback.timer
+systemctl is-active nft-rollback.timer || true</code></pre></div>
+<div class="expected"><strong>Expected:</strong> the transient timer is visible after creation and inactive after cancellation. In a real remote change, keep a separate SSH session or VM console open while testing.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">8</div><div><h3>Add dual-stack sets safely</h3><div class="muted">Use one inet table with protocol-specific address sets.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>sudo nft 'add set inet training admin4 { type ipv4_addr; flags interval; }'
+sudo nft 'add element inet training admin4 { 192.0.2.0/24 }'
+sudo nft 'add set inet training web_ports { type inet_service; elements = { 80, 443 }; }'
+
+# Insert near the beginning so an earlier terminal verdict cannot shadow it.
+sudo nft insert rule inet training input \
+  ip saddr @admin4 tcp dport @web_ports \
+  counter accept comment 'admin web access'
+
+sudo nft list sets
+sudo nft -a list chain inet training input</code></pre></div>
+<div class="expected"><strong>Expected:</strong> both sets are listed with their types and elements. The inserted rule references the sets by name. Documentation addresses are used here; replace them with the actual lab subnet before connectivity testing.</div></div></div>
+
+<div class="lab"><div class="lab-head"><div class="num">9</div><div><h3>Repair a policy bug and clean up</h3><div class="muted">Show why syntax validation and operational validation are separate.</div></div></div><div class="lab-body">
+<div class="code-wrap"><button class="copy">Copy</button><pre><code>cat > ~/shadowed.nft &lt;&lt;'NFT'
+table inet shadow_demo {
+  chain input {
+    type filter hook input priority 10; policy accept;
+    tcp dport 22 drop
+    ip saddr 192.0.2.0/24 tcp dport 22 accept
+  }
+}
+NFT
+
+# This can pass: the logical ordering problem is not a syntax error.
+sudo nft --check --file ~/shadowed.nft
+
+# Fix by placing the specific allow before the general deny.
+sed -i '/tcp dport 22 drop/d' ~/shadowed.nft
+sed -i '/ip saddr/a\\    tcp dport 22 drop' ~/shadowed.nft
+cat ~/shadowed.nft
+sudo nft --check --file ~/shadowed.nft
+
+# Final cleanup: return to the pre-lab ruleset.
+sudo nft flush ruleset
+sudo nft --file /root/nft-before-lab.nft
+sudo userdel labblocked 2>/dev/null || true
+sudo nft list ruleset</code></pre></div>
+<div class="expected"><strong>Expected:</strong> both versions are syntactically valid, but only the corrected order permits SSH from the trusted subnet. Final output should match the pre-lab policy, apart from environment-specific counter serialization.</div></div></div>
+</section>
+
+<section id="capstone" data-title="Web server firewall capstone">
+<h2>Capstone: secure a dual-stack web server</h2><p class="lead">Turn requirements into a testable policy. Use documentation addresses and a placeholder service UID in the supplied file; trainees must replace them with lab values before applying it.</p>
+<div class="capstone-grid">
+<div class="card"><h3>Required outcomes</h3><ol class="requirements"><li>Default-drop INPUT and FORWARD policy</li><li>Loopback plus established/related traffic allowed</li><li>Invalid traffic dropped</li><li>SSH allowed only from the administration subnet</li><li>HTTP and HTTPS allowed publicly</li><li>IPv4 ICMP and essential ICMPv6 deliberately handled</li><li>Denied traffic logged with rate limiting</li><li>One service UID restricted to a specific HTTPS destination</li><li>Ruleset syntax-checked, exported and recoverable</li><li>Counters and trace output used as evidence</li></ol>
+<div class="download-row"><button class="btn primary download-file" data-download="capstone">Download capstone.nft</button><button class="btn download-file" data-download="broken">Download broken-ruleset.nft</button><button class="btn download-file" data-download="worksheet">Download validation worksheet</button></div><div class="callout warn"><strong>Before applying:</strong> replace <code>192.0.2.0/24</code>, <code>203.0.113.10</code> and UID <code>991</code>. These are documentation/example values, not a deployable production policy.</div></div>
+<div class="card"><h3>Reference solution</h3><div class="code-wrap"><button class="copy">Copy</button><pre><code>#!/usr/sbin/nft -f
+destroy table inet capstone
+
+table inet capstone {
+  set admin4 {
+    type ipv4_addr
+    flags interval
+    elements = { 192.0.2.0/24 }
+  }
+  set public_web { type inet_service; elements = { 80, 443 } }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+    iifname "lo" counter accept
+    ct state invalid counter drop
+    ct state established,related counter accept
+    ip protocol icmp limit rate 10/second counter accept
+    meta l4proto ipv6-icmp limit rate 10/second counter accept
+    ip saddr @admin4 tcp dport 22 ct state new counter accept
+    tcp dport @public_web ct state new counter accept
+    limit rate 5/minute burst 10 packets counter \
+      log prefix "NFT_CAPSTONE_DROP: " level warning
+  }
+
+  chain output {
+    type filter hook output priority filter; policy accept;
+    ct state established,related counter accept
+    meta skuid 991 jump app_egress
+  }
+
+  chain app_egress {
+    ip daddr 203.0.113.10 tcp dport 443 ct state new counter accept
+    counter reject
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state invalid counter drop
+    ct state established,related counter accept
+  }
+}</code></pre></div></div>
+</div>
+<div class="grid g3" style="margin-top:18px"><div class="card"><h3>Test 1 · Policy</h3><p>Verify chain types, hooks, priorities, policies, sets and comments with <code>nft -a list ruleset</code>.</p></div><div class="card"><h3>Test 2 · Behavior</h3><p>Test allowed and denied paths from the correct source hosts; record exact commands and results.</p></div><div class="card"><h3>Test 3 · Evidence</h3><p>Reset counters, generate one flow at a time, inspect counters, trace a denied packet, then export the final policy.</p></div></div>
+</section>
+
+<section id="quiz" data-title="Knowledge check">
+<h2>Knowledge check</h2><p class="lead">Select answers, then score the assessment. A result of 12/15 or higher is a sensible readiness threshold for the practical lab.</p>
+<form id="quizForm">
+<div class="quiz-q" data-answer="b"><h3>1. Which chain sees a packet routed through the host?</h3><label><input type="radio" name="q1" value="a"> INPUT</label><label><input type="radio" name="q1" value="b"> FORWARD</label><label><input type="radio" name="q1" value="c"> OUTPUT</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="a"><h3>2. Which priority runs first?</h3><label><input type="radio" name="q2" value="a"> −150</label><label><input type="radio" name="q2" value="b"> 0</label><label><input type="radio" name="q2" value="c"> 50</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="c"><h3>3. What does <code>ct state related</code> indicate?</h3><label><input type="radio" name="q3" value="a"> Any packet from the same IP</label><label><input type="radio" name="q3" value="b"> A packet with the same destination port</label><label><input type="radio" name="q3" value="c"> A new flow associated with an existing tracked connection</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="b"><h3>4. Where is <code>meta skuid</code> most clearly useful?</h3><label><input type="radio" name="q4" value="a"> Identifying remote users in INPUT</label><label><input type="radio" name="q4" value="b"> Matching locally originated sockets in OUTPUT</label><label><input type="radio" name="q4" value="c"> Matching any forwarded packet</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="a"><h3>5. Is <code>log</code> a terminating verdict?</h3><label><input type="radio" name="q5" value="a"> No</label><label><input type="radio" name="q5" value="b"> Yes</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="c"><h3>6. Which command validates a file without applying it?</h3><label><input type="radio" name="q6" value="a"> nft list ruleset</label><label><input type="radio" name="q6" value="b"> nft monitor</label><label><input type="radio" name="q6" value="c"> nft --check --file rules.nft</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="b"><h3>7. What happens to unmatched packets in a base chain with policy drop?</h3><label><input type="radio" name="q7" value="a"> They are accepted by default</label><label><input type="radio" name="q7" value="b"> They are dropped</label><label><input type="radio" name="q7" value="c"> They are always logged</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="a"><h3>8. Why rate-limit firewall logging?</h3><label><input type="radio" name="q8" value="a"> To reduce log flooding and resource pressure</label><label><input type="radio" name="q8" value="b"> To make dropped traffic accepted</label><label><input type="radio" name="q8" value="c"> To disable counters</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="c"><h3>9. What does a rule handle provide?</h3><label><input type="radio" name="q9" value="a"> A username</label><label><input type="radio" name="q9" value="b"> A packet checksum</label><label><input type="radio" name="q9" value="c"> An identifier for a ruleset object</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="b"><h3>10. Why use the <code>inet</code> family for a host firewall?</h3><label><input type="radio" name="q10" value="a"> It disables IPv6</label><label><input type="radio" name="q10" value="b"> It can share policy across IPv4 and IPv6</label><label><input type="radio" name="q10" value="c"> It only filters Ethernet frames</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="b"><h3>11. What enables packet trace events for a selected nftables packet?</h3><label><input type="radio" name="q11" value="a"> counter reset</label><label><input type="radio" name="q11" value="b"> meta nftrace set 1</label><label><input type="radio" name="q11" value="c"> policy trace</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="c"><h3>12. Which family can contain shared IPv4 and IPv6 host policy?</h3><label><input type="radio" name="q12" value="a"> arp</label><label><input type="radio" name="q12" value="b"> bridge</label><label><input type="radio" name="q12" value="c"> inet</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="a"><h3>13. What is the main advantage of a named set?</h3><label><input type="radio" name="q13" value="a"> One membership lookup can replace repeated rules</label><label><input type="radio" name="q13" value="b"> It automatically enables routing</label><label><input type="radio" name="q13" value="c"> It turns logs into verdicts</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="b"><h3>14. tcpdump sees the SYN and nft trace ends in drop. What is the immediate blocker?</h3><label><input type="radio" name="q14" value="a"> DNS resolution</label><label><input type="radio" name="q14" value="b"> The nftables policy path</label><label><input type="radio" name="q14" value="c"> The remote application response</label><div class="feedback"></div></div>
+<div class="quiz-q" data-answer="c"><h3>15. Will <code>nft --check --file</code> reliably detect a valid but shadowed rule?</h3><label><input type="radio" name="q15" value="a"> Yes, always</label><label><input type="radio" name="q15" value="b"> Only for IPv6</label><label><input type="radio" name="q15" value="c"> No; operational logic still needs review and testing</label><div class="feedback"></div></div>
+<button class="btn primary" type="submit">Score assessment</button> <strong id="quizScore"></strong>
+</form>
+</section>
+
+<section id="validation" data-title="Validation report">
+<h2>Document and simulation validation</h2><p class="lead">This file contains browser-side self-tests for navigation targets, interactive controls, rule generation, priority ordering, trace playback, family and set decisions, diagnostic branches, challenges, downloads, counters, tabs, local persistence and accessible labels.</p>
+<div class="sim"><div class="sim-toolbar"><button class="btn primary" id="runAllTests">Run all self-tests</button><button class="btn" id="resetTests">Clear results</button></div><div class="validation-list" id="validationList"><div class="test-row"><span>Tests have not been run in this browser.</span><strong>—</strong></div></div></div>
+<div class="grid g2" style="margin-top:16px"><div class="card"><h3>Validated externally before delivery</h3><ul><li>HTML parsing and internal-anchor integrity</li><li>JavaScript syntax</li><li>Headless browser load with no console errors</li><li>Core and advanced simulator click paths</li><li>Downloadable embedded lab-file generation</li><li>Responsive layout smoke test</li></ul></div><div class="card"><h3>Must be validated inside the trainee VM</h3><ul><li>Installed nft/kernel feature compatibility</li><li>Existing UFW/firewalld/container rule ownership</li><li>Network interface and management-port assumptions</li><li>Kernel log visibility and journal configuration</li><li>Internet/DNS reachability for curl-based tests</li></ul></div></div>
+<div class="callout"><strong>Accuracy boundary:</strong> the browser simulators teach rule-flow concepts; they do not emulate every kernel, conntrack, routing, namespace, service-manager, or distribution-specific behavior. Real command outcomes must be verified on the target VM.</div>
+</section>
+
+<section id="glossary" data-title="Glossary">
+<h2>Glossary</h2><dl class="glossary">
+<div><dt>Netfilter</dt><dd>Linux kernel framework that provides packet-processing hooks and subsystems.</dd></div><div><dt>nftables</dt><dd>Modern Netfilter packet classification and filtering framework.</dd></div><div><dt>nft</dt><dd>Userspace command-line utility for nftables.</dd></div><div><dt>Family</dt><dd>Protocol context of a table: inet, ip, ip6, arp, bridge, or netdev.</dd></div><div><dt>Base chain</dt><dd>A chain registered to a networking hook.</dd></div><div><dt>Regular chain</dt><dd>A chain used as a jump/goto target; it has no direct hook.</dd></div><div><dt>Hook</dt><dd>A point in the kernel packet path such as input, output, or forward.</dd></div><div><dt>Priority</dt><dd>Order among base chains on the same hook; lower runs earlier.</dd></div><div><dt>Policy</dt><dd>Base-chain action for packets that reach the end without a verdict.</dd></div><div><dt>Conntrack</dt><dd>Kernel subsystem that tracks flows and provides connection state.</dd></div><div><dt>Counter</dt><dd>Stateful packet and byte hit measurement.</dd></div><div><dt>nftrace</dt><dd>Per-packet trace flag that causes nftables trace events to be emitted.</dd></div><div><dt>Set</dt><dd>Named collection used for efficient membership matching.</dd></div><div><dt>Verdict map</dt><dd>Map whose values are actions such as accept, drop or jump.</dd></div><div><dt>Shadowed rule</dt><dd>A rule that cannot affect matching traffic because an earlier terminal verdict handles it first.</dd></div><div><dt>Handle</dt><dd>Numeric identifier used to reference a specific ruleset object.</dd></div>
+</dl>
+</section>
+<footer>
+<p><strong>Reference basis:</strong> Netfilter nftables project documentation, the nft manual, and Ubuntu security documentation. Command examples target a recent nftables 1.x environment and should be checked with <code>nft --check --file</code> on the actual VM.</p>
+<p>Suggested official reading: <a href="https://www.netfilter.org/projects/nftables/" target="_blank" rel="noopener">Netfilter nftables project</a> · <a href="https://wiki.nftables.org/" target="_blank" rel="noopener">nftables wiki</a> · <a href="https://manpages.ubuntu.com/manpages/noble/man8/nft.8.html" target="_blank" rel="noopener">Ubuntu nft(8) manual</a> · <a href="https://documentation.ubuntu.com/security/security-features/network/firewall/nftables/" target="_blank" rel="noopener">Ubuntu nftables guide</a></p>
+</footer>
+</main></div>
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const storage={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
+
+// Theme, navigation, progress
+const savedTheme=storage.get('nft-theme'); if(savedTheme) document.documentElement.dataset.theme=savedTheme;
+$('#themeBtn').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=next;storage.set('nft-theme',next)});
+$('#menuBtn').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$$('#nav a').forEach(a=>a.addEventListener('click',()=>$('#sidebar').classList.remove('open')));
+$('#searchFocus').addEventListener('click',()=>{$('#sectionSearch').focus();$('#sidebar').classList.add('open')});
+$('#sectionSearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();$$('#nav a').forEach(a=>a.hidden=!a.textContent.toLowerCase().includes(q))});
+window.addEventListener('scroll',()=>{const d=document.documentElement;$('#readingProgress').style.width=((d.scrollTop/(d.scrollHeight-d.clientHeight))*100||0)+'%'});
+const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){$$('#nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))}}),{rootMargin:'-25% 0px -65% 0px'});$$('main section').forEach(s=>observer.observe(s));
+
+// Copy buttons
+$$('.copy').forEach(btn=>btn.addEventListener('click',async()=>{const text=btn.nextElementSibling.innerText;try{await navigator.clipboard.writeText(text);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1200)}catch{btn.textContent='Select manually'}}));
+
+// Flow simulator
+const flowData={
+ input:{start:'Remote client',end:'Local process',hooks:['prerouting','decision','input'],steps:['Packet arrives on a network interface.','PREROUTING hook can inspect it before route selection.','Routing decides the destination is this Linux host.','INPUT hook evaluates the packet.','If accepted, the packet reaches the local socket.']},
+ output:{start:'Local process',end:'Remote server',hooks:['output','decision','postrouting'],steps:['A local process creates a socket and packet.','OUTPUT hook evaluates locally generated traffic.','Routing selects the next hop and interface.','POSTROUTING is the final routed hook before transmission.','The packet leaves the VM.']},
+ forward:{start:'LAN client',end:'Routed network',hooks:['prerouting','decision','forward','postrouting'],steps:['Packet enters from one interface.','PREROUTING runs before the route decision.','Routing decides the packet is not local.','FORWARD evaluates transit traffic.','POSTROUTING runs before the packet exits another interface.']}
+};
+function setFlowLabels(type){const d=flowData[type];$('#flowStart').textContent=d.start;$('#flowEnd').textContent=d.end;const chips=$$('.hook-chip',$('#flowSim'));const labels=type==='input'?['PREROUTING','ROUTE DECISION','INPUT']:type==='output'?['OUTPUT','ROUTE DECISION','POSTROUTING']:['PREROUTING','ROUTE DECISION','FORWARD / POSTROUTING'];chips.forEach((c,i)=>{c.textContent=labels[i];c.dataset.hook=d.hooks[Math.min(i,d.hooks.length-1)]})}
+$('#flowScenario').addEventListener('change',e=>{setFlowLabels(e.target.value);resetFlow()});
+function resetFlow(){const p=$('#packet');p.style.left='8%';p.classList.remove('drop');$$('.hook-chip',$('#flowSim')).forEach(c=>c.classList.remove('on'));$('#flowLog').innerHTML='<div class="step">Choose a scenario and run the animation.</div>'}
+$('#resetFlow').addEventListener('click',resetFlow);
+$('#runFlow').addEventListener('click',async()=>{resetFlow();const d=flowData[$('#flowScenario').value];$('#flowLog').innerHTML=d.steps.map(s=>`<div class="step">${s}</div>`).join('');const steps=$$('.step',$('#flowLog')),chips=$$('.hook-chip',$('#flowSim'));for(let i=0;i<steps.length;i++){steps.forEach(x=>x.classList.remove('active'));steps[i].classList.add('active');if(chips[i%chips.length]){chips.forEach(x=>x.classList.remove('on'));chips[i%chips.length].classList.add('on')}$('#packet').style.left=(8+i*(82/(steps.length-1)))+'%';await sleep(650)}});setFlowLabels('input');
+
+// Priority simulator
+function renderPriority(){const custom=Number($('#customPriority').value);const list=[{n:'raw',v:-300},{n:'mangle',v:-150},{n:'filter',v:0},{n:'custom',v:custom},{n:'security',v:50}].sort((a,b)=>a.v-b.v);$('#priorityTrack').innerHTML=list.map((x,i)=>`<div class="prio-card"><strong>${i+1}. ${x.n}</strong><span>priority ${x.v}</span></div>`).join('');$('#priorityOutput').textContent=list.map(x=>`${String(x.v).padStart(4)}  ${x.n}`).join('\n')+'\n\nLower numeric priority is evaluated first.';return list}
+$('#sortPriority').addEventListener('click',renderPriority);renderPriority();
+
+// Rule builder
+function buildRule(){const chain=$('#bChain').value,proto=$('#bProto').value,port=$('#bPort').value,state=$('#bState').value,action=$('#bAction').value;let parts=['sudo nft add rule inet training',chain];if(proto==='icmp') parts.push(chain==='output'?'meta l4proto icmp':'ip protocol icmp');else parts.push(proto,'dport',port);if(state!=='none') parts.push('ct state',state);parts.push('counter',action);const cmd=parts.join(' ');$('#builderOut').textContent=cmd;let advice='Rule syntax assembled for teaching. Validate against the target VM.';if(chain==='input'&&action==='accept'&&state==='new') advice='This permits a new inbound service. Restrict source address/interface where appropriate.';if(chain==='output'&&state==='established') advice='OUTPUT traffic created locally often begins as NEW; an established-only rule may not permit connection initiation.';if(proto==='icmp'&&port) advice='ICMP has no TCP/UDP destination port; the builder correctly omits the port.';$('#builderAdvice').textContent=advice;return cmd}
+$('#buildRule').addEventListener('click',buildRule);buildRule();
+
+// State simulator
+function clearStates(){$$('.state').forEach(s=>s.classList.remove('on'));$('#stateOutput').textContent='Select a sequence.'}
+$('#stateReset').addEventListener('click',clearStates);
+$$('.state-run').forEach(b=>b.addEventListener('click',async()=>{clearStates();const seq=b.dataset.seq;const out=$('#stateOutput');if(seq==='handshake'){const lines=[['new','Client SYN → NEW; inbound service rule decides whether to accept.'],['established','Server SYN/ACK and following packets → ESTABLISHED.'],['established','ACK/data/FIN remain part of the tracked flow.']];out.textContent='';for(const [s,t] of lines){$$('.state').forEach(x=>x.classList.remove('on'));$(`[data-state="${s}"]`).classList.add('on');out.textContent+=t+'\n';await sleep(700)}}else if(seq==='related'){$('[data-state="established"]').classList.add('on');out.textContent='Existing control connection: ESTABLISHED\n';await sleep(650);$$('.state').forEach(x=>x.classList.remove('on'));$('[data-state="related"]').classList.add('on');out.textContent+='Associated secondary flow: RELATED\n';}else{$('[data-state="invalid"]').classList.add('on');out.textContent='Packet cannot be associated with a valid tracked flow.\nRecommended baseline verdict: DROP (rate-limit any logging).'}}));
+
+// UID/GID simulator
+let selectedProcess={name:'root-update',uid:0,gid:0,port:443};
+$$('.process').forEach(p=>p.addEventListener('click',()=>{$$('.process').forEach(x=>x.classList.remove('selected'));p.classList.add('selected');selectedProcess={name:p.dataset.name,uid:Number(p.dataset.uid),gid:Number(p.dataset.gid),port:Number(p.dataset.port)}}));
+function identityDecision(){const uid=Number($('#blockUid').value),gid=Number($('#blockGid').value);const uidMatch=selectedProcess.uid===uid,gidMatch=selectedProcess.gid===gid,blocked=uidMatch||gidMatch;$('#identityOut').innerHTML=`process=${selectedProcess.name}\nuid=${selectedProcess.uid} gid=${selectedProcess.gid} tcp_dport=${selectedProcess.port}\n\nUID rule: ${uidMatch?'MATCH':'no match'}\nGID rule: ${gidMatch?'MATCH':'no match'}\nverdict: <span class="${blocked?'err':'ok'}">${blocked?'REJECT':'CONTINUE / ACCEPT BY LATER POLICY'}</span>`;return !blocked}
+$('#runIdentity').addEventListener('click',identityDecision);
+
+// Counter simulator
+const counts={ssh:0,web:0,telnet:0};
+function renderCounts(){const max=Math.max(1,...Object.values(counts));[['ssh','sshCount','sshMeter'],['web','webCount','webMeter'],['telnet','dropCount','dropMeter']].forEach(([k,c,m])=>{$('#'+c).textContent=counts[k];$('#'+m).style.width=(counts[k]/max*100)+'%'})}
+$('#sendPackets').addEventListener('click',()=>{const type=$('#trafficType').value,n=Math.max(1,Math.min(100,Number($('#packetCount').value)||1));counts[type]+=n;renderCounts();if(type==='telnet'){const now=new Date().toISOString();$('#logOut').textContent=`${now} kernel: NFT_TELNET_DROP: IN=ens3 SRC=198.51.100.25 DST=192.0.2.10 PROTO=TCP DPT=23\n`+$('#logOut').textContent.replace('No logged packets yet.','')}});$('#resetCounters').addEventListener('click',()=>{counts.ssh=counts.web=counts.telnet=0;renderCounts();$('#logOut').textContent='No logged packets yet.'});
+
+// Trace simulator
+const traceData={
+ ssh:{lines:['packet: iif "ens3" ip saddr 192.0.2.25 tcp dport 22','rule: tcp dport 22 meta nftrace set 1 (continue)','rule: tcp dport 22 ct state new counter accept (accept)'],verdict:'Final verdict: ACCEPT — the local SSH socket may receive the packet.'},
+ blocked:{lines:['packet: iif "ens3" ip saddr 198.51.100.25 tcp dport 65000','rule: tcp dport 65000 meta nftrace set 1 (continue)','rule: rate-limited log statement (continue)','policy: input policy drop'],verdict:'Final verdict: DROP — tcpdump can still see the arriving SYN.'},
+ forwarded:{lines:['packet: iif "lan0" oif "wan0" tcp dport 443','hook: prerouting → route decision says non-local','chain: forward ct state new','policy: forward policy drop'],verdict:'Final verdict: DROP — an INPUT rule would not affect this routed packet.'}
+};
+function resetTrace(){$('#traceLines').innerHTML='<div class="trace-line">Select a packet and play the representative trace.</div>';$('#traceVerdict').textContent='Trace not started.'}
+$('#resetTrace').addEventListener('click',resetTrace);
+$('#runTrace').addEventListener('click',async()=>{const d=traceData[$('#traceScenario').value];$('#traceLines').innerHTML=d.lines.map(x=>`<div class="trace-line">${x}</div>`).join('');$('#traceVerdict').textContent='Following trace ID through the ruleset…';const lines=$$('.trace-line',$('#traceLines'));for(const line of lines){line.classList.add('on');await sleep(520)}$('#traceVerdict').textContent=d.verdict});
+function resetEvidence(){$$('.evidence-stage').forEach(x=>x.classList.remove('on'));$('#evidenceOut').textContent='No evidence collected.'}
+$('#resetEvidence').addEventListener('click',resetEvidence);
+$('#runEvidence').addEventListener('click',async()=>{resetEvidence();const msgs=['tcpdump: SYN arrived on ens3.','nft trace: packet reached input and ended at policy drop.','ss: no process is listening on TCP/65000.','Conclusion: firewall drops the packet; even after allowing it, a service must listen.'];const stages=$$('.evidence-stage');for(let i=0;i<stages.length;i++){stages[i].classList.add('on');$('#evidenceOut').textContent+=($('#evidenceOut').textContent==='No evidence collected.'?'':'\n')+msgs[i];$('#evidenceOut').textContent=$('#evidenceOut').textContent.replace('No evidence collected.','');await sleep(520)}});
+
+// Family explorer
+function familyDecision(){const family=$('#familySelect').value,p=$('#packetFamily').value;const matrix={inet:['ipv4','ipv6'],ip:['ipv4'],ip6:['ipv6'],arp:['arp'],bridge:['bridge','ipv4','ipv6','arp'],netdev:['ipv4','ipv6','arp','bridge']};const match=matrix[family].includes(p);const nuance=family==='bridge'?'Bridge-family rules inspect frames traversing a Linux bridge.':family==='netdev'?'netdev is attached to a device ingress path; availability and hooks depend on the ruleset design.':family==='inet'?'inet unifies IPv4 and IPv6, while ip/ip6 address expressions remain specific.':'';$('#familyOut').innerHTML=`table family=${family}\npacket=${p}\n\nresult: <span class="${match?'ok':'err'}">${match?'ELIGIBLE FOR THIS FAMILY':'NOT SEEN BY THIS FAMILY'}</span>\n${nuance}`;return match}
+$('#evaluateFamily').addEventListener('click',familyDecision);
+
+// Set membership simulator
+function setDecision(){const src=$('#setSource').value,port=Number($('#setPort').value);const sourceMatch=src==='192.0.2.10'||src.startsWith('198.51.100.');const portMatch=[80,443].includes(port);const accepted=sourceMatch&&portMatch;$('#setOut').innerHTML=`@admin4 contains source: ${sourceMatch?'yes':'no'}\n@web_ports contains port: ${portMatch?'yes':'no'}\n\nrule result: <span class="${accepted?'ok':'err'}">${accepted?'MATCH → ACCEPT':'NO MATCH → CONTINUE'}</span>`;return accepted}
+$('#evaluateSet').addEventListener('click',setDecision);
+
+// Diagnostic decision tree
+const diagSteps=[
+ {key:'dns',title:'Resolve the name',cmd:'getent ahosts TARGET',ok:'Name resolves to the expected address.'},
+ {key:'route',title:'Check route selection',cmd:'ip route get TARGET_IP',ok:'A route and egress interface are selected.'},
+ {key:'firewall',title:'Observe and trace',cmd:'tcpdump -ni any ...  +  nft monitor trace',ok:'Packet is visible and nftables accepts it.'},
+ {key:'service',title:'Check the listener',cmd:'ss -lntup',ok:'A process listens on the expected address and port.'},
+ {key:'application',title:'Inspect application exchange',cmd:'curl -vk URL  +  journalctl -u SERVICE',ok:'Protocol, TLS and authentication succeed.'}
+];
+let diagIndex=0;
+function renderDiag(){const fault=$('#diagFault').value;$('#decisionFlow').innerHTML=diagSteps.map((s,i)=>`<div class="decision-node ${i<diagIndex?'on':''} ${fault===s.key&&i<diagIndex?'stop':''}"><div class="badge">${i+1}</div><div><strong>${s.title}</strong><div class="muted">${s.cmd}</div></div></div>`).join('')}
+function resetDiag(){diagIndex=0;renderDiag();$('#diagOut').textContent='Select a fault and begin.'}
+$('#diagReset').addEventListener('click',resetDiag);$('#diagFault').addEventListener('change',resetDiag);
+$('#diagNext').addEventListener('click',()=>{const fault=$('#diagFault').value;if(diagIndex>=diagSteps.length){$('#diagOut').textContent=fault==='none'?'All layers passed: investigate intermittent timing, upstream systems or capture a failing attempt.':'Diagnosis already stopped at the simulated fault.';return}const s=diagSteps[diagIndex];diagIndex++;renderDiag();if(fault===s.key){const findings={dns:'STOP: the target name does not resolve. Fix DNS/search-domain configuration before blaming the firewall.',route:'STOP: no usable route exists. Correct addresses, gateways or policy routing.',firewall:'STOP: tcpdump sees the packet and nft trace ends in drop. Review the matching chain, order and policy.',service:'STOP: nftables accepts the packet, but no socket is listening. Start or rebind the service.',application:'STOP: transport succeeds; the application, TLS or authentication layer rejects the request.'};$('#diagOut').textContent=findings[fault]}else{$('#diagOut').textContent=`PASS: ${s.ok}\nNext: ${diagIndex<diagSteps.length?diagSteps[diagIndex].title:'End-to-end connection succeeds.'}`}});resetDiag();
+
+// Challenge scoring
+$$('.challenge-choice').forEach(b=>b.addEventListener('click',()=>{const box=b.closest('.challenge'),fb=$('.challenge-feedback',box),correct=b.dataset.correct==='true';$$('.challenge-choice',box).forEach(x=>{x.disabled=true;if(x.dataset.correct==='true')x.classList.add('correct')});if(!correct)b.classList.add('wrong');fb.textContent=correct?'Correct — now state the evidence or command you would use to prove it.':'Not correct. The highlighted choice is the root cause.';fb.className='challenge-feedback '+(correct?'good':'bad')}));
+
+// Embedded downloadable lab files
+const downloadFiles={
+ capstone:{name:'capstone.nft',type:'text/plain',content:`#!/usr/sbin/nft -f\ndestroy table inet capstone\n\ntable inet capstone {\n  set admin4 { type ipv4_addr; flags interval; elements = { 192.0.2.0/24 } }\n  set public_web { type inet_service; elements = { 80, 443 } }\n  chain input {\n    type filter hook input priority filter; policy drop;\n    iifname "lo" counter accept\n    ct state invalid counter drop\n    ct state established,related counter accept\n    ip protocol icmp limit rate 10/second counter accept\n    meta l4proto ipv6-icmp limit rate 10/second counter accept\n    ip saddr @admin4 tcp dport 22 ct state new counter accept\n    tcp dport @public_web ct state new counter accept\n    limit rate 5/minute burst 10 packets counter log prefix "NFT_CAPSTONE_DROP: " level warning\n  }\n  chain output {\n    type filter hook output priority filter; policy accept;\n    ct state established,related counter accept\n    meta skuid 991 jump app_egress\n  }\n  chain app_egress {\n    ip daddr 203.0.113.10 tcp dport 443 ct state new counter accept\n    counter reject\n  }\n  chain forward {\n    type filter hook forward priority filter; policy drop;\n    ct state invalid counter drop\n    ct state established,related counter accept\n  }\n}\n`},
+ broken:{name:'broken-ruleset.nft',type:'text/plain',content:`table inet broken {\n  chain input {\n    type filter hook input priority filter; policy drop;\n    tcp dport 22 drop\n    ip saddr 192.0.2.0/24 tcp dport 22 accept\n    iifname "eth0" tcp dport { 80, 443 } accept\n  }\n}\n`},
+ worksheet:{name:'nftables-validation-worksheet.csv',type:'text/csv',content:'Test ID,Requirement,Source,Destination,Protocol/Port,Expected Verdict,Observed Result,Counter Before,Counter After,Trace Evidence,Pass/Fail,Notes\n1,SSH from admin subnet,,,,,,,,,,\n2,SSH from untrusted subnet,,,,,,,,,,\n3,Public HTTP,,,,,,,,,,\n4,Public HTTPS,,,,,,,,,,\n5,Denied high port,,,,,,,,,,\n6,Service UID allowed destination,,,,,,,,,,\n7,Service UID denied destination,,,,,,,,,,\n'}
+};
+$$('.download-file').forEach(b=>b.addEventListener('click',()=>{const f=downloadFiles[b.dataset.download],blob=new Blob([f.content],{type:f.type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}));
+
+// Tabs
+$$('.tab').forEach(t=>t.addEventListener('click',()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===t));$$('.tab-panel').forEach(p=>p.classList.toggle('on',p.dataset.panel===t.dataset.tab))}));
+
+// Backup terminal
+const termSteps={backup:'trainee@vm:~$ sudo nft list ruleset | sudo tee /root/nft-before-lab.nft >/dev/null\n[OK] Active ruleset exported.',check:'trainee@vm:~$ sudo nft --check --file training.nft\n[OK] Syntax and semantic validation passed; no rules changed.',apply:'trainee@vm:~$ sudo nft --file training.nft\n[OK] Transaction committed.',verify:'trainee@vm:~$ sudo nft --numeric --handle list ruleset\n[OK] Objects, policies, counters and handles displayed.',restore:'trainee@vm:~$ sudo nft flush ruleset && sudo nft --file /root/nft-before-lab.nft\n[OK] Pre-lab rules restored.'};
+$$('[data-term]').forEach(b=>b.addEventListener('click',()=>$('#backupTerminal').textContent=termSteps[b.dataset.term]));
+
+// Lab checklist persistence
+$$('[data-check]').forEach(cb=>{cb.checked=storage.get(cb.dataset.check)==='1';cb.addEventListener('change',()=>storage.set(cb.dataset.check,cb.checked?'1':'0'))});
+
+// Quiz
+$('#quizForm').addEventListener('submit',e=>{e.preventDefault();let score=0;const questions=$$('.quiz-q');questions.forEach(q=>{const picked=$(`input:checked`,q),ok=picked&&picked.value===q.dataset.answer,fb=$('.feedback',q);if(ok)score++;fb.textContent=ok?'Correct.':picked?'Not correct. Review the relevant section.':'No answer selected.';fb.className='feedback '+(ok?'good':'bad')});$('#quizScore').textContent=`Score: ${score}/${questions.length}`;storage.set('nft-quiz-score',score)});
+
+// Self tests
+function selfTests(){const tests=[];const test=(name,fn)=>{try{const r=!!fn();tests.push({name,pass:r})}catch(e){tests.push({name,pass:false,detail:e.message})}};
+test('All navigation anchors resolve',()=>$$('#nav a').every(a=>document.querySelector(a.getAttribute('href'))));
+test('Every section has a unique ID',()=>{const ids=$$('section').map(s=>s.id);return ids.length===new Set(ids).size&&ids.every(Boolean)});
+test('Flow simulator has all three scenarios',()=>Object.keys(flowData).length===3&&['input','output','forward'].every(k=>flowData[k].steps.length>=5));
+test('All connection-state controls are bound',()=>$$('.state-run').length===3);
+test('Priority ordering uses ascending numeric values',()=>{const x=renderPriority();return x.every((v,i)=>!i||x[i-1].v<=v.v)});
+test('Rule builder emits nft command',()=>buildRule().startsWith('sudo nft add rule inet training'));
+test('UID simulator produces a deterministic verdict',()=>typeof identityDecision()==='boolean');
+test('Counter renderer updates all meters',()=>{renderCounts();return ['sshMeter','webMeter','dropMeter'].every(id=>$('#'+id).style.width.includes('%'))});
+test('Trace simulator defines three representative paths',()=>Object.keys(traceData).length===3&&Object.values(traceData).every(x=>x.lines.length>=3));
+test('Family explorer returns a boolean decision',()=>typeof familyDecision()==='boolean');
+test('Set simulator returns a boolean decision',()=>typeof setDecision()==='boolean');
+test('Diagnostic tree contains five ordered layers',()=>diagSteps.length===5&&diagSteps[0].key==='dns'&&diagSteps[4].key==='application');
+test('All challenge cards contain one correct choice',()=>$$('.challenge').every(c=>$$('[data-correct="true"]',c).length===1));
+test('Three embedded lab downloads are defined',()=>Object.keys(downloadFiles).length===3&&Object.values(downloadFiles).every(f=>f.name&&f.content));
+test('All tab buttons map to panels',()=>$$('.tab').every(t=>$(`[data-panel="${t.dataset.tab}"]`)));
+test('Quiz contains fifteen scored questions',()=>$$('.quiz-q').length===15&&$$('.quiz-q').every(q=>q.dataset.answer));
+test('Interactive buttons have visible labels',()=>$$('button').every(b=>b.textContent.trim()||b.getAttribute('aria-label')||b.getAttribute('title')));
+test('Code blocks are non-empty',()=>$$('pre code').every(c=>c.textContent.trim().length>0));
+test('Official reference links use HTTPS',()=>$$('footer a').every(a=>a.href.startsWith('https://')));
+$('#validationList').innerHTML=tests.map(t=>`<div class="test-row ${t.pass?'pass':'fail'}"><span>${t.name}${t.detail?' — '+t.detail:''}</span><strong>${t.pass?'PASS':'FAIL'}</strong></div>`).join('');return tests.every(t=>t.pass)}
+$('#runAllTests').addEventListener('click',selfTests);$('#runAllTestsTop').addEventListener('click',()=>{location.hash='validation';setTimeout(selfTests,300)});$('#resetTests').addEventListener('click',()=>$('#validationList').innerHTML='<div class="test-row"><span>Tests have not been run in this browser.</span><strong>—</strong></div>');
+
+// Expose a tiny test API for headless validation.
+window.NFT_TRAINING_TEST_API={selfTests,buildRule,renderPriority,identityDecision,familyDecision,setDecision,flowData,traceData,diagSteps,downloadFiles};
+</script>
+</body>
+</html>

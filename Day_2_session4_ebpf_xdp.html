@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive beginner-to-production reference for Linux eBPF, XDP, TC, cgroup hooks, socket filters, bpftool, bpftrace and libbpf.">
+<title>Session 4 — Linux eBPF and XDP | Interactive Trainee Reference</title>
+<style>
+  :root {
+    --bg:#f4f7fb; --surface:#ffffff; --surface-2:#eef4fb; --ink:#152238; --muted:#52647c;
+    --line:#cbd8e7; --accent:#1457d9; --accent-2:#00866a; --warn:#a05a00; --danger:#b42318;
+    --good:#087a55; --code:#0f1b2d; --code-ink:#e8f1ff; --shadow:0 14px 35px rgba(30,55,90,.10);
+    --radius:18px; --navw:290px;
+  }
+  body.dark {
+    --bg:#0d1420; --surface:#141f2e; --surface-2:#1b2a3d; --ink:#edf4ff; --muted:#b7c4d8;
+    --line:#35465d; --accent:#76a7ff; --accent-2:#4fd6b0; --warn:#ffc266; --danger:#ff8f86;
+    --good:#70e2bd; --code:#08101c; --code-ink:#e8f1ff; --shadow:0 14px 35px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.62}
+  a{color:var(--accent)}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .skip{position:absolute;left:-9999px;top:8px;background:var(--ink);color:var(--surface);padding:8px 12px;z-index:999}
+  .skip:focus{left:8px}
+  header.hero{position:relative;overflow:hidden;padding:56px clamp(20px,5vw,72px) 46px;background:linear-gradient(135deg,#0b3d91,#1169d8 55%,#00a17c);color:white}
+  .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.10)}
+  .hero:before{width:360px;height:360px;right:-90px;top:-150px}.hero:after{width:220px;height:220px;left:42%;bottom:-170px}
+  .hero-inner{position:relative;max-width:1240px;margin:auto;display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
+  .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.9}
+  h1{font-size:clamp(2.2rem,5vw,4.8rem);line-height:1.02;margin:.3rem 0 1rem;max-width:900px}
+  .lead{font-size:clamp(1rem,2vw,1.3rem);max-width:780px;opacity:.95}
+  .hero-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.badge{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);padding:6px 11px;border-radius:999px;font-size:.85rem;font-weight:700}
+  .hero-visual{background:rgba(6,24,53,.30);border:1px solid rgba(255,255,255,.28);border-radius:24px;padding:20px;backdrop-filter:blur(8px)}
+  .pulse-line{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:center}.pulse-node{text-align:center;padding:12px 5px;border-radius:12px;background:rgba(255,255,255,.12);font-weight:800;font-size:.82rem}.pulse-arrow{text-align:center;animation:pulse 1.4s infinite alternate}@keyframes pulse{from{opacity:.35;transform:translateX(-3px)}to{opacity:1;transform:translateX(3px)}}
+  .topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface) 93%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topbar-inner{max-width:1500px;margin:auto;padding:9px 18px;display:flex;gap:10px;align-items:center;justify-content:space-between}.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px;border-radius:10px;font-weight:750}.btn:hover,.btn:focus-visible{border-color:var(--accent);outline:3px solid color-mix(in srgb,var(--accent) 22%,transparent)}.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+  .progress-wrap{min-width:210px;display:flex;align-items:center;gap:9px;font-size:.82rem;font-weight:800}.progress{height:9px;background:var(--surface-2);border-radius:99px;overflow:hidden;flex:1}.progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .3s}
+  .layout{max-width:1500px;margin:auto;display:grid;grid-template-columns:var(--navw) minmax(0,1fr);gap:24px;padding:24px}
+  aside{position:sticky;top:72px;height:calc(100vh - 92px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px}
+  aside h2{font-size:1rem;margin:3px 6px 10px}.navlink{display:block;text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:9px;font-size:.91rem}.navlink:hover,.navlink.active{background:var(--surface-2);color:var(--accent);font-weight:800}
+  main{min-width:0}.section{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:clamp(20px,3.5vw,42px);margin-bottom:24px;scroll-margin-top:82px}.section h2{font-size:clamp(1.55rem,3vw,2.5rem);line-height:1.15;margin:.15rem 0 1rem}.section h3{margin-top:1.7rem;line-height:1.25}.kicker{color:var(--accent);font-weight:900;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem}
+  .grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{border:1px solid var(--line);border-radius:15px;padding:18px;background:var(--surface)}.card.soft{background:var(--surface-2)}.card h3,.card h4{margin-top:0}.icon{font-size:1.8rem}.mini{font-size:.88rem;color:var(--muted)}
+  .callout{border-left:5px solid var(--accent);padding:14px 16px;background:var(--surface-2);border-radius:0 12px 12px 0;margin:15px 0}.callout.warn{border-color:var(--warn)}.callout.danger{border-color:var(--danger)}.callout.good{border-color:var(--good)}
+  .compare{width:100%;border-collapse:collapse;font-size:.94rem}.compare th,.compare td{padding:11px;border:1px solid var(--line);vertical-align:top}.compare th{background:var(--surface-2);text-align:left}.compare tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+  .codebox{position:relative;margin:14px 0;background:var(--code);color:var(--code-ink);border-radius:13px;overflow:auto;border:1px solid #31445f}.codebox pre{margin:0;padding:18px 18px 20px;white-space:pre;tab-size:2;font:500 .87rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.copy{position:sticky;float:right;top:7px;margin:7px 7px -45px 0;z-index:2;border:1px solid #526b8c;background:#162a45;color:#fff;padding:5px 9px;border-radius:7px;font-size:.75rem}.copy.done{background:#0c7a58}
+  code{background:var(--surface-2);padding:.12em .35em;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.codebox code{background:transparent;padding:0}
+  .diagram{border:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--surface-2));border-radius:16px;padding:12px;overflow:auto}.diagram svg{width:100%;min-width:680px;height:auto}.svg-label{font-family:Inter,Arial,sans-serif;fill:var(--ink)}
+  .term{border-top:4px solid var(--accent)}.term strong{font-size:1.08rem}.term .one-line{font-weight:800;color:var(--accent)}
+  .flow{display:flex;align-items:stretch;gap:10px;overflow:auto;padding:10px 2px}.stage{min-width:145px;flex:1;border:2px solid var(--line);border-radius:14px;padding:14px;text-align:center;background:var(--surface);position:relative}.stage.active{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 15%,transparent)}.stage.drop{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 9%,var(--surface))}.arrow{display:flex;align-items:center;font-size:1.5rem;color:var(--muted)}
+  .sim-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:14px 0}.sim-controls label{font-size:.85rem;font-weight:800}.sim-controls select,.sim-controls input{display:block;margin-top:4px;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink)}
+  .meter{height:16px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}.meter span{height:100%;display:block;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .6s}.metric{font-size:2rem;font-weight:900;color:var(--accent)}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}.tab{border:1px solid var(--line);background:var(--surface);padding:8px 11px;border-radius:9px;font-weight:800;color:var(--muted)}.tab.active{background:var(--accent);color:white;border-color:var(--accent)}.tab-panel{display:none}.tab-panel.active{display:block;animation:fade .25s ease}@keyframes fade{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+  details{border:1px solid var(--line);border-radius:12px;margin:10px 0;background:var(--surface)}details[open]{box-shadow:0 8px 20px rgba(20,50,90,.06)}summary{cursor:pointer;padding:13px 15px;font-weight:850}details>div{padding:0 15px 15px}
+  .quiz-q{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}.quiz-q label{display:block;margin:7px 0}.result{font-weight:850;margin-top:9px}.right{color:var(--good)}.wrong{color:var(--danger)}
+  .packet{width:22px;height:22px;border-radius:6px;background:#ffd166;border:2px solid #7d5900;position:absolute;top:50%;transform:translateY(-50%);left:2%;z-index:5;display:none}.packet.go{display:block;animation:packetGo var(--packet-time,4.3s) linear forwards}@keyframes packetGo{from{left:2%}to{left:var(--packet-end,96%)}}
+  .journey{position:relative}.timeline{height:5px;background:var(--line);position:absolute;left:4%;right:4%;top:50%;z-index:0}.journey .stage{z-index:1;background:var(--surface)}
+  .checklist label{display:flex;gap:10px;padding:8px;border-bottom:1px dashed var(--line)}.checklist input{width:18px;height:18px}
+  .status{display:inline-flex;gap:6px;align-items:center;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:850;background:var(--surface-2);border:1px solid var(--line)}.dot{width:9px;height:9px;border-radius:50%;background:var(--good)}
+  footer{max-width:1500px;margin:0 auto 35px;padding:0 24px;color:var(--muted);font-size:.88rem}
+  .print-only{display:none}
+  @media(max-width:1050px){.hero-inner{grid-template-columns:1fr}.layout{grid-template-columns:1fr}aside{position:relative;top:auto;height:auto}.g4{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}.topbar-inner{align-items:flex-start}.progress-wrap{display:none}.layout{padding:12px}.section{padding:20px}.hero{padding:40px 20px}.flow{flex-direction:column}.arrow{transform:rotate(90deg);justify-content:center}.diagram svg{min-width:590px}}
+  @media print{.topbar,aside,.copy,.btn,.sim-controls,.tabs{display:none!important}.layout{display:block;padding:0}.section{box-shadow:none;break-inside:avoid;border-color:#aaa}.hero{background:#fff!important;color:#000;padding:24px}.hero-visual{border-color:#999}.print-only{display:block}body{background:#fff;color:#000}.tab-panel{display:block!important}.codebox{white-space:pre-wrap}.diagram svg{min-width:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">Linux Network Security · Session 4</div>
+      <h1>eBPF, XDP, TC &amp; cgroup</h1>
+      <p class="lead">A visual, interactive, beginner-friendly reference that moves from “what is it?” to production-style packet filtering, observability, policy enforcement and safe cleanup.</p>
+      <div class="hero-badges"><span class="badge">Single-file HTML</span><span class="badge">VM-friendly labs</span><span class="badge">Expected outputs</span><span class="badge">Accuracy reviewed</span></div>
+    </div>
+    <div class="hero-visual" aria-label="eBPF hook point summary">
+      <h2 style="margin-top:0">One engine, several hook points</h2>
+      <div class="pulse-line"><div class="pulse-node">NIC</div><div class="pulse-arrow">→</div><div class="pulse-node">XDP</div><div class="pulse-arrow">→</div></div>
+      <div class="pulse-line" style="margin-top:8px"><div class="pulse-node">TC</div><div class="pulse-arrow">→</div><div class="pulse-node">cgroup</div><div class="pulse-arrow">→</div></div>
+      <div class="pulse-line" style="margin-top:8px"><div class="pulse-node">Socket</div><div class="pulse-arrow">↔</div><div class="pulse-node">Process</div><div class="pulse-arrow">✓</div></div>
+      <p style="margin-bottom:0;opacity:.92">eBPF is the programmable mechanism. XDP, TC, cgroup and socket hooks define <em>where</em> a program runs and what context it can see.</p>
+    </div>
+  </div>
+</header>
+<div class="topbar"><div class="topbar-inner"><div class="toolbar"><button class="btn" id="themeBtn">◐ Theme</button><button class="btn" onclick="window.print()">🖨 Print / PDF</button><button class="btn" id="resetBtn">↺ Reset progress</button></div><div class="progress-wrap"><span id="progressText">0% explored</span><div class="progress"><span id="progressBar"></span></div></div></div></div>
+<div class="layout">
+<aside aria-label="Course navigation">
+  <h2>Session map</h2>
+  <nav id="toc">
+    <a class="navlink" href="#outcomes">1. Outcomes &amp; prerequisites</a>
+    <a class="navlink" href="#mental-model">2. Mental model</a>
+    <a class="navlink" href="#ebpf">3. What is eBPF?</a>
+    <a class="navlink" href="#verifier-maps">4. Verifier &amp; maps</a>
+    <a class="navlink" href="#hooks">5. Hook points</a>
+    <a class="navlink" href="#journey">6. Packet journey simulator</a>
+    <a class="navlink" href="#xdp">7. XDP early drop</a>
+    <a class="navlink" href="#tc">8. TC</a>
+    <a class="navlink" href="#cgroup">9. cgroup hooks</a>
+    <a class="navlink" href="#socket">10. Socket filters</a>
+    <a class="navlink" href="#tools">11. Tool overview</a>
+    <a class="navlink" href="#labs">12. Production-style labs</a>
+    <a class="navlink" href="#operations">13. Production operations</a>
+    <a class="navlink" href="#assessment">14. Assessment</a>
+    <a class="navlink" href="#accuracy">15. Accuracy &amp; sources</a>
+  </nav>
+</aside>
+<main id="main">
+<section class="section tracked" id="outcomes">
+  <div class="kicker">Start here</div><h2>Learning outcomes and lab contract</h2>
+  <div class="grid g2">
+    <div class="card soft"><h3>By the end, trainees can</h3><ul><li>Define eBPF without calling it a firewall, protocol or replacement kernel.</li><li>Explain the verifier, maps, helpers, program types and attachment.</li><li>Choose XDP, TC, cgroup or socket hooks for a stated requirement.</li><li>Inspect loaded programs and maps with <code>bpftool</code>.</li><li>Trace live kernel events using <code>bpftrace</code>.</li><li>Compile and attach small XDP, TC and cgroup programs safely.</li><li>Collect evidence, verify behavior, roll back and clean up.</li></ul></div>
+    <div class="card"><h3>Lab baseline</h3><p><strong>Primary tested path:</strong> Ubuntu 24.04-class VM, x86_64, modern Linux kernel, root/sudo, cgroup v2. Commands include capability checks so trainees fail safely on incompatible VMs.</p><div class="callout warn"><strong>Virtual-machine reality:</strong> XDP native-driver mode depends on the virtual NIC and driver. The lab deliberately uses <code>xdpgeneric</code> for portability. It proves logic and attachment, but it is <em>not</em> a native-XDP performance benchmark.</div><p class="mini">Recommended: 2 vCPU, 4 GB RAM, 20 GB free disk, internet access for package installation, and a snapshot before the labs.</p></div>
+  </div>
+  <h3>Suggested delivery flow</h3>
+  <table class="compare"><thead><tr><th>Block</th><th>Focus</th><th>Evidence</th></tr></thead><tbody><tr><td>Concepts</td><td>eBPF lifecycle, verifier, maps and hook selection</td><td>Trainee explains the packet path</td></tr><tr><td>Observation</td><td>bpftool and bpftrace</td><td>Feature report and live event trace</td></tr><tr><td>Enforcement</td><td>XDP, TC and cgroup programs</td><td>Before/after connectivity tests and counters</td></tr><tr><td>Operations</td><td>Risk controls, rollback, performance and troubleshooting</td><td>Change plan and cleanup verification</td></tr></tbody></table>
+</section>
+
+<section class="section tracked" id="mental-model">
+  <div class="kicker">Big picture</div><h2>The simplest accurate mental model</h2>
+  <div class="grid g4">
+    <div class="card term"><div class="icon">🧠</div><strong>eBPF</strong><p class="one-line">A verified program runtime inside the Linux kernel.</p><p>It lets approved programs run at supported kernel events without writing a traditional kernel module.</p></div>
+    <div class="card term"><div class="icon">⚡</div><strong>XDP</strong><p class="one-line">A very early ingress packet-processing hook.</p><p>It can pass, drop, transmit or redirect packets before the normal network stack does most work.</p></div>
+    <div class="card term"><div class="icon">🚦</div><strong>TC</strong><p class="one-line">Traffic-control hooks around the network stack.</p><p>eBPF classifiers/actions can inspect and modify ingress or egress traffic using an <code>skb</code> context.</p></div>
+    <div class="card term"><div class="icon">📦</div><strong>cgroup</strong><p class="one-line">A hierarchy that groups processes and workloads.</p><p>eBPF programs can attach to cgroup events to apply policy to every process in that workload group.</p></div>
+  </div>
+  <div class="callout"><strong>Analogy:</strong> eBPF is the programmable security officer. XDP is the gate before visitors enter the building, TC is the traffic desk in the lobby and exit, cgroup hooks apply rules to a department, and socket filters protect or observe a specific communication endpoint.</div>
+  <h3>Do not confuse these</h3>
+  <table class="compare"><thead><tr><th>Incorrect shortcut</th><th>Accurate correction</th></tr></thead><tbody><tr><td>“eBPF is a firewall.”</td><td>eBPF is a mechanism. A firewall is one application built with it.</td></tr><tr><td>“XDP bypasses the kernel.”</td><td>XDP runs in the kernel. It bypasses much of the <em>normal networking stack</em> for selected packets.</td></tr><tr><td>“cgroup is an eBPF hook.”</td><td>cgroup is a workload hierarchy. Linux exposes several BPF program types and attach points associated with cgroups.</td></tr><tr><td>“The verifier proves the program is bug-free.”</td><td>It checks safety properties and program constraints. It does not prove business logic, policy intent or operational correctness.</td></tr><tr><td>“TC is obsolete because XDP is faster.”</td><td>TC sees richer <code>skb</code> context, supports ingress and egress, and may be the correct hook even when XDP is available.</td></tr></tbody></table>
+</section>
+
+<section class="section tracked" id="ebpf">
+  <div class="kicker">Concept 1</div><h2>What is eBPF, and what does it do?</h2>
+  <p><strong>Definition:</strong> eBPF is a Linux kernel facility for loading programs into a constrained instruction set, verifying them, and attaching them to supported kernel events. Programs can inspect context, call allowed helper functions, update maps, emit events, and—depending on program type—allow, deny, modify, redirect or measure an operation.</p>
+  <div class="diagram" aria-label="eBPF program lifecycle diagram">
+  <svg viewBox="0 0 1100 330" role="img">
+    <defs><marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4b6b91"/></marker></defs>
+    <rect x="20" y="110" width="145" height="100" rx="18" fill="#dce9ff" stroke="#1457d9" stroke-width="3"/><text x="92" y="145" text-anchor="middle" class="svg-label" font-weight="800">C / Rust / DSL</text><text x="92" y="173" text-anchor="middle" class="svg-label" font-size="14">Program source</text>
+    <line x1="170" y1="160" x2="245" y2="160" stroke="#4b6b91" stroke-width="4" marker-end="url(#arr)"/>
+    <rect x="250" y="110" width="145" height="100" rx="18" fill="#e6f7f2" stroke="#00866a" stroke-width="3"/><text x="322" y="145" text-anchor="middle" class="svg-label" font-weight="800">Compiler</text><text x="322" y="173" text-anchor="middle" class="svg-label" font-size="14">eBPF bytecode</text>
+    <line x1="400" y1="160" x2="475" y2="160" stroke="#4b6b91" stroke-width="4" marker-end="url(#arr)"/>
+    <rect x="480" y="85" width="160" height="150" rx="18" fill="#fff1d6" stroke="#a05a00" stroke-width="3"/><text x="560" y="125" text-anchor="middle" class="svg-label" font-weight="800">Kernel verifier</text><text x="560" y="153" text-anchor="middle" class="svg-label" font-size="14">Paths &amp; bounds</text><text x="560" y="177" text-anchor="middle" class="svg-label" font-size="14">Pointer types</text><text x="560" y="201" text-anchor="middle" class="svg-label" font-size="14">Allowed helpers</text>
+    <line x1="645" y1="160" x2="720" y2="160" stroke="#4b6b91" stroke-width="4" marker-end="url(#arr)"/>
+    <rect x="725" y="110" width="145" height="100" rx="18" fill="#e8e4ff" stroke="#6046b6" stroke-width="3"/><text x="797" y="145" text-anchor="middle" class="svg-label" font-weight="800">JIT / interpreter</text><text x="797" y="173" text-anchor="middle" class="svg-label" font-size="14">Kernel execution</text>
+    <line x1="875" y1="160" x2="945" y2="160" stroke="#4b6b91" stroke-width="4" marker-end="url(#arr)"/>
+    <rect x="950" y="75" width="130" height="170" rx="18" fill="#ffe4e1" stroke="#b42318" stroke-width="3"/><text x="1015" y="112" text-anchor="middle" class="svg-label" font-weight="800">Attach</text><text x="1015" y="140" text-anchor="middle" class="svg-label" font-size="14">XDP</text><text x="1015" y="164" text-anchor="middle" class="svg-label" font-size="14">TC</text><text x="1015" y="188" text-anchor="middle" class="svg-label" font-size="14">cgroup</text><text x="1015" y="212" text-anchor="middle" class="svg-label" font-size="14">socket / trace</text>
+    <path d="M560 238 C560 300,340 300,340 220" fill="none" stroke="#b42318" stroke-width="3" stroke-dasharray="7 7" marker-end="url(#arr)"/><text x="455" y="292" text-anchor="middle" class="svg-label" fill="#b42318" font-weight="700">Rejected programs return a verifier log</text>
+  </svg></div>
+  <h3>What eBPF programs commonly do</h3>
+  <div class="grid g3"><div class="card"><h4>Networking</h4><p>DDoS filtering, service load balancing, traffic accounting, tunnelling, policy enforcement and packet redirection.</p></div><div class="card"><h4>Observability</h4><p>Trace syscalls, functions, latency, block I/O, TCP behavior and application events with lower friction than custom kernel modules.</p></div><div class="card"><h4>Security</h4><p>Observe or enforce selected process, file, socket and workload behaviors through appropriate program types and hooks.</p></div></div>
+  <h3>Core building blocks</h3>
+  <table class="compare"><thead><tr><th>Block</th><th>Meaning</th><th>Example</th></tr></thead><tbody><tr><td>Program type</td><td>Defines context, helper access, return semantics and allowed attachment.</td><td><code>BPF_PROG_TYPE_XDP</code></td></tr><tr><td>Hook / attach point</td><td>The kernel event where the program executes.</td><td>Interface ingress, cgroup connect, tracepoint</td></tr><tr><td>Context</td><td>Structured input provided by the hook.</td><td><code>struct xdp_md</code>, <code>struct __sk_buff</code></td></tr><tr><td>Helpers / kfuncs</td><td>Approved kernel functionality callable by that program type.</td><td>Map lookup, redirect, timestamp</td></tr><tr><td>Maps</td><td>Kernel-managed state shared with programs or userspace.</td><td>IP blocklist, packet counters</td></tr><tr><td>BPF link / attachment</td><td>Lifecycle-aware association between program and hook where supported.</td><td>libbpf attach APIs</td></tr></tbody></table>
+</section>
+
+<section class="section tracked" id="verifier-maps">
+  <div class="kicker">Safety and state</div><h2>Verifier and maps</h2>
+  <div class="grid g2">
+    <div class="card"><h3>The verifier</h3><p>The kernel analyzes a program before accepting it. It tracks registers and pointer types, checks memory access bounds, validates helper arguments, examines reachable control-flow paths and enforces program-type rules.</p><div class="callout warn"><strong>Modern correction:</strong> “eBPF cannot use loops” is outdated. Modern kernels permit bounded loops and other loop forms under verifier constraints. Complex state exploration can still cause rejection.</div></div>
+    <div class="card"><h3>Maps</h3><p>Maps are kernel objects that store typed key/value or specialized state. They allow persistent counters, blocklists, configuration, communication between programs and exchange with userspace.</p><div class="callout"><strong>Lifetime:</strong> A map lives while referenced by file descriptors, programs or a pin in BPF filesystem. Pinning under <code>/sys/fs/bpf</code> makes it discoverable beyond one process lifetime.</div></div>
+  </div>
+  <h3>Interactive verifier challenge</h3>
+  <div id="verifierGame" class="grid g2">
+    <div class="quiz-q"><strong>A.</strong> Program reads <code>data + 42</code> after checking only that <code>data + 20 &lt;= data_end</code>.<br><button class="btn verdict" data-answer="reject" data-why="The later access is not proven to be within packet bounds.">Accept</button> <button class="btn verdict" data-answer="reject" data-choice="reject" data-why="The later access is not proven to be within packet bounds.">Reject</button><div class="result"></div></div>
+    <div class="quiz-q"><strong>B.</strong> Program looks up a key in a map, checks the returned pointer for <code>NULL</code>, then reads the value.<br><button class="btn verdict" data-answer="accept" data-choice="accept" data-why="The NULL check refines the pointer to a valid map-value pointer.">Accept</button> <button class="btn verdict" data-answer="accept" data-why="The NULL check refines the pointer to a valid map-value pointer.">Reject</button><div class="result"></div></div>
+    <div class="quiz-q"><strong>C.</strong> XDP program calls a helper that is not allowed for XDP programs.<br><button class="btn verdict" data-answer="reject" data-why="Helper availability is program-type specific.">Accept</button> <button class="btn verdict" data-answer="reject" data-choice="reject" data-why="Helper availability is program-type specific.">Reject</button><div class="result"></div></div>
+    <div class="quiz-q"><strong>D.</strong> Program uses a loop whose maximum iterations are provably bounded by 16.<br><button class="btn verdict" data-answer="accept" data-choice="accept" data-why="Bounded loops are supported on modern kernels, subject to verifier complexity limits.">Accept</button> <button class="btn verdict" data-answer="accept" data-why="Bounded loops are supported on modern kernels, subject to verifier complexity limits.">Reject</button><div class="result"></div></div>
+  </div>
+  <h3>Map simulator: packet counter and blocklist</h3>
+  <div class="card soft">
+    <div class="sim-controls"><label>Source IP<input id="mapIp" value="10.0.0.10"></label><label>Decision<select id="mapDecision"><option value="pass">Pass</option><option value="drop">Drop</option></select></label><button class="btn primary" id="mapSend">Process packet</button><button class="btn" id="mapClear">Clear map</button></div>
+    <table class="compare"><thead><tr><th>Map key (source IP)</th><th>Packets</th><th>Drops</th><th>Last decision</th></tr></thead><tbody id="mapBody"><tr><td colspan="4">No entries yet.</td></tr></tbody></table>
+    <p class="mini">Conceptual model: a real eBPF map is a kernel object with a declared map type, key/value sizes and maximum entries. Concurrency and update semantics depend on the type and implementation.</p>
+  </div>
+</section>
+
+<section class="section tracked" id="hooks">
+  <div class="kicker">Concept 2–4</div><h2>Hook-point comparison</h2>
+  <table class="compare"><thead><tr><th>Hook</th><th>Direction / timing</th><th>Context</th><th>Best suited to</th><th>Key limitation</th></tr></thead><tbody>
+    <tr><td><strong>XDP</strong></td><td>Ingress, very early</td><td><code>xdp_md</code>, raw packet frame</td><td>High-rate drop, redirect, load balancing, telemetry</td><td>No normal egress hook; less stack metadata</td></tr>
+    <tr><td><strong>TC BPF</strong></td><td>Ingress and egress around qdisc/stack path</td><td><code>__sk_buff</code></td><td>Policy, shaping integration, encapsulation, modification</td><td><code>skb</code> work has already occurred; not as early as native XDP</td></tr>
+    <tr><td><strong>cgroup BPF</strong></td><td>Events caused by processes in a cgroup</td><td>Varies: skb, socket address, device, sysctl…</td><td>Container/workload policy and accounting</td><td>Semantics vary by cgroup program type and attach type</td></tr>
+    <tr><td><strong>Socket filter</strong></td><td>Packets received by an attached socket</td><td><code>__sk_buff</code></td><td>Per-socket capture/filtering and packet truncation</td><td>Classic socket filter is receive-side for that socket, not a host-wide firewall</td></tr>
+  </tbody></table>
+  <div class="callout good"><strong>Selection rule:</strong> choose the earliest hook that has the information and action you need—no earlier. Earlier is not automatically better.</div>
+</section>
+
+<section class="section tracked" id="journey">
+  <div class="kicker">Interactive</div><h2>Packet journey simulator</h2>
+  <p>Select a policy point and watch where processing stops. The “work units” are illustrative, not benchmark measurements.</p>
+  <div class="sim-controls"><label>Policy point<select id="policyPoint"><option value="none">No drop</option><option value="xdp">Drop at XDP</option><option value="tcin">Drop at TC ingress</option><option value="cgroup">Deny at cgroup socket policy</option><option value="socket">Drop at socket filter</option></select></label><button class="btn primary" id="runJourney">Run packet</button></div>
+  <div class="journey"><div class="timeline"></div><div class="packet" id="packet"></div><div class="flow" id="journeyFlow">
+    <div class="stage" data-stage="nic"><strong>NIC / driver</strong><br><span class="mini">Frame received</span></div><div class="arrow">→</div>
+    <div class="stage" data-stage="xdp"><strong>XDP</strong><br><span class="mini">Earliest BPF decision</span></div><div class="arrow">→</div>
+    <div class="stage" data-stage="tcin"><strong>TC ingress</strong><br><span class="mini"><code>skb</code> policy</span></div><div class="arrow">→</div>
+    <div class="stage" data-stage="stack"><strong>Network stack</strong><br><span class="mini">IP/TCP processing</span></div><div class="arrow">→</div>
+    <div class="stage" data-stage="cgroup"><strong>cgroup/socket</strong><br><span class="mini">Workload decision</span></div><div class="arrow">→</div>
+    <div class="stage" data-stage="socket"><strong>Application socket</strong><br><span class="mini">Delivery</span></div>
+  </div></div>
+  <div class="grid g3" style="margin-top:18px"><div class="card"><div class="mini">Illustrative work performed</div><div class="metric" id="workUnits">0</div><div class="meter"><span id="workMeter" style="width:0"></span></div></div><div class="card"><div class="mini">Final action</div><div class="metric" id="finalAction">—</div></div><div class="card"><div class="mini">Why</div><p id="journeyWhy">Run a packet to see the result.</p></div></div>
+</section>
+
+<section class="section tracked" id="xdp">
+  <div class="kicker">Hook point: XDP</div><h2>What is XDP, and what does it do?</h2>
+  <p><strong>Definition:</strong> XDP (eXpress Data Path) is an eBPF-based ingress processing path attached to a network device. A program runs for each received frame at an early point and returns an XDP action.</p>
+  <div class="grid g2"><div class="card"><h3>Common actions</h3><ul><li><code>XDP_PASS</code> — continue into the normal stack.</li><li><code>XDP_DROP</code> — discard early.</li><li><code>XDP_TX</code> — transmit back through the same interface.</li><li><code>XDP_REDIRECT</code> — redirect to another device, CPU or AF_XDP socket through supported mechanisms.</li><li><code>XDP_ABORTED</code> — abnormal result, treated as drop and useful for diagnostics.</li></ul></div><div class="card"><h3>Execution modes</h3><ul><li><strong>Native/driver:</strong> implemented by the network driver; normal production fast path.</li><li><strong>Generic/SKB:</strong> compatibility path later than driver XDP; useful for learning and unsupported drivers.</li><li><strong>Hardware offload:</strong> program executes on capable NIC hardware; support and helper set are device-specific.</li></ul></div></div>
+  <h3>Early-drop concept</h3>
+  <div class="diagram"><svg viewBox="0 0 1100 270" role="img" aria-label="XDP early drop compared with later filtering">
+    <defs><marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4b6b91"/></marker></defs>
+    <text x="20" y="35" class="svg-label" font-weight="900">Early drop</text><rect x="20" y="55" width="140" height="60" rx="14" fill="#dce9ff" stroke="#1457d9"/><text x="90" y="91" text-anchor="middle" class="svg-label">NIC driver</text><line x1="165" y1="85" x2="245" y2="85" stroke="#4b6b91" stroke-width="4" marker-end="url(#arr2)"/><rect x="250" y="55" width="140" height="60" rx="14" fill="#ffe4e1" stroke="#b42318" stroke-width="3"/><text x="320" y="82" text-anchor="middle" class="svg-label" font-weight="800">XDP_DROP</text><text x="320" y="102" text-anchor="middle" class="svg-label" font-size="13">Stop here</text>
+    <text x="20" y="165" class="svg-label" font-weight="900">Later drop</text><rect x="20" y="185" width="120" height="55" rx="14" fill="#dce9ff" stroke="#1457d9"/><text x="80" y="218" text-anchor="middle" class="svg-label">Driver</text><line x1="145" y1="212" x2="205" y2="212" stroke="#4b6b91" stroke-width="3" marker-end="url(#arr2)"/><rect x="210" y="185" width="120" height="55" rx="14" fill="#e8e4ff" stroke="#6046b6"/><text x="270" y="218" text-anchor="middle" class="svg-label">Allocate skb</text><line x1="335" y1="212" x2="395" y2="212" stroke="#4b6b91" stroke-width="3" marker-end="url(#arr2)"/><rect x="400" y="185" width="120" height="55" rx="14" fill="#e6f7f2" stroke="#00866a"/><text x="460" y="218" text-anchor="middle" class="svg-label">IP stack</text><line x1="525" y1="212" x2="585" y2="212" stroke="#4b6b91" stroke-width="3" marker-end="url(#arr2)"/><rect x="590" y="185" width="120" height="55" rx="14" fill="#fff1d6" stroke="#a05a00"/><text x="650" y="218" text-anchor="middle" class="svg-label">Filter</text><line x1="715" y1="212" x2="775" y2="212" stroke="#4b6b91" stroke-width="3" marker-end="url(#arr2)"/><rect x="780" y="185" width="140" height="55" rx="14" fill="#ffe4e1" stroke="#b42318"/><text x="850" y="218" text-anchor="middle" class="svg-label">Drop</text>
+  </svg></div>
+  <div class="callout warn"><strong>Performance claim discipline:</strong> XDP can avoid later stack work, but actual packets-per-second, latency and CPU savings depend on driver mode, program complexity, CPU, NUMA, map contention, packet size and test methodology.</div>
+  <h3>Real-world use cases</h3><div class="grid g3"><div class="card"><h4>DDoS prefilter</h4><p>Drop known-bad sources or malformed traffic before expensive protocol processing.</p></div><div class="card"><h4>Load balancing</h4><p>Hash flows and redirect frames toward backend interfaces or CPUs.</p></div><div class="card"><h4>Telemetry</h4><p>Count protocol, source or action data in maps with very early visibility.</p></div></div>
+</section>
+
+<section class="section tracked" id="tc">
+  <div class="kicker">Hook point: Traffic Control</div><h2>What is TC, and what does eBPF do there?</h2>
+  <p><strong>Definition:</strong> Linux Traffic Control (TC) is the networking subsystem for queueing, shaping, scheduling, policing and filtering. eBPF programs can act as TC classifiers or actions, commonly attached through a <code>clsact</code> qdisc at ingress or egress.</p>
+  <div class="grid g2"><div class="card"><h3>Why choose TC BPF?</h3><ul><li>Need both ingress and egress processing.</li><li>Need an <code>skb</code> context and richer stack metadata.</li><li>Need packet modification, encapsulation or integration with qdisc behavior.</li><li>Need compatibility across devices where native XDP is unavailable.</li></ul></div><div class="card"><h3>Typical actions</h3><ul><li><code>TC_ACT_OK</code> — continue.</li><li><code>TC_ACT_SHOT</code> — drop.</li><li><code>TC_ACT_REDIRECT</code> — redirect after a redirect helper.</li><li>Modify headers or metadata using helpers permitted for the program type.</li></ul></div></div>
+  <div class="callout"><strong>TC is not only eBPF.</strong> TC existed long before eBPF and includes qdiscs, classes and traditional classifiers. eBPF is one programmable classifier/action mechanism within that subsystem.</div>
+  <h3>Real-world use cases</h3><p>Container networking policy, egress control, DSCP marking, service-mesh data paths, tunnel encapsulation/decapsulation, traffic accounting and QoS-aware classification.</p>
+</section>
+
+<section class="section tracked" id="cgroup">
+  <div class="kicker">Hook point: Workload boundary</div><h2>What is cgroup, and what does eBPF do there?</h2>
+  <p><strong>Definition:</strong> Linux control groups (cgroups) organize processes in a hierarchy for resource control, accounting and delegation. eBPF can attach to cgroup-associated hooks so policy follows the workload rather than a particular interface.</p>
+  <div class="grid g3"><div class="card"><h3><code>cgroup_skb</code></h3><p>Inspect and allow/drop packets associated with a cgroup at ingress or egress.</p></div><div class="card"><h3><code>cgroup_sock_addr</code></h3><p>Run on operations such as connect or bind; allow, deny or in some cases rewrite address arguments.</p></div><div class="card"><h3>Other cgroup types</h3><p>Socket creation, device access, socket options and sysctl access have distinct program types and semantics.</p></div></div>
+  <div class="callout danger"><strong>Return values are not universal.</strong> For example, common cgroup network hooks use 1 for allow and 0 for deny/drop, while other eBPF program types have completely different return codes. Always check the exact program and attach type.</div>
+  <h3>Real-world use case</h3><p>A container platform can attach policy to a workload cgroup. Every process placed in that cgroup inherits the connection policy even if its PID changes or it uses multiple interfaces. This is often a better policy identity than “traffic on eth0.”</p>
+</section>
+
+<section class="section tracked" id="socket">
+  <div class="kicker">Hook point: Endpoint</div><h2>Socket filters and related socket hooks</h2>
+  <p><strong>Classic eBPF socket filter definition:</strong> a <code>BPF_PROG_TYPE_SOCKET_FILTER</code> program attaches to a socket and processes packets received by that socket. Its return value controls how many bytes are kept; returning 0 discards the packet for that socket.</p>
+  <div class="grid g2"><div class="card"><h3>Use it for</h3><ul><li>Capture filtering and per-socket packet selection.</li><li>Reducing data copied to a packet-capture application.</li><li>Protocol-aware observation for a specific endpoint.</li></ul></div><div class="card"><h3>Do not overgeneralize</h3><ul><li>It is not automatically a system-wide firewall.</li><li>It is not called for outgoing packets in the classic socket-filter program type.</li><li>Other socket-related BPF types—sockops, sk_skb, sk_msg, reuseport—solve different problems.</li></ul></div></div>
+</section>
+
+<section class="section tracked" id="tools">
+  <div class="kicker">Toolchain</div><h2>bpftool, bpftrace and libbpf</h2>
+  <div class="grid g3"><div class="card"><h3>🔎 bpftool</h3><p>The kernel-oriented inspection and management CLI. Use it to probe features, list programs/maps/links/BTF, dump map data, load/pin objects and inspect cgroup attachments.</p><div class="codebox"><button class="copy">Copy</button><pre>sudo bpftool feature probe
+sudo bpftool prog show
+sudo bpftool map show
+sudo bpftool link show
+sudo bpftool btf show</pre></div></div>
+  <div class="card"><h3>🩺 bpftrace</h3><p>A high-level tracing language and runtime for rapid observability. It is excellent for questions like “which process is calling this syscall?” without building a full C application.</p><div class="codebox"><button class="copy">Copy</button><pre>sudo bpftrace -l 'tracepoint:syscalls:sys_enter_*'
+sudo bpftrace -e 'tracepoint:syscalls:sys_enter_execve {
+  printf("%d %s %s\n", pid, comm, str(args.filename));
+}'</pre></div></div>
+  <div class="card"><h3>🧱 libbpf</h3><p>The reference C library for loading and managing BPF programs. It supports BPF object skeletons and CO-RE, which uses BTF to make compiled programs more portable across compatible kernel type layouts.</p><div class="codebox"><button class="copy">Copy</button><pre>clang -O2 -g -target bpf -c program.bpf.c -o program.bpf.o
+bpftool gen skeleton program.bpf.o &gt; program.skel.h</pre></div></div></div>
+  <h3>Which tool should I reach for?</h3><table class="compare"><thead><tr><th>Need</th><th>First tool</th><th>Why</th></tr></thead><tbody><tr><td>Inspect what is loaded</td><td>bpftool</td><td>Kernel object inventory</td></tr><tr><td>Ask a live troubleshooting question</td><td>bpftrace</td><td>Fast tracing with a concise language</td></tr><tr><td>Build a maintained production agent/data path</td><td>libbpf</td><td>Lifecycle, skeletons, map access, attach APIs and CO-RE</td></tr><tr><td>Teach XDP fundamentals</td><td>clang + ip/tc + bpftool</td><td>Minimal moving parts, visible attachment and counters</td></tr></tbody></table>
+</section>
+
+<section class="section tracked" id="labs">
+  <div class="kicker">Hands-on</div><h2>Production-style VM labs</h2>
+  <div class="callout warn"><strong>Run inside a disposable VM or snapshot.</strong> These exercises load kernel programs and change network/cgroup state. Execute the cleanup section after each lab.</div>
+  <div class="tabs" role="tablist"><button class="tab active" data-tab="lab0">Lab 0</button><button class="tab" data-tab="lab1">Lab 1</button><button class="tab" data-tab="lab2">Lab 2</button><button class="tab" data-tab="lab3">Lab 3</button><button class="tab" data-tab="lab4">Lab 4</button></div>
+
+  <div class="tab-panel active" id="lab0">
+    <h3>Lab 0 — Capability and safety audit</h3><p><strong>Goal:</strong> prove the VM has the required kernel features, tools, mounts and privileges before changing traffic.</p>
+    <div class="codebox"><button class="copy">Copy</button><pre>sudo apt update
+sudo apt install -y clang llvm gcc make libbpf-dev libelf-dev zlib1g-dev \
+  bpftool bpftrace iproute2 iputils-ping tcpdump curl python3
+
+uname -a
+mount | grep -E 'bpf|cgroup2' || true
+sudo bpftool feature probe | tee ~/session4-bpf-feature-report.txt
+sudo bpftool prog show
+sudo bpftool map show
+sysctl kernel.unprivileged_bpf_disabled 2&gt;/dev/null || true</pre></div>
+    <details open><summary>Expected evidence</summary><div><ul><li><code>uname -a</code> shows a modern Linux kernel.</li><li><code>bpftool feature probe</code> lists supported program and map types. Exact “yes/no” results vary by kernel configuration.</li><li>A cgroup v2 mount normally appears at <code>/sys/fs/cgroup</code>.</li><li>BPF filesystem may already be mounted at <code>/sys/fs/bpf</code>; bpftool or systemd may mount it when needed.</li></ul><div class="callout danger"><strong>Stop condition:</strong> If <code>bpftool feature probe</code> cannot run as root, or XDP/TC/cgroup program types are absent, do not continue blindly. Record the mismatch and change the VM/kernel.</div></div></details>
+    <h4>Optional mount repair</h4><div class="codebox"><button class="copy">Copy</button><pre>mountpoint -q /sys/fs/bpf || sudo mount -t bpf bpf /sys/fs/bpf
+mountpoint -q /sys/fs/cgroup || echo "cgroup filesystem missing — rebuild the VM"</pre></div>
+  </div>
+
+  <div class="tab-panel" id="lab1">
+    <h3>Lab 1 — Observe process execution with bpftrace</h3><p><strong>Goal:</strong> capture live <code>execve</code> activity and distinguish tracing from packet enforcement.</p>
+    <div class="codebox"><button class="copy">Copy</button><pre>sudo bpftrace -e '
+tracepoint:syscalls:sys_enter_execve
+{
+  printf("%-6d %-16s %s\n", pid, comm, str(args.filename));
+}'</pre></div>
+    <p>In a second terminal, run:</p><div class="codebox"><button class="copy">Copy</button><pre>date
+curl --version &gt;/dev/null
+/bin/echo "eBPF observation test"</pre></div>
+    <details open><summary>Expected output pattern</summary><div><div class="codebox"><pre>Attaching 1 probe...
+12345 bash             /usr/bin/date
+12346 bash             /usr/bin/curl
+12347 bash             /bin/echo</pre></div><p>PIDs and command names will differ. Press <code>Ctrl+C</code> to detach. Confirm with <code>sudo bpftool prog show</code> that the temporary tracing program is gone.</p></div></details>
+  </div>
+
+  <div class="tab-panel" id="lab2">
+    <h3>Lab 2 — XDP ICMP early-drop with counters</h3><p><strong>Goal:</strong> create an isolated veth topology, prove ping works, attach a bounds-checked XDP program in generic mode, observe drops and map counters, then restore service.</p>
+    <h4>1. Create isolated topology</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns add s4-peer
+sudo ip link add s4-host type veth peer name s4-peer0
+sudo ip link set s4-peer0 netns s4-peer
+sudo ip addr add 10.44.0.1/24 dev s4-host
+sudo ip link set s4-host up
+sudo ip netns exec s4-peer ip addr add 10.44.0.2/24 dev s4-peer0
+sudo ip netns exec s4-peer ip link set lo up
+sudo ip netns exec s4-peer ip link set s4-peer0 up
+ping -c 2 10.44.0.2</pre></div>
+    <p><strong>Expected before attachment:</strong> two ICMP replies and 0% packet loss.</p>
+    <h4>2. Write and compile the XDP program</h4><div class="codebox"><button class="copy">Copy</button><pre>mkdir -p ~/session4-ebpf &amp;&amp; cd ~/session4-ebpf
+cat &gt; xdp_icmp_drop.bpf.c &lt;&lt;'C'
+#include &lt;linux/bpf.h&gt;
+#include &lt;linux/if_ether.h&gt;
+#include &lt;linux/ip.h&gt;
+#include &lt;linux/icmp.h&gt;
+#include &lt;linux/in.h&gt;
+#include &lt;bpf/bpf_helpers.h&gt;
+#include &lt;bpf/bpf_endian.h&gt;
+
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __uint(max_entries, 2);
+    __type(key, __u32);
+    __type(value, __u64);
+} s4_xdp_counts SEC(".maps");
+
+enum { PASS_COUNT = 0, DROP_COUNT = 1 };
+
+SEC("xdp")
+int xdp_drop_icmp_echo(struct xdp_md *ctx)
+{
+    void *data = (void *)(long)ctx-&gt;data;
+    void *data_end = (void *)(long)ctx-&gt;data_end;
+    struct ethhdr *eth = data;
+    __u32 key;
+    __u64 *value;
+
+    if ((void *)(eth + 1) &gt; data_end)
+        return XDP_ABORTED;
+
+    if (eth-&gt;h_proto == bpf_htons(ETH_P_IP)) {
+        struct iphdr *ip = (void *)(eth + 1);
+        if ((void *)(ip + 1) &gt; data_end)
+            return XDP_ABORTED;
+
+        if (ip-&gt;protocol == IPPROTO_ICMP) {
+            __u32 ihl_len = ip-&gt;ihl * 4;
+            if (ihl_len &lt; sizeof(*ip))
+                return XDP_ABORTED;
+            struct icmphdr *icmp = (void *)ip + ihl_len;
+            if ((void *)(icmp + 1) &gt; data_end)
+                return XDP_ABORTED;
+            if (icmp-&gt;type == ICMP_ECHO) {
+                key = DROP_COUNT;
+                value = bpf_map_lookup_elem(&amp;s4_xdp_counts, &amp;key);
+                if (value)
+                    __sync_fetch_and_add(value, 1);
+                return XDP_DROP;
+            }
+        }
+    }
+
+    key = PASS_COUNT;
+    value = bpf_map_lookup_elem(&amp;s4_xdp_counts, &amp;key);
+    if (value)
+        __sync_fetch_and_add(value, 1);
+    return XDP_PASS;
+}
+
+char LICENSE[] SEC("license") = "GPL";
+C
+
+clang -O2 -g -target bpf -c xdp_icmp_drop.bpf.c -o xdp_icmp_drop.bpf.o
+llvm-objdump -S xdp_icmp_drop.bpf.o | sed -n '1,80p'</pre></div>
+    <div class="callout warn"><strong>Lab parser scope:</strong> this small program handles untagged Ethernet + IPv4 + ICMP echo only. A production parser must define behavior for VLANs, IPv6, fragments, options and malformed traffic.</div><h4>3. Attach and test</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns exec s4-peer ip link set dev s4-peer0 xdpgeneric \
+  obj "$HOME/session4-ebpf/xdp_icmp_drop.bpf.o" sec xdp
+sudo ip netns exec s4-peer ip -details link show dev s4-peer0
+sudo ip netns exec s4-peer bpftool net show dev s4-peer0
+
+ping -c 3 -W 1 10.44.0.2 || true
+sudo bpftool map show name s4_xdp_counts
+MAP_ID=$(sudo bpftool map show name s4_xdp_counts | sed -n '1s/:.*//p')
+sudo bpftool map dump id "$MAP_ID"</pre></div>
+    <details open><summary>Expected output and interpretation</summary><div><ul><li><code>ip -details link</code> inside the peer namespace shows an XDP attachment in generic mode.</li><li>Ping shows 100% packet loss because echo requests entering <code>s4-host</code> are dropped.</li><li>The array map has two entries. Key 1 (drop counter) increases. Values are displayed as bytes and/or decoded values depending on BTF/tool version.</li><li>Non-ICMP traffic would return <code>XDP_PASS</code>.</li></ul></div></details>
+    <h4>4. Roll back and clean up</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns exec s4-peer ip link set dev s4-peer0 xdpgeneric off
+ping -c 2 10.44.0.2
+sudo ip link del s4-host
+sudo ip netns del s4-peer
+sudo bpftool net show
+sudo bpftool map show name s4_xdp_counts || true</pre></div><p><strong>Expected:</strong> ping works after detach; deleting the veth and namespace removes the topology; the unpinned map disappears when no references remain.</p>
+  </div>
+
+  <div class="tab-panel" id="lab3">
+    <h3>Lab 3 — TC ingress policy for TCP/8080</h3><p><strong>Goal:</strong> prove TC BPF can enforce ingress policy after an <code>skb</code> exists and expose action statistics.</p>
+    <h4>1. Build a namespace service</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns add s4-web
+sudo ip link add s4-client type veth peer name s4-server
+sudo ip link set s4-server netns s4-web
+sudo ip addr add 10.45.0.1/24 dev s4-client
+sudo ip link set s4-client up
+sudo ip netns exec s4-web ip addr add 10.45.0.2/24 dev s4-server
+sudo ip netns exec s4-web ip link set lo up
+sudo ip netns exec s4-web ip link set s4-server up
+sudo ip netns exec s4-web sh -c 'nohup python3 -m http.server 8080 --bind 10.45.0.2 &gt;/tmp/s4-http.log 2&gt;&amp;1 &amp; echo $! &gt;/tmp/s4-http.pid'
+curl --max-time 2 http://10.45.0.2:8080/ | head</pre></div>
+    <p><strong>Expected before policy:</strong> an HTML directory listing.</p>
+    <h4>2. Compile classifier</h4><div class="codebox"><button class="copy">Copy</button><pre>cd ~/session4-ebpf
+cat &gt; tc_block_8080.bpf.c &lt;&lt;'C'
+#include &lt;linux/bpf.h&gt;
+#include &lt;linux/pkt_cls.h&gt;
+#include &lt;linux/if_ether.h&gt;
+#include &lt;linux/ip.h&gt;
+#include &lt;linux/tcp.h&gt;
+#include &lt;linux/in.h&gt;
+#include &lt;bpf/bpf_helpers.h&gt;
+#include &lt;bpf/bpf_endian.h&gt;
+
+SEC("classifier")
+int block_tcp_8080(struct __sk_buff *skb)
+{
+    void *data = (void *)(long)skb-&gt;data;
+    void *data_end = (void *)(long)skb-&gt;data_end;
+    struct ethhdr *eth = data;
+
+    if ((void *)(eth + 1) &gt; data_end)
+        return TC_ACT_OK;
+    if (eth-&gt;h_proto != bpf_htons(ETH_P_IP))
+        return TC_ACT_OK;
+
+    struct iphdr *ip = (void *)(eth + 1);
+    if ((void *)(ip + 1) &gt; data_end || ip-&gt;protocol != IPPROTO_TCP)
+        return TC_ACT_OK;
+    __u32 ihl_len = ip-&gt;ihl * 4;
+    if (ihl_len &lt; sizeof(*ip))
+        return TC_ACT_OK;
+
+    struct tcphdr *tcp = (void *)ip + ihl_len;
+    if ((void *)(tcp + 1) &gt; data_end)
+        return TC_ACT_OK;
+
+    return tcp-&gt;dest == bpf_htons(8080) ? TC_ACT_SHOT : TC_ACT_OK;
+}
+
+char LICENSE[] SEC("license") = "GPL";
+C
+clang -O2 -g -target bpf -c tc_block_8080.bpf.c -o tc_block_8080.bpf.o</pre></div>
+    <h4>3. Attach inside namespace and verify</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns exec s4-web tc qdisc add dev s4-server clsact
+sudo ip netns exec s4-web tc filter add dev s4-server ingress \
+  bpf direct-action obj "$HOME/session4-ebpf/tc_block_8080.bpf.o" sec classifier
+
+curl --max-time 2 http://10.45.0.2:8080/ || true
+sudo ip netns exec s4-web tc -s filter show dev s4-server ingress</pre></div>
+    <details open><summary>Expected output</summary><div><ul><li>Curl times out or reports a connection failure because inbound TCP/8080 packets are dropped.</li><li><code>tc -s filter show</code> displays the BPF filter and increasing packet/byte/drop statistics. Formatting varies by iproute2 version.</li><li>Traffic to other ports is not dropped by this program.</li></ul></div></details>
+    <h4>4. Cleanup</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo ip netns exec s4-web tc qdisc del dev s4-server clsact
+sudo ip netns exec s4-web sh -c 'kill $(cat /tmp/s4-http.pid) 2&gt;/dev/null || true'
+sudo ip link del s4-client
+sudo ip netns del s4-web</pre></div>
+  </div>
+
+  <div class="tab-panel" id="lab4">
+    <h3>Lab 4 — cgroup connect policy for TCP/9090</h3><p><strong>Goal:</strong> deny outbound connection attempts made by processes in one cgroup while leaving other processes unaffected.</p>
+    <div class="callout warn">This lab requires cgroup v2 and a kernel/bpftool build supporting <code>cgroup/connect4</code>. Use Lab 0 evidence before proceeding.</div>
+    <h4>1. Start a local service and prove baseline</h4><div class="codebox"><button class="copy">Copy</button><pre>cd ~/session4-ebpf
+nohup python3 -m http.server 9090 --bind 127.0.0.1 &gt;/tmp/s4-9090.log 2&gt;&amp;1 &amp;
+echo $! &gt; /tmp/s4-9090.pid
+curl --max-time 2 http://127.0.0.1:9090/ | head</pre></div>
+    <h4>2. Compile and load the cgroup program</h4><div class="codebox"><button class="copy">Copy</button><pre>cat &gt; cgroup_block_9090.bpf.c &lt;&lt;'C'
+#include &lt;linux/bpf.h&gt;
+#include &lt;linux/in.h&gt;
+#include &lt;linux/socket.h&gt;
+#include &lt;bpf/bpf_helpers.h&gt;
+#include &lt;bpf/bpf_endian.h&gt;
+
+SEC("cgroup/connect4")
+int block_connect_9090(struct bpf_sock_addr *ctx)
+{
+    if (ctx-&gt;protocol == IPPROTO_TCP &amp;&amp; bpf_ntohl(ctx-&gt;user_port) == 9090)
+        return 0; /* deny */
+    return 1;     /* allow */
+}
+
+char LICENSE[] SEC("license") = "GPL";
+C
+clang -O2 -g -target bpf -c cgroup_block_9090.bpf.c -o cgroup_block_9090.bpf.o
+sudo mkdir -p /sys/fs/cgroup/session4_lab
+sudo rm -f /sys/fs/bpf/session4_block_9090
+sudo bpftool prog load cgroup_block_9090.bpf.o /sys/fs/bpf/session4_block_9090
+sudo bpftool cgroup attach /sys/fs/cgroup/session4_lab connect4 \
+  pinned /sys/fs/bpf/session4_block_9090
+sudo bpftool cgroup show /sys/fs/cgroup/session4_lab</pre></div>
+    <h4>3. Compare outside and inside the cgroup</h4><div class="codebox"><button class="copy">Copy</button><pre>echo "Outside cgroup — should succeed"
+curl --max-time 2 http://127.0.0.1:9090/ | head -n 1
+
+echo "Inside cgroup — should be denied"
+sudo bash -c '
+  echo $$ &gt; /sys/fs/cgroup/session4_lab/cgroup.procs
+  curl --max-time 2 http://127.0.0.1:9090/
+' || true</pre></div>
+    <details open><summary>Expected behavior</summary><div><p>The normal shell reaches the service. The shell moved into <code>session4_lab</code> receives a connection error, commonly “Operation not permitted” or a curl failure that reflects denial by the connect hook. Exact text varies by libc and curl.</p></div></details>
+    <h4>4. Detach and remove all state</h4><div class="codebox"><button class="copy">Copy</button><pre>sudo bpftool cgroup detach /sys/fs/cgroup/session4_lab connect4 \
+  pinned /sys/fs/bpf/session4_block_9090
+sudo rm -f /sys/fs/bpf/session4_block_9090
+sudo rmdir /sys/fs/cgroup/session4_lab
+kill "$(cat /tmp/s4-9090.pid)" 2&gt;/dev/null || true
+sudo bpftool cgroup tree /sys/fs/cgroup | grep session4_lab || true</pre></div>
+  </div>
+
+  <h3>Lab completion evidence</h3><div class="checklist" id="labChecklist"><label><input type="checkbox">Saved feature report from Lab 0</label><label><input type="checkbox">Captured live bpftrace output</label><label><input type="checkbox">Recorded XDP before/after ping and map counters</label><label><input type="checkbox">Recorded TC before/after curl and <code>tc -s</code> output</label><label><input type="checkbox">Recorded cgroup outside/inside comparison</label><label><input type="checkbox">Verified all lab attachments and namespaces were removed</label></div>
+</section>
+
+<section class="section tracked" id="operations">
+  <div class="kicker">Production thinking</div><h2>From demo to production</h2>
+  <div class="grid g3"><div class="card"><h3>Change safety</h3><ul><li>Test in namespace or canary interface.</li><li>Keep out-of-band access.</li><li>Define attach, verify, detach and rollback commands.</li><li>Pin only intentional long-lived objects.</li><li>Use idempotent loaders and lifecycle-aware BPF links where possible.</li></ul></div><div class="card"><h3>Correctness</h3><ul><li>Parse packet headers with bounds checks.</li><li>Handle VLANs, IPv6, fragmentation and extension headers if in scope.</li><li>Specify byte order explicitly.</li><li>Document return-code semantics per hook.</li><li>Test pass, drop, malformed and boundary inputs.</li></ul></div><div class="card"><h3>Performance</h3><ul><li>Measure in the intended XDP mode.</li><li>Avoid hot shared-map contention.</li><li>Prefer per-CPU counters when appropriate.</li><li>Profile program cost and map lookups.</li><li>Monitor drops, aborts and verifier/JIT behavior.</li></ul></div></div>
+  <h3>Production incident checklist</h3><table class="compare"><thead><tr><th>Symptom</th><th>Check</th><th>Likely issue</th></tr></thead><tbody><tr><td>Program rejected</td><td>Loader/verifier log, <code>bpftool prog load ...</code> diagnostics</td><td>Bounds, pointer state, unsupported helper, complexity</td></tr><tr><td>XDP attach fails</td><td><code>bpftool feature probe dev IFACE</code>, driver/mode</td><td>Driver lacks native mode; use generic only for compatibility</td></tr><tr><td>Traffic disappears</td><td><code>bpftool net</code>, <code>tc filter show</code>, counters</td><td>Wrong interface/direction/byte order or overly broad policy</td></tr><tr><td>Map not found</td><td><code>bpftool map show</code>, pin path, process lifetime</td><td>No remaining references or wrong namespace/pin path</td></tr><tr><td>cgroup policy not applied</td><td>cgroup membership and attachment tree</td><td>Process is not in the target cgroup or wrong attach type</td></tr><tr><td>VM results are slow</td><td>XDP mode and virtual NIC</td><td>Generic mode or virtualization overhead; not a native benchmark</td></tr></tbody></table>
+  <h3>Defense-in-depth positioning</h3><p>eBPF enforcement should complement—not casually replace—nftables, routing policy, namespaces, LSMs, application controls and monitoring. Choose each control for the visibility, lifecycle and failure mode it handles best.</p>
+</section>
+
+<section class="section tracked" id="assessment">
+  <div class="kicker">Knowledge check</div><h2>Assessment</h2>
+  <form id="quiz">
+    <div class="quiz-q"><strong>1. Which statement is most accurate?</strong><label><input type="radio" name="q1" value="a"> eBPF is a network protocol.</label><label><input type="radio" name="q1" value="b"> eBPF is a verified kernel program facility used by many program types.</label><label><input type="radio" name="q1" value="c"> eBPF always replaces nftables.</label></div>
+    <div class="quiz-q"><strong>2. Which hook is normally earliest for received frames?</strong><label><input type="radio" name="q2" value="a"> TC egress</label><label><input type="radio" name="q2" value="b"> cgroup/connect4</label><label><input type="radio" name="q2" value="c"> Native XDP</label></div>
+    <div class="quiz-q"><strong>3. Why might TC be preferred over XDP?</strong><label><input type="radio" name="q3" value="a"> It supports ingress/egress and provides skb context.</label><label><input type="radio" name="q3" value="b"> It runs before the NIC driver.</label><label><input type="radio" name="q3" value="c"> It needs no kernel support.</label></div>
+    <div class="quiz-q"><strong>4. What does the verifier not prove?</strong><label><input type="radio" name="q4" value="a"> Some memory accesses are within proven bounds.</label><label><input type="radio" name="q4" value="b"> Helper arguments match constraints.</label><label><input type="radio" name="q4" value="c"> The policy matches the organization’s business intent.</label></div>
+    <div class="quiz-q"><strong>5. What is the safest claim about generic XDP in a VM?</strong><label><input type="radio" name="q5" value="a"> It proves native NIC line-rate performance.</label><label><input type="radio" name="q5" value="b"> It is a compatibility path suitable for functional learning, not a native-mode benchmark.</label><label><input type="radio" name="q5" value="c"> It is hardware offload.</label></div>
+    <button type="button" class="btn primary" id="gradeQuiz">Grade assessment</button><div id="quizResult" class="result"></div>
+  </form>
+  <h3>Discussion questions</h3><ol><li>A host must block a volumetric UDP flood as early as possible. Which hook, mode and rollback design would you choose?</li><li>A container must be unable to connect to TCP/5432 on any interface. Why can a cgroup connection hook be stronger operationally than an interface rule?</li><li>You need egress DSCP marking and packet metadata. Why is TC a more natural first candidate than XDP?</li><li>What evidence would you collect before calling an XDP program “faster”?</li></ol>
+</section>
+
+<section class="section tracked" id="accuracy">
+  <div class="kicker">Validation record</div><h2>Technical accuracy and simulation validation</h2>
+  <div class="grid g2"><div class="card"><h3>Accuracy controls applied</h3><ul><li>Separated the eBPF runtime from its hook points.</li><li>Used program-type-specific return semantics.</li><li>Described modern bounded-loop support rather than the obsolete “no loops” rule.</li><li>Distinguished XDP native, generic and offload modes.</li><li>Explicitly limited generic-XDP performance conclusions.</li><li>Included packet bounds checks and network-byte-order handling in lab code.</li><li>Included before/after evidence and cleanup for every state-changing lab.</li></ul></div><div class="card"><h3>Interactive simulation limits</h3><ul><li>Packet journey work units are conceptual.</li><li>Animations do not emulate kernel timing or throughput.</li><li>Map simulator demonstrates key/value behavior, not concurrency or exact kernel memory layout.</li><li>Actual commands remain authoritative; outputs vary by kernel, driver, tool and distribution.</li></ul></div></div>
+  <h3>Primary references</h3>
+  <ol class="mini"><li><a href="https://docs.kernel.org/bpf/" target="_blank" rel="noopener">Linux kernel BPF documentation</a></li><li><a href="https://docs.kernel.org/bpf/verifier.html" target="_blank" rel="noopener">Linux kernel eBPF verifier documentation</a></li><li><a href="https://docs.kernel.org/bpf/maps.html" target="_blank" rel="noopener">Linux kernel BPF maps documentation</a></li><li><a href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html" target="_blank" rel="noopener">Linux kernel libbpf overview</a></li><li><a href="https://docs.ebpf.io/linux/program-type/BPF_PROG_TYPE_XDP/" target="_blank" rel="noopener">XDP program type reference</a></li><li><a href="https://docs.ebpf.io/linux/program-type/BPF_PROG_TYPE_SCHED_CLS/" target="_blank" rel="noopener">TC classifier program type reference</a></li><li><a href="https://docs.ebpf.io/linux/program-type/BPF_PROG_TYPE_CGROUP_SOCK_ADDR/" target="_blank" rel="noopener">cgroup socket-address program type reference</a></li><li><a href="https://docs.ebpf.io/linux/program-type/BPF_PROG_TYPE_SOCKET_FILTER/" target="_blank" rel="noopener">Socket-filter program type reference</a></li><li><a href="https://bpftrace.org/docs/" target="_blank" rel="noopener">bpftrace documentation</a></li><li><a href="https://github.com/xdp-project/xdp-tutorial" target="_blank" rel="noopener">XDP Project tutorial</a></li></ol>
+  <div class="status"><span class="dot"></span> Self-contained HTML · no external scripts · progressive enhancement</div>
+</section>
+</main></div>
+<footer><strong>Trainer note:</strong> Treat the exercises as a controlled change. Require trainees to capture baseline, attachment evidence, policy result and cleanup evidence—not merely run commands.</footer>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const store = {
+    get(k, fallback){ try { const v=localStorage.getItem(k); return v===null?fallback:JSON.parse(v); } catch { return fallback; } },
+    set(k,v){ try { localStorage.setItem(k,JSON.stringify(v)); } catch {} }
+  };
+
+  const themeBtn=$('#themeBtn');
+  if(store.get('s4-theme','light')==='dark') document.body.classList.add('dark');
+  themeBtn.addEventListener('click',()=>{document.body.classList.toggle('dark');store.set('s4-theme',document.body.classList.contains('dark')?'dark':'light');});
+
+  $$('.copy').forEach(btn=>btn.addEventListener('click',async()=>{
+    const text=btn.parentElement.querySelector('pre').innerText;
+    try { await navigator.clipboard.writeText(text); btn.textContent='Copied'; btn.classList.add('done'); setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done');},1200); }
+    catch { btn.textContent='Select manually'; }
+  }));
+
+  $$('.tab').forEach(tab=>tab.addEventListener('click',()=>{
+    $$('.tab').forEach(t=>t.classList.remove('active')); $$('.tab-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active'); $('#'+tab.dataset.tab).classList.add('active');
+  }));
+
+  const sections=$$('.tracked'); const seen=new Set(store.get('s4-seen',[]));
+  const updateProgress=()=>{const pct=Math.round(seen.size/sections.length*100);$('#progressText').textContent=pct+'% explored';$('#progressBar').style.width=pct+'%';store.set('s4-seen',[...seen]);};
+  const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.18){seen.add(e.target.id);updateProgress();}})},{threshold:[.2]}); sections.forEach(s=>observer.observe(s)); updateProgress();
+  $('#resetBtn').addEventListener('click',()=>{seen.clear();store.set('s4-seen',[]);$$('#labChecklist input').forEach(x=>x.checked=false);store.set('s4-checks',[]);updateProgress();});
+
+  const navObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){$$('.navlink').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));}})},{rootMargin:'-25% 0px -65% 0px'}); sections.forEach(s=>navObs.observe(s));
+
+  $$('.verdict').forEach(btn=>btn.addEventListener('click',()=>{
+    const box=btn.closest('.quiz-q'), result=$('.result',box), correct=btn.dataset.choice===btn.dataset.answer;
+    result.className='result '+(correct?'right':'wrong'); result.textContent=(correct?'Correct. ':'Not quite. ')+btn.dataset.why;
+  }));
+
+  const mapState={}; const renderMap=()=>{const body=$('#mapBody'), keys=Object.keys(mapState);body.innerHTML=keys.length?'':'<tr><td colspan="4">No entries yet.</td></tr>';keys.forEach(k=>{const v=mapState[k],tr=document.createElement('tr');tr.innerHTML=`<td>${escapeHtml(k)}</td><td>${v.packets}</td><td>${v.drops}</td><td>${v.last}</td>`;body.appendChild(tr);});};
+  const escapeHtml=s=>String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  $('#mapSend').addEventListener('click',()=>{const ip=$('#mapIp').value.trim()||'unknown',decision=$('#mapDecision').value;mapState[ip]??={packets:0,drops:0,last:'—'};mapState[ip].packets++;if(decision==='drop')mapState[ip].drops++;mapState[ip].last=decision.toUpperCase();renderMap();});
+  $('#mapClear').addEventListener('click',()=>{Object.keys(mapState).forEach(k=>delete mapState[k]);renderMap();});
+
+  $('#runJourney').addEventListener('click',()=>{
+    const choice=$('#policyPoint').value, stages=$$('#journeyFlow .stage'), packet=$('#packet'); stages.forEach(s=>s.classList.remove('active','drop')); packet.classList.remove('go'); void packet.offsetWidth; packet.classList.add('go');
+    const order=['nic','xdp','tcin','stack','cgroup','socket']; let stop=choice==='none'?'socket':choice; let idx=order.indexOf(stop); if(choice==='socket')idx=5; const units=[1,2,4,7,9,11][idx];
+    const ends=[5,22,42,61,80,96], duration=.8+(idx*.55);
+    packet.style.setProperty('--packet-end',ends[idx]+'%'); packet.style.setProperty('--packet-time',duration+'s');
+    order.forEach((name,i)=>setTimeout(()=>{const el=$(`[data-stage="${name}"]`); if(i<=idx)el.classList.add('active'); if(i===idx&&choice!=='none')el.classList.add('drop');},i*500));
+    setTimeout(()=>{const pass=choice==='none';$('#workUnits').textContent=units;$('#workMeter').style.width=Math.min(100,units/11*100)+'%';$('#finalAction').textContent=pass?'DELIVER':'DENY';const why={none:'No policy rejected the packet, so it reached the application socket.',xdp:'XDP rejected the frame before normal stack processing.',tcin:'TC ingress rejected the skb after allocation but before later stack delivery.',cgroup:'The workload-scoped cgroup policy denied the operation.',socket:'The program attached to the receiving socket discarded it for that socket.'};$('#journeyWhy').textContent=why[choice];},duration*1000+250);
+  });
+
+  const checks=$$('#labChecklist input'), saved=store.get('s4-checks',[]); checks.forEach((c,i)=>{c.checked=!!saved[i];c.addEventListener('change',()=>store.set('s4-checks',checks.map(x=>x.checked)));});
+
+  $('#gradeQuiz').addEventListener('click',()=>{const answers={q1:'b',q2:'c',q3:'a',q4:'c',q5:'b'};let score=0,done=0;Object.entries(answers).forEach(([q,a])=>{const chosen=$(`input[name="${q}"]:checked`);if(chosen){done++;if(chosen.value===a)score++;}});const out=$('#quizResult');if(done<5){out.className='result wrong';out.textContent=`Answer all questions. Completed ${done}/5.`;}else{out.className='result '+(score>=4?'right':'wrong');out.textContent=`Score: ${score}/5. ${score===5?'Ready for the lab review.':score>=4?'Review the missed distinction, then proceed.':'Revisit the mental model and hook comparison.'}`;}});
+})();
+</script>
+</body>
+</html>

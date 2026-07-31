@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive trainee reference for Linux network namespaces, veth pairs, bridges, routing, automotive ECU-zone simulation, and nftables zone firewalling.">
+  <title>Linux Network Namespaces — Interactive Automotive Zone Lab</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-2: #eaf0f8;
+      --text: #152238;
+      --muted: #52637a;
+      --accent: #1769aa;
+      --accent-2: #0b8f76;
+      --danger: #b42318;
+      --warning: #9a6700;
+      --success: #087a55;
+      --border: #ccd7e5;
+      --code-bg: #111827;
+      --code-text: #e5edf7;
+      --shadow: 0 12px 30px rgba(25, 45, 80, .10);
+      --radius: 18px;
+      --focus: 3px solid #ffbf47;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #172033;
+      --surface-2: #202c43;
+      --text: #eef5ff;
+      --muted: #b8c5d8;
+      --accent: #68b6ff;
+      --accent-2: #57d6b8;
+      --danger: #ff8a82;
+      --warning: #ffd166;
+      --success: #69dbb8;
+      --border: #34435d;
+      --code-bg: #07101f;
+      --code-text: #edf6ff;
+      --shadow: 0 14px 35px rgba(0, 0, 0, .28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    button, select, input { font: inherit; }
+    button:focus-visible, select:focus-visible, a:focus-visible, input:focus-visible { outline: var(--focus); outline-offset: 3px; }
+    a { color: var(--accent); }
+    .skip-link { position: fixed; top: -80px; left: 12px; z-index: 1000; background: var(--surface); color: var(--text); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); }
+    .skip-link:focus { top: 12px; }
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner { max-width: 1240px; margin: auto; padding: 10px 20px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .brand { font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px;
+      padding: 8px 12px; cursor: pointer; font-weight: 700; transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.success { background: var(--accent-2); color: #fff; border-color: var(--accent-2); }
+    .btn.danger { color: var(--danger); }
+    .progress-shell { height: 5px; background: var(--surface-2); }
+    .progress-bar { width: 0; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .2s ease; }
+    .layout { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 24px; padding: 24px 20px 70px; }
+    .sidebar { position: sticky; top: 82px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    .sidebar h2 { font-size: 1rem; margin: 0 0 8px; }
+    .sidebar a { display: block; padding: 8px 10px; border-radius: 9px; text-decoration: none; color: var(--muted); font-size: .92rem; }
+    .sidebar a:hover, .sidebar a.active { background: var(--surface-2); color: var(--text); font-weight: 700; }
+    main { min-width: 0; }
+    .hero {
+      border-radius: 26px; overflow: hidden; background: linear-gradient(135deg, #0d3156 0%, #135d7e 50%, #0b7466 100%); color: #fff;
+      padding: clamp(24px, 4vw, 54px); box-shadow: var(--shadow); position: relative; isolation: isolate;
+    }
+    .hero::after { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; background: rgba(255,255,255,.08); right: -160px; top: -180px; z-index: -1; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; font-weight: 800; opacity: .88; }
+    .hero h1 { margin: 8px 0 12px; font-size: clamp(2rem, 5vw, 4.2rem); line-height: 1.03; max-width: 900px; }
+    .hero p { max-width: 850px; font-size: 1.08rem; opacity: .94; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+    .chip { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); padding: 6px 10px; border-radius: 999px; font-size: .86rem; font-weight: 700; }
+    .hero-diagram { margin-top: 28px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22); border-radius: 18px; padding: 16px; }
+    section { scroll-margin-top: 95px; margin-top: 30px; }
+    .section-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: clamp(18px, 3vw, 30px); box-shadow: var(--shadow); }
+    .section-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px; }
+    .section-num { min-width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); color: var(--accent); font-weight: 900; }
+    h2, h3 { line-height: 1.25; }
+    h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+    h3 { margin-top: 1.4rem; }
+    .lead { color: var(--muted); font-size: 1.04rem; }
+    .grid-2, .grid-3, .grid-4 { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .mini-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .mini-card h3, .mini-card h4 { margin-top: 0; }
+    .callout { border-left: 5px solid var(--accent); background: var(--surface-2); padding: 14px 16px; border-radius: 0 12px 12px 0; margin: 16px 0; }
+    .callout.warning { border-left-color: var(--warning); }
+    .callout.danger { border-left-color: var(--danger); }
+    .callout.success { border-left-color: var(--success); }
+    .analogy { display: flex; gap: 14px; align-items: flex-start; }
+    .analogy .icon { font-size: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 10px; text-align: left; vertical-align: top; }
+    th { background: var(--surface-2); }
+    .table-wrap { overflow-x: auto; }
+    pre { margin: 0; white-space: pre; overflow: auto; }
+    code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .codebox { border: 1px solid #26344a; border-radius: 14px; overflow: hidden; margin: 14px 0; background: var(--code-bg); color: var(--code-text); }
+    .codebar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; background: #172033; color: #dbe8f8; font-size: .82rem; }
+    .codebox pre { padding: 16px; line-height: 1.55; font-size: .9rem; }
+    .copy-btn { border: 1px solid #52637a; background: #22304a; color: #fff; border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .tab-btn { border: 0; background: transparent; color: var(--muted); padding: 10px 12px; cursor: pointer; font-weight: 700; border-bottom: 3px solid transparent; }
+    .tab-btn[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel[hidden] { display: none; }
+    .simulator { background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin: 18px 0; }
+    .sim-stage { min-height: 270px; border: 1px dashed var(--border); border-radius: 14px; position: relative; overflow: hidden; padding: 16px; background: var(--surface); }
+    .sim-controls { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin: 14px 0; }
+    .field { display: grid; gap: 5px; min-width: 180px; }
+    .field label { font-weight: 750; font-size: .9rem; }
+    .field select, .field input { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px; }
+    .result { min-height: 48px; border-radius: 12px; padding: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+    .result.allow { border-color: var(--success); }
+    .result.block { border-color: var(--danger); }
+    .node { position: absolute; width: 130px; text-align: center; border-radius: 14px; padding: 12px; border: 2px solid var(--border); background: var(--surface); box-shadow: var(--shadow); font-weight: 800; }
+    .node small { display: block; color: var(--muted); font-weight: 500; }
+    .cable { position: absolute; height: 8px; background: repeating-linear-gradient(90deg, var(--accent), var(--accent) 12px, var(--accent-2) 12px, var(--accent-2) 24px); border-radius: 10px; transform-origin: left center; }
+    .packet { width: 26px; height: 18px; border-radius: 5px; background: #ffbf47; color: #111; display: grid; place-items: center; font-size: .7rem; font-weight: 900; position: absolute; z-index: 10; opacity: 0; box-shadow: 0 0 0 4px rgba(255,191,71,.22); }
+    .packet.fly { animation: packetFly 2.2s ease-in-out forwards; }
+    @keyframes packetFly { 0% { opacity: 1; left: 18%; top: 48%; } 45% { left: 48%; top: 48%; } 100% { opacity: 1; left: 80%; top: 48%; } }
+    .bridge-box { position: absolute; left: 43%; top: 35%; width: 140px; text-align: center; padding: 18px; border-radius: 16px; background: #3b4f73; color: #fff; font-weight: 800; }
+    .mac-table { font-size: .88rem; }
+    .zone { border-radius: 15px; padding: 15px; border: 2px solid var(--border); background: var(--surface); min-height: 180px; }
+    .zone h3 { margin: 0 0 4px; }
+    .zone.info { border-color: #5ba3e6; }
+    .zone.tcu { border-color: #bb7de5; }
+    .zone.adas { border-color: #e5a843; }
+    .zone.pt { border-color: #de6d6d; }
+    .policy-table td:nth-child(n+2), .policy-table th:nth-child(n+2) { text-align: center; }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-weight: 800; font-size: .8rem; }
+    .badge.allow { background: color-mix(in srgb, var(--success) 18%, transparent); color: var(--success); }
+    .badge.block { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+    .badge.note { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+    .mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+    .mode-btn { border: 2px solid var(--border); background: var(--surface); color: var(--text); border-radius: 14px; padding: 14px; cursor: pointer; text-align: left; font-weight: 800; }
+    .mode-btn small { display: block; margin-top: 4px; color: var(--muted); font-weight: 500; }
+    .mode-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+    .flow-visual { display: grid; grid-template-columns: minmax(150px,1fr) auto minmax(230px,.9fr) auto minmax(150px,1fr); gap: 14px; align-items: center; min-height: 220px; }
+    .flow-endpoint, .flow-core { border: 2px solid var(--border); border-radius: 16px; padding: 18px; text-align: center; background: var(--surface); }
+    .flow-core { min-width: 230px; border-color: var(--accent); }
+    .flow-arrow { font-size: 2rem; color: var(--accent); animation: arrowPulse 1.4s ease-in-out infinite; }
+    @keyframes arrowPulse { 50% { transform: translateX(6px); opacity: .55; } }
+    .decision-steps { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 14px; }
+    .decision-step { border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: var(--surface-2); opacity: .55; }
+    .decision-step.active { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent); }
+    .matrix-button { width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: 7px 8px; cursor: pointer; font-weight: 800; background: var(--surface); color: var(--text); }
+    .matrix-button.allow { border-color: var(--success); color: var(--success); }
+    .matrix-button.block { border-color: var(--danger); color: var(--danger); }
+    .matrix-button.local { color: var(--muted); }
+    .capture-timeline { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+    .capture-hop { border: 2px solid var(--border); border-radius: 14px; padding: 14px; background: var(--surface); min-height: 135px; transition: .25s ease; }
+    .capture-hop.seen { border-color: var(--success); transform: translateY(-3px); }
+    .capture-hop.blocked { border-color: var(--danger); opacity: .65; }
+    .capture-hop .signal { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+    .fault-grid { display: grid; grid-template-columns: repeat(5, minmax(130px,1fr)); gap: 8px; margin: 14px 0; }
+    .fault-btn { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); padding: 11px; cursor: pointer; font-weight: 800; }
+    .fault-btn.active { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, var(--surface)); }
+    .rubric td:nth-child(2), .rubric th:nth-child(2) { text-align: center; width: 90px; }
+    details { border: 1px solid var(--border); border-radius: 12px; margin: 10px 0; background: var(--surface); }
+    details > summary { cursor: pointer; padding: 13px 15px; font-weight: 800; }
+    details > div { padding: 0 15px 15px; }
+    .lab { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin: 18px 0; }
+    .lab-head { background: var(--surface-2); padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .lab-head h3 { margin: 0; }
+    .lab-body { padding: 18px; }
+    .checklist label { display: flex; align-items: flex-start; gap: 9px; margin: 8px 0; }
+    .checklist input { margin-top: 5px; transform: scale(1.15); }
+    .expected { background: #07101f; color: #e7f1ff; border-radius: 12px; padding: 14px; overflow: auto; white-space: pre-wrap; }
+    .stepper { counter-reset: step; }
+    .step { position: relative; padding: 0 0 20px 52px; }
+    .step::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 900; }
+    .step::after { content: ""; position: absolute; left: 17px; top: 40px; width: 2px; height: calc(100% - 38px); background: var(--border); }
+    .step:last-child::after { display: none; }
+    .quiz-q { border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin: 12px 0; }
+    .quiz-q fieldset { border: 0; padding: 0; margin: 0; }
+    .quiz-q legend { font-weight: 850; margin-bottom: 8px; }
+    .quiz-q label { display: block; padding: 6px 8px; border-radius: 8px; }
+    .quiz-q label:hover { background: var(--surface-2); }
+    .quiz-feedback { margin-top: 8px; font-weight: 750; }
+    .footer { text-align: center; color: var(--muted); padding: 30px 20px; }
+    .toast { position: fixed; right: 18px; bottom: 18px; background: #132238; color: #fff; border-radius: 12px; padding: 11px 14px; transform: translateY(100px); opacity: 0; transition: .25s ease; z-index: 200; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .only-print { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    svg text { font-family: inherit; }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: 0; max-height: none; }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .fault-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .decision-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
+      .grid-2, .grid-3, .grid-4, .mode-grid, .capture-timeline, .fault-grid, .decision-steps { grid-template-columns: 1fr; }
+      .flow-visual { grid-template-columns: 1fr; }
+      .flow-core { min-width: 0; }
+      .flow-arrow { transform: rotate(90deg); justify-self: center; }
+      .topbar { position: static; }
+      section { scroll-margin-top: 20px; }
+      .topbar-inner { align-items: flex-start; }
+      .brand span:last-child { display: none; }
+      .hero { padding: 26px 20px; }
+      .node { width: 105px; font-size: .84rem; }
+      .bridge-box { left: 35%; width: 110px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+    @media print {
+      :root { --bg: #fff; --surface: #fff; --surface-2: #f2f4f7; --text: #000; --muted: #333; --border: #aaa; }
+      .topbar, .sidebar, .sim-controls, .copy-btn, .no-print, .toast { display: none !important; }
+      .layout { display: block; max-width: none; padding: 0; }
+      .section-card, .hero { box-shadow: none; break-inside: avoid; }
+      .hero { color: #000; background: #fff; border: 1px solid #888; }
+      .hero-diagram { border-color: #888; }
+      .only-print { display: block; }
+      section { break-before: auto; }
+      a { color: #000; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">NS</span><span>Linux Network Namespaces Lab</span></div>
+    <div class="top-actions">
+      <button class="btn" id="themeBtn" type="button" aria-pressed="false">🌙 Dark</button>
+      <button class="btn" id="printBtn" type="button">🖨 Print</button>
+      <button class="btn danger" id="resetBtn" type="button">↺ Reset progress</button>
+    </div>
+  </div>
+  <div class="progress-shell" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Course navigation">
+    <h2>Session map</h2>
+    <a href="#overview">1. Learning map</a>
+    <a href="#concept">2. Namespace concept</a>
+    <a href="#veth">3. veth pairs</a>
+    <a href="#bridge">4. Linux bridge</a>
+    <a href="#routing">5. Routing & forwarding</a>
+    <a href="#compare">6. Bridge vs router vs firewall</a>
+    <a href="#automotive">7. Automotive ECU zones</a>
+    <a href="#firewall">8. Zone policy matrix</a>
+    <a href="#labs">9. Hands-on labs</a>
+    <a href="#packet-observation">10. Packet observation</a>
+    <a href="#fault-lab">11. Failure injection</a>
+    <a href="#capstone">12. Capstone challenge</a>
+    <a href="#troubleshooting">13. Troubleshooting</a>
+    <a href="#assessment">14. Assessment</a>
+    <a href="#validation">15. Validation notes</a>
+  </aside>
+
+  <main id="main">
+    <header class="hero">
+      <div class="eyebrow">Session 2 · Linux Network Namespaces</div>
+      <h1>Build a vehicle network inside one Linux VM</h1>
+      <p>Create isolated network stacks, join them with virtual cables and bridges, route traffic through a gateway, and enforce least-privilege policy with nftables.</p>
+      <div class="chips" aria-label="Session characteristics">
+        <span class="chip">Mixed technical audience</span>
+        <span class="chip">Ubuntu virtual machine</span>
+        <span class="chip">Interactive simulations</span>
+        <span class="chip">Guided practical labs</span>
+        <span class="chip">Automotive zone scenario</span>
+      </div>
+      <div class="hero-diagram" role="img" aria-label="Four automotive ECU zones connected to a Linux gateway namespace">
+        <svg viewBox="0 0 1000 360" width="100%" style="height:auto;display:block" aria-hidden="true">
+          <defs>
+            <linearGradient id="gwGrad" x1="0" x2="1"><stop stop-color="#68b6ff"/><stop offset="1" stop-color="#57d6b8"/></linearGradient>
+            <filter id="shadow"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity=".25"/></filter>
+          </defs>
+          <g fill="none" stroke="#d8f0ff" stroke-width="5" stroke-linecap="round" opacity=".85">
+            <path d="M235 90 C350 90 360 160 430 160"/>
+            <path d="M235 270 C350 270 360 200 430 200"/>
+            <path d="M765 90 C650 90 640 160 570 160"/>
+            <path d="M765 270 C650 270 640 200 570 200"/>
+          </g>
+          <g filter="url(#shadow)">
+            <rect x="55" y="45" rx="24" width="180" height="90" fill="#287fbe"/><text x="145" y="83" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">Infotainment</text><text x="145" y="108" text-anchor="middle" fill="#dff3ff" font-size="14">10.10.10.0/24</text>
+            <rect x="55" y="225" rx="24" width="180" height="90" fill="#8d52b8"/><text x="145" y="263" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">Telematics</text><text x="145" y="288" text-anchor="middle" fill="#f2e3ff" font-size="14">10.10.20.0/24</text>
+            <rect x="765" y="45" rx="24" width="180" height="90" fill="#ba7722"/><text x="855" y="83" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">ADAS</text><text x="855" y="108" text-anchor="middle" fill="#fff0d2" font-size="14">10.10.30.0/24</text>
+            <rect x="765" y="225" rx="24" width="180" height="90" fill="#b54747"/><text x="855" y="263" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">Powertrain</text><text x="855" y="288" text-anchor="middle" fill="#ffe2e2" font-size="14">10.10.40.0/24</text>
+            <rect x="430" y="120" rx="28" width="140" height="120" fill="url(#gwGrad)"/><text x="500" y="167" text-anchor="middle" fill="#08233d" font-size="24" font-weight="900">Gateway</text><text x="500" y="192" text-anchor="middle" fill="#08233d" font-size="14">routing + nftables</text><text x="500" y="215" text-anchor="middle" fill="#08233d" font-size="13">namespace: gw</text>
+          </g>
+          <g fill="#ffbf47">
+            <circle cx="330" cy="110" r="8"><animate attributeName="cx" values="245;420" dur="2.4s" repeatCount="indefinite"/></circle>
+            <circle cx="670" cy="246" r="8"><animate attributeName="cx" values="755;580" dur="2.8s" repeatCount="indefinite"/></circle>
+          </g>
+        </svg>
+      </div>
+      <p class="only-print"><strong>Print note:</strong> interactive controls are represented as static reference content in print.</p>
+    </header>
+
+    <section id="overview" class="section-card">
+      <div class="section-head"><div class="section-num">1</div><div><h2>Learning map</h2><p class="lead">What trainees should understand, build, test, and explain.</p></div></div>
+      <div class="grid-3">
+        <div class="mini-card"><h3>Understand</h3><p>Why each namespace has its own interfaces, routes, sockets, forwarding state, and firewall rules.</p></div>
+        <div class="mini-card"><h3>Build</h3><p>Virtual Ethernet links, a Layer-2 bridge, and a four-zone Layer-3 automotive gateway.</p></div>
+        <div class="mini-card"><h3>Secure</h3><p>Apply default-deny nftables forwarding policy and verify allowed and blocked traffic.</p></div>
+      </div>
+      <div class="callout warning"><strong>Scope boundary:</strong> This lab simulates Ethernet/IP segmentation and gateway policy. It does not reproduce CAN/FlexRay timing, ECU firmware, AUTOSAR middleware, hardware gateways, safety certification, or cryptographic in-vehicle protocols.</div>
+      <h3>Recommended trainee prerequisites</h3>
+      <ul>
+        <li>Basic shell navigation and use of <code>sudo</code>.</li>
+        <li>Basic IPv4 concepts: address, subnet, gateway, and TCP/UDP port.</li>
+        <li>One disposable Ubuntu VM with console access and a snapshot.</li>
+      </ul>
+    </section>
+
+    <section id="concept" class="section-card">
+      <div class="section-head"><div class="section-num">2</div><div><h2>Network namespace concept</h2><p class="lead">One kernel can present several independent views of networking.</p></div></div>
+      <div class="analogy callout"><div class="icon" aria-hidden="true">🏢</div><div><strong>Apartment-building analogy:</strong> The Linux kernel is the building. Each namespace is a locked apartment with its own doors (interfaces), address book (routes), intercom extensions (ports), and security desk (firewall). A veth pair is a cable connecting apartments or a shared lobby.</div></div>
+      <div class="tabs" role="tablist" aria-label="Namespace explanation tabs">
+        <button class="tab-btn" role="tab" aria-selected="true" aria-controls="tab-isolated" id="tab-isolated-btn">What is isolated?</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-shared" id="tab-shared-btn">What is shared?</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-real" id="tab-real-btn">Real-world uses</button>
+      </div>
+      <div id="tab-isolated" class="tab-panel" role="tabpanel" aria-labelledby="tab-isolated-btn">
+        <div class="table-wrap"><table><thead><tr><th>Resource</th><th>Per namespace?</th><th>Meaning</th></tr></thead><tbody>
+          <tr><td>Interfaces</td><td>Yes</td><td>A device moved into one namespace disappears from the others.</td></tr>
+          <tr><td>IPv4/IPv6 routes</td><td>Yes</td><td>Each namespace makes its own forwarding decision.</td></tr>
+          <tr><td>Listening ports</td><td>Yes</td><td>Two namespaces may both listen on TCP port 8080 without conflict.</td></tr>
+          <tr><td>Firewall rules</td><td>Yes</td><td>The host and gateway namespace can have different nftables rulesets.</td></tr>
+          <tr><td>Loopback interface</td><td>Yes</td><td><code>lo</code> starts down in a newly created named namespace.</td></tr>
+        </tbody></table></div>
+      </div>
+      <div id="tab-shared" class="tab-panel" role="tabpanel" aria-labelledby="tab-shared-btn" hidden>
+        <p>Network namespaces do not create a new machine. Processes still use the same Linux kernel, CPU, memory subsystem, and host storage unless other namespace or isolation mechanisms are added.</p>
+        <div class="callout danger"><strong>Security implication:</strong> A network namespace is strong network-stack isolation, not a complete hostile-workload sandbox by itself.</div>
+      </div>
+      <div id="tab-real" class="tab-panel" role="tabpanel" aria-labelledby="tab-real-btn" hidden>
+        <ul><li>Container networking foundations.</li><li>Virtual routers, firewalls, and service meshes.</li><li>CI tests for network policy and routing.</li><li>Automotive Ethernet zone prototypes before hardware is available.</li></ul>
+      </div>
+      <div class="codebox"><div class="codebar"><span>Create and inspect a namespace</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns add demo
+sudo ip netns list
+sudo ip netns exec demo ip -br link
+sudo ip netns exec demo ip route
+sudo ip netns exec demo ss -lntup
+sudo ip netns del demo</code></pre></div>
+      <div class="callout"><strong>Key observation:</strong> A new namespace normally shows only <code>lo</code>, and that loopback interface must be brought up before local services behave normally.</div>
+    </section>
+
+    <section id="veth" class="section-card">
+      <div class="section-head"><div class="section-num">3</div><div><h2>veth pairs: the virtual patch cable</h2><p class="lead">Whatever enters one endpoint emerges from the other.</p></div></div>
+      <p>veth devices are created in connected pairs. One endpoint can remain on the host while the peer is moved into a namespace, or both endpoints can be placed in different namespaces.</p>
+      <div class="simulator">
+        <h3>Interactive packet journey</h3>
+        <div class="sim-stage" id="vethStage">
+          <div class="node" style="left:5%;top:34%">Namespace A<small>eth0 · 192.0.2.10</small></div>
+          <div class="cable" style="left:21%;top:49%;width:59%"></div>
+          <div class="node" style="right:5%;top:34%">Namespace B<small>eth0 · 192.0.2.20</small></div>
+          <div class="packet" id="vethPacket">IP</div>
+        </div>
+        <div class="sim-controls"><button class="btn primary" id="sendVeth" type="button">Send packet A → B</button><button class="btn" id="resetVeth" type="button">Reset</button></div>
+        <div class="result" id="vethResult" aria-live="polite">Press “Send packet” to trace the frame through the peer link.</div>
+      </div>
+      <div class="grid-2">
+        <div class="mini-card"><h3>Create namespaces, then move both peers</h3><div class="codebox"><div class="codebar"><span>Complete two-namespace example</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns add ns-a
+sudo ip netns add ns-b
+sudo ip link add veth-a type veth peer name veth-b
+sudo ip link set veth-a netns ns-a
+sudo ip link set veth-b netns ns-b
+
+sudo ip -n ns-a link set lo up
+sudo ip -n ns-b link set lo up
+sudo ip -n ns-a addr add 192.0.2.10/24 dev veth-a
+sudo ip -n ns-b addr add 192.0.2.20/24 dev veth-b
+sudo ip -n ns-a link set veth-a up
+sudo ip -n ns-b link set veth-b up
+sudo ip netns exec ns-a ping -c 2 192.0.2.20</code></pre></div></div>
+        <div class="mini-card"><h3>Inspect each endpoint in its owner namespace</h3><div class="codebox"><div class="codebar"><span>Peer information</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip -n ns-a -d link show veth-a
+sudo ip -n ns-b -d link show veth-b</code></pre></div><p><code>sudo ip link set veth-b netns ns-b</code> is valid only after <code>ns-b</code> exists and while <code>veth-b</code> is still visible in the current namespace. After the move, inspect it from <code>ns-b</code>.</p></div>
+      </div>
+      <div class="callout warning"><strong>Common failure:</strong> Assigning addresses is not enough. Both veth endpoints and loopback must also be set <code>up</code>.</div>
+    </section>
+
+    <section id="bridge" class="section-card">
+      <div class="section-head"><div class="section-num">4</div><div><h2>Linux bridge: a software Layer-2 switch</h2><p class="lead">A bridge forwards Ethernet frames by learning source MAC addresses.</p></div></div>
+      <div class="grid-2">
+        <div>
+          <h3>Bridge behavior</h3>
+          <ul><li>Ports attached to the bridge share one broadcast domain.</li><li>Hosts in the same subnet can communicate without IP routing.</li><li>The bridge learns which MAC address is reachable through which port.</li><li>Unknown unicast and broadcast frames are flooded to eligible ports.</li></ul>
+        </div>
+        <div class="callout"><strong>Bridge vs router:</strong> A bridge makes a Layer-2 forwarding decision using MAC addresses. A router makes a Layer-3 forwarding decision using destination IP prefixes. Do not enable <code>ip_forward</code> merely to make two same-subnet bridge members communicate.</div>
+      </div>
+      <div class="simulator">
+        <h3>MAC-learning simulator</h3>
+        <div class="sim-stage" style="min-height:330px">
+          <div class="node" style="left:4%;top:12%">ECU-A<small>MAC AA:AA · port vA</small></div>
+          <div class="node" style="left:4%;bottom:12%">ECU-B<small>MAC BB:BB · port vB</small></div>
+          <div class="bridge-box">br-ecu<br><small>software switch</small></div>
+          <div class="node" style="right:4%;top:34%">Logger<small>MAC CC:CC · port vC</small></div>
+          <svg viewBox="0 0 1000 330" width="100%" height="100%" style="position:absolute;inset:0" aria-hidden="true"><g stroke="currentColor" stroke-width="5" opacity=".25"><line x1="210" y1="75" x2="435" y2="145"/><line x1="210" y1="260" x2="435" y2="185"/><line x1="570" y1="165" x2="790" y2="165"/></g></svg>
+        </div>
+        <div class="sim-controls"><button class="btn primary mac-send" data-src="AA:AA" data-port="vA" data-dst="BB:BB" type="button">A → B</button><button class="btn mac-send" data-src="BB:BB" data-port="vB" data-dst="AA:AA" type="button">B → A</button><button class="btn mac-send" data-src="CC:CC" data-port="vC" data-dst="AA:AA" type="button">Logger → A</button><button class="btn danger" id="clearMac" type="button">Clear table</button></div>
+        <div class="grid-2">
+          <div class="result" id="bridgeResult" aria-live="polite">The bridge table is empty. The first unknown destination will be flooded.</div>
+          <div class="mini-card mac-table"><strong>Learned forwarding database</strong><div id="macTable">No entries yet.</div></div>
+        </div>
+      </div>
+      <div class="codebox"><div class="codebar"><span>Attach existing host-side veth endpoints</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Prerequisite: c-host and d-host were created as veth endpoints
+sudo ip link add br-lab type bridge
+sudo ip link set br-lab up
+sudo ip link set c-host master br-lab
+sudo ip link set d-host master br-lab
+sudo ip link set c-host up
+sudo ip link set d-host up
+bridge link show master br-lab
+bridge fdb show br br-lab</code></pre></div>
+      <div class="callout note"><strong>Name consistency:</strong> <code>c-host</code> and <code>d-host</code> are the host-side peers created in Lab 2. All bridge commands now use those same names.</div>
+    </section>
+
+    <section id="routing" class="section-card">
+      <div class="section-head"><div class="section-num">5</div><div><h2>Namespace routing and forwarding</h2><p class="lead">Separate subnets need a router, and the router must be allowed to forward.</p></div></div>
+      <div class="grid-3">
+        <div class="mini-card"><h3>1. Endpoint route</h3><p>Each ECU namespace needs a connected route and usually a default route through the gateway-side address.</p></div>
+        <div class="mini-card"><h3>2. Gateway interfaces</h3><p>The gateway namespace owns one interface and IP address in each zone subnet.</p></div>
+        <div class="mini-card"><h3>3. Forwarding switch</h3><p><code>net.ipv4.ip_forward=1</code> allows the namespace to route packets between interfaces.</p></div>
+      </div>
+      <div class="simulator">
+        <h3>Route decision simulator</h3>
+        <div class="sim-controls">
+          <div class="field"><label for="routeSource">Source zone</label><select id="routeSource"><option value="info">Infotainment</option><option value="tcu">Telematics</option><option value="adas">ADAS</option><option value="pt">Powertrain</option></select></div>
+          <div class="field"><label for="routeDest">Destination IP</label><select id="routeDest"><option>10.10.10.2</option><option>10.10.20.2</option><option>10.10.30.2</option><option selected>10.10.40.2</option><option>203.0.113.50</option></select></div>
+          <button class="btn primary" id="routeBtn" type="button">Explain route</button>
+        </div>
+        <div class="result" id="routeResult" aria-live="polite">Choose a source and destination, then inspect the route.</div>
+      </div>
+      <div class="callout warning"><strong>Two separate controls:</strong> Linux IP forwarding decides whether routing is possible. nftables decides whether a particular forwarded packet is permitted. Enabling one does not automatically configure the other.</div>
+    </section>
+
+
+    <section id="compare" class="section-card">
+      <div class="section-head"><div class="section-num">6</div><div><h2>Bridge vs router vs firewall</h2><p class="lead">Three different jobs can exist in the same Linux topology, but they make different decisions.</p></div></div>
+      <div class="mode-grid" role="group" aria-label="Select network function">
+        <button class="mode-btn active" type="button" data-netmode="bridge">🌉 Bridge<small>Layer 2: forwards frames using MAC addresses.</small></button>
+        <button class="mode-btn" type="button" data-netmode="router">🧭 Router<small>Layer 3: selects an egress path using destination IP prefixes.</small></button>
+        <button class="mode-btn" type="button" data-netmode="firewall">🛡️ Firewall<small>Policy: permits, rejects, or drops a packet based on rules and state.</small></button>
+      </div>
+      <div class="simulator">
+        <div class="flow-visual">
+          <div class="flow-endpoint"><strong id="compareLeftTitle">ECU-A</strong><br><small id="compareLeftMeta">192.0.2.10/24 · MAC AA:AA</small></div>
+          <div class="flow-arrow" aria-hidden="true">➜</div>
+          <div class="flow-core"><strong id="compareCoreTitle">Linux bridge</strong><p id="compareCoreText">Learns the source MAC and looks up the destination MAC in its forwarding database.</p><code id="compareKey">bridge fdb show</code></div>
+          <div class="flow-arrow" aria-hidden="true">➜</div>
+          <div class="flow-endpoint"><strong id="compareRightTitle">ECU-B</strong><br><small id="compareRightMeta">192.0.2.20/24 · MAC BB:BB</small></div>
+        </div>
+        <div class="decision-steps" aria-label="Decision pipeline">
+          <div class="decision-step active" data-compare-step="0"><strong>1. Receive</strong><br><small>Frame or packet arrives.</small></div>
+          <div class="decision-step active" data-compare-step="1"><strong>2. Inspect</strong><br><small id="compareInspect">Read destination MAC.</small></div>
+          <div class="decision-step active" data-compare-step="2"><strong>3. Decide</strong><br><small id="compareDecide">Choose learned bridge port.</small></div>
+          <div class="decision-step active" data-compare-step="3"><strong>4. Forward</strong><br><small id="compareForward">Transmit the Ethernet frame.</small></div>
+        </div>
+        <div class="result" id="compareResult" aria-live="polite"><strong>Bridge:</strong> endpoints are in one subnet and broadcast domain. IP forwarding is not required.</div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Function</th><th>Main lookup</th><th>Typical Linux object</th><th>Common trainee mistake</th></tr></thead><tbody>
+        <tr><td>Bridge</td><td>Destination MAC</td><td><code>type bridge</code> plus enslaved ports</td><td>Enabling IP forwarding for same-subnet communication.</td></tr>
+        <tr><td>Router</td><td>Longest matching IP prefix</td><td>Interfaces, route tables, <code>ip_forward=1</code></td><td>Forgetting the endpoint’s default route or return route.</td></tr>
+        <tr><td>Firewall</td><td>Rules, interfaces, addresses, ports, connection state</td><td>nftables base chain and policy</td><td>Assuming routing permission automatically means firewall permission.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="automotive" class="section-card">
+      <div class="section-head"><div class="section-num">7</div><div><h2>Using namespaces to simulate ECU zones</h2><p class="lead">Represent zones as independent IP stacks connected through a policy gateway.</p></div></div>
+      <div class="grid-4">
+        <article class="zone info"><h3>🎵 Infotainment</h3><p>Media, user apps, phone integration, displays.</p><p><strong>Trust:</strong> Lower. Rich external input and large software surface.</p></article>
+        <article class="zone tcu"><h3>📡 Telematics</h3><p>Cellular connectivity, cloud services, remote commands, OTA channels.</p><p><strong>Trust:</strong> Boundary zone. Exposed to external networks.</p></article>
+        <article class="zone adas"><h3>📷 ADAS</h3><p>Sensor processing, perception, driver-assistance functions.</p><p><strong>Trust:</strong> High integrity and availability requirements.</p></article>
+        <article class="zone pt"><h3>⚙️ Powertrain</h3><p>Engine, transmission, propulsion, torque-related control paths.</p><p><strong>Trust:</strong> Safety-critical; extremely restricted access.</p></article>
+      </div>
+      <h3>Why this lab is useful in the real world</h3>
+      <div class="grid-2">
+        <div class="mini-card"><h3>Architecture rehearsal</h3><p>Test addressing, route design, service placement, and zone boundaries before physical ECUs and switches are available.</p></div>
+        <div class="mini-card"><h3>Security regression</h3><p>Automate checks that forbidden paths remain blocked while approved service flows remain available after policy changes.</p></div>
+        <div class="mini-card"><h3>Incident exercises</h3><p>Simulate a compromised infotainment workload attempting lateral movement toward ADAS or powertrain zones.</p></div>
+        <div class="mini-card"><h3>Training and demos</h3><p>Make packet paths visible with <code>tcpdump</code>, nftables counters, and logs without requiring an automotive bench.</p></div>
+      </div>
+      <div class="callout danger"><strong>Design principle:</strong> “Same vehicle” does not imply “same trust.” The gateway should expose only explicitly required service paths, not general reachability.</div>
+      <h3>Accuracy boundary: what the model proves—and what it does not</h3>
+      <div class="table-wrap"><table><thead><tr><th>This namespace lab can model</th><th>It does not reproduce or certify</th></tr></thead><tbody>
+        <tr><td>Automotive Ethernet-style IP zones, subnets, gateways, service exposure, routing, lateral movement, and policy regression tests.</td><td>CAN arbitration, FlexRay timing, TSN timing guarantees, physical-layer faults, bus load, or real transceiver behavior.</td></tr>
+        <tr><td>Linux gateway firewall logic, connection tracking, counters, logging, and packet captures.</td><td>AUTOSAR Classic/Adaptive stacks, SecOC freshness handling, hardware security modules, secure boot, or ECU firmware behavior.</td></tr>
+        <tr><td>Repeatable training, CI experiments, incident drills, and early architecture rehearsal.</td><td>Functional-safety evidence, production threat-assessment completion, vehicle homologation, or cybersecurity compliance assurance.</td></tr>
+      </tbody></table></div>
+      <div class="callout warning"><strong>Shared-kernel limitation:</strong> All namespaces use the same Linux kernel. They are excellent for network-stack isolation and testing, but they are not equivalent to separate physical ECUs or separate virtual machines against a hostile kernel exploit.</div>
+    </section>
+
+    <section id="firewall" class="section-card">
+      <div class="section-head"><div class="section-num">8</div><div><h2>Interactive zone policy matrix</h2><p class="lead">Select a source, destination, and packet type to see the route path, matching nftables rule, and final verdict.</p></div></div>
+      <h3>Teaching policy matrix</h3>
+      <div class="table-wrap"><table class="policy-table"><thead><tr><th>Source ↓ / Destination →</th><th>Infotainment</th><th>Telematics</th><th>ADAS</th><th>Powertrain</th></tr></thead><tbody>
+        <tr><th>Infotainment</th><td><button class="matrix-button local" data-matrix-src="info" data-matrix-dst="info" data-matrix-proto="tcp8080">Local zone</button></td><td><button class="matrix-button block" data-matrix-src="info" data-matrix-dst="tcu" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="info" data-matrix-dst="adas" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="info" data-matrix-dst="pt" data-matrix-proto="tcp8080">Block new</button></td></tr>
+        <tr><th>Telematics</th><td><button class="matrix-button allow" data-matrix-src="tcu" data-matrix-dst="info" data-matrix-proto="tcp8080">Allow 8080</button></td><td><button class="matrix-button local" data-matrix-src="tcu" data-matrix-dst="tcu" data-matrix-proto="tcp8080">Local zone</button></td><td><button class="matrix-button block" data-matrix-src="tcu" data-matrix-dst="adas" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="tcu" data-matrix-dst="pt" data-matrix-proto="tcp22">Block new</button></td></tr>
+        <tr><th>ADAS</th><td><button class="matrix-button block" data-matrix-src="adas" data-matrix-dst="info" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="adas" data-matrix-dst="tcu" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button local" data-matrix-src="adas" data-matrix-dst="adas" data-matrix-proto="tcp8080">Local zone</button></td><td><button class="matrix-button allow" data-matrix-src="adas" data-matrix-dst="pt" data-matrix-proto="tcp8080">Allow 8080</button></td></tr>
+        <tr><th>Powertrain</th><td><button class="matrix-button block" data-matrix-src="pt" data-matrix-dst="info" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="pt" data-matrix-dst="tcu" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button block" data-matrix-src="pt" data-matrix-dst="adas" data-matrix-proto="tcp22">Block new</button></td><td><button class="matrix-button local" data-matrix-src="pt" data-matrix-dst="pt" data-matrix-proto="tcp8080">Local zone</button></td></tr>
+      </tbody></table></div>
+      <p><small>Click any matrix cell to load that example into the simulator. “Local zone” traffic is outside the gateway’s forward chain in this simplified one-ECU-per-zone topology.</small></p>
+      <div class="simulator">
+        <h3>Packet-policy simulator</h3>
+        <div class="sim-controls">
+          <div class="field"><label for="fwSrc">Source</label><select id="fwSrc"><option value="info">Infotainment</option><option value="tcu">Telematics</option><option value="adas">ADAS</option><option value="pt">Powertrain</option></select></div>
+          <div class="field"><label for="fwDst">Destination</label><select id="fwDst"><option value="pt">Powertrain</option><option value="info">Infotainment</option><option value="adas">ADAS</option><option value="tcu">Telematics</option></select></div>
+          <div class="field"><label for="fwProto">Packet type</label><select id="fwProto"><option value="tcp8080">New TCP 8080</option><option value="tcp22">New SSH TCP 22</option><option value="icmp">New ICMP echo</option><option value="established">Established return packet</option><option value="invalid">Invalid tracked packet</option></select></div>
+          <button class="btn primary" id="fwTest" type="button">Trace policy</button>
+        </div>
+        <div class="result" id="fwResult" aria-live="polite">Select a flow. This educational simulator mirrors the fixed ruleset below; it does not execute packets.</div>
+      </div>
+      <div class="codebox"><div class="codebar"><span>Gateway namespace nftables ruleset</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec gw nft -f - &lt;&lt;'EOF'
+flush ruleset
+
+table inet zonefw {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+
+    ct state invalid counter drop
+    ct state established,related counter accept
+
+    iifname "g-tcu"  oifname "g-info" tcp dport 8080 counter accept
+    iifname "g-adas" oifname "g-pt"   tcp dport 8080 counter accept
+
+    limit rate 5/second burst 10 packets counter log prefix "ZONE_DROP " flags all
+    counter drop
+  }
+}
+EOF
+
+sudo ip netns exec gw nft list ruleset</code></pre></div>
+      <div class="callout"><strong>Rule-flow order matters:</strong> invalid packets are dropped first, return packets are accepted next, narrowly approved new services follow, and all remaining traffic reaches the rate-limited logging rule plus final drop.</div>
+      <div class="callout warning"><strong>Why two final rules?</strong> The first rule rate-limits logging. The second rule drops every remaining packet, including packets above the logging rate, so excess traffic is still blocked without flooding the log.</div>
+    </section>
+
+    <section id="labs" class="section-card">
+      <div class="section-head"><div class="section-num">9</div><div><h2>Hands-on labs</h2><p class="lead">Run these in a disposable Ubuntu VM. Each lab includes verification and expected results.</p></div></div>
+      <div class="callout danger"><strong>Safety:</strong> Do not run the full cleanup command on a shared host without reviewing names. These labs create namespaces and links named specifically for this course. Use a VM snapshot.</div>
+      <div class="sim-controls no-print"><button class="btn success" id="downloadSetup" type="button">⬇ Download full setup script</button><button class="btn" id="downloadCleanup" type="button">⬇ Download cleanup script</button></div>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 0 — Prepare and preflight the VM</h3><p>Confirm tools, kernel support, and privileges.</p></div><span class="badge note">15–20 min</span></div>
+        <div class="lab-body">
+          <div class="codebox"><div class="codebar"><span>Ubuntu setup</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo apt update
+sudo apt install -y iproute2 iputils-ping nftables tcpdump curl \
+  python3 conntrack procps kmod
+
+ip -Version
+ping -V
+nft --version
+ip netns help | head
+
+# Optional diagnostics only if creating veth/bridge reports “Operation not supported”
+sudo modprobe veth 2&gt;/dev/null || true
+sudo modprobe bridge 2&gt;/dev/null || true</code></pre></div>
+          <h4>Expected result</h4><pre class="expected">ip utility, iproute2-...          # version varies by Ubuntu release
+ping from iputils ...             # version varies
+nftables v...                     # version varies
+Usage: ip netns ...              # help text appears
+# modprobe may be silent; “module not found” can also mean support is built into the kernel</pre>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab0-tools"> Tools installed</label><label><input type="checkbox" data-progress="lab0-snapshot"> VM snapshot confirmed</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 1 — Direct veth connection</h3><p>Connect two isolated network stacks without a bridge or router.</p></div><span class="badge note">30 min</span></div>
+        <div class="lab-body stepper">
+          <div class="step"><h4>Create namespaces and veth pair</h4><div class="codebox"><div class="codebar"><span>Topology</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns add ecu-a
+sudo ip netns add ecu-b
+sudo ip link add a0 type veth peer name b0
+sudo ip link set a0 netns ecu-a
+sudo ip link set b0 netns ecu-b</code></pre></div></div>
+          <div class="step"><h4>Configure links and addresses</h4><div class="codebox"><div class="codebar"><span>Interfaces</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip -n ecu-a link set lo up
+sudo ip -n ecu-b link set lo up
+sudo ip -n ecu-a addr add 192.0.2.10/24 dev a0
+sudo ip -n ecu-b addr add 192.0.2.20/24 dev b0
+sudo ip -n ecu-a link set a0 up
+sudo ip -n ecu-b link set b0 up</code></pre></div></div>
+          <div class="step"><h4>Verify and test</h4><div class="codebox"><div class="codebar"><span>Verification</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip -n ecu-a -br addr
+sudo ip -n ecu-b -br addr
+sudo ip netns exec ecu-a ping -c 2 192.0.2.20</code></pre></div>
+          <pre class="expected">a0        UP   192.0.2.10/24
+b0        UP   192.0.2.20/24
+...
+2 packets transmitted, 2 received, 0% packet loss</pre></div>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab1-ping"> Successful two-way ping</label><label><input type="checkbox" data-progress="lab1-explain"> I can explain why no route/gateway was needed</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 2 — Multiple ECUs on a Linux bridge</h3><p>Build a shared Layer-2 network and observe MAC learning.</p></div><span class="badge note">45 min</span></div>
+        <div class="lab-body">
+          <div class="codebox"><div class="codebar"><span>Create bridge topology</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns add ecu-c
+sudo ip netns add ecu-d
+sudo ip link add c-host type veth peer name c0
+sudo ip link add d-host type veth peer name d0
+sudo ip link set c0 netns ecu-c
+sudo ip link set d0 netns ecu-d
+
+sudo ip link add br-lab type bridge
+sudo ip link set br-lab up
+sudo ip link set c-host master br-lab
+sudo ip link set d-host master br-lab
+sudo ip link set c-host up
+sudo ip link set d-host up
+
+sudo ip -n ecu-c link set lo up
+sudo ip -n ecu-d link set lo up
+sudo ip -n ecu-c addr add 198.51.100.10/24 dev c0
+sudo ip -n ecu-d addr add 198.51.100.20/24 dev d0
+sudo ip -n ecu-c link set c0 up
+sudo ip -n ecu-d link set d0 up
+
+sudo ip netns exec ecu-c ping -c 2 198.51.100.20
+bridge link
+bridge fdb show br br-lab</code></pre></div>
+          <h4>Expected observations</h4><ul><li>Both host-side veth interfaces show <code>master br-lab</code>.</li><li>Ping succeeds although <code>br-lab</code> itself has no IP address.</li><li>The forwarding database learns dynamic MAC entries after traffic flows.</li></ul>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab2-bridge"> Bridge membership verified</label><label><input type="checkbox" data-progress="lab2-fdb"> MAC learning observed</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 3 — Build four automotive zones and a router namespace</h3><p>Use one subnet per zone and route through <code>gw</code>.</p></div><span class="badge note">75–90 min</span></div>
+        <div class="lab-body">
+          <h4>Authoritative naming and addressing map</h4>
+          <div class="table-wrap"><table><thead><tr><th>Zone</th><th>Namespace</th><th>Zone interface</th><th>Zone IP</th><th>Gateway interface</th><th>Gateway IP</th></tr></thead><tbody>
+            <tr><td>Infotainment</td><td><code>info</code></td><td><code>z-info</code></td><td><code>10.10.10.2/24</code></td><td><code>g-info</code></td><td><code>10.10.10.1/24</code></td></tr>
+            <tr><td>Telematics</td><td><code>tcu</code></td><td><code>z-tcu</code></td><td><code>10.10.20.2/24</code></td><td><code>g-tcu</code></td><td><code>10.10.20.1/24</code></td></tr>
+            <tr><td>ADAS</td><td><code>adas</code></td><td><code>z-adas</code></td><td><code>10.10.30.2/24</code></td><td><code>g-adas</code></td><td><code>10.10.30.1/24</code></td></tr>
+            <tr><td>Powertrain</td><td><code>pt</code></td><td><code>z-pt</code></td><td><code>10.10.40.2/24</code></td><td><code>g-pt</code></td><td><code>10.10.40.1/24</code></td></tr>
+          </tbody></table></div>
+          <div class="callout"><strong>Naming rule:</strong> <code>z-*</code> is the interface owned by the zone namespace; <code>g-*</code> is its peer owned by <code>gw</code>. nftables rules must reference the gateway-side <code>g-*</code> names because filtering occurs inside <code>gw</code>.</div>
+          <div class="codebox"><div class="codebar"><span>Four-zone topology</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Create namespaces
+for ns in info tcu adas pt gw; do sudo ip netns add "$ns"; done
+
+# Create one veth pair per zone; move one end into the ECU zone and one into gw
+sudo ip link add z-info type veth peer name g-info
+sudo ip link add z-tcu  type veth peer name g-tcu
+sudo ip link add z-adas type veth peer name g-adas
+sudo ip link add z-pt   type veth peer name g-pt
+sudo ip link set z-info netns info; sudo ip link set g-info netns gw
+sudo ip link set z-tcu  netns tcu;  sudo ip link set g-tcu  netns gw
+sudo ip link set z-adas netns adas; sudo ip link set g-adas netns gw
+sudo ip link set z-pt   netns pt;   sudo ip link set g-pt   netns gw
+
+# Bring up loopback interfaces
+for ns in info tcu adas pt gw; do sudo ip -n "$ns" link set lo up; done
+
+# Configure endpoint addresses
+sudo ip -n info addr add 10.10.10.2/24 dev z-info
+sudo ip -n tcu  addr add 10.10.20.2/24 dev z-tcu
+sudo ip -n adas addr add 10.10.30.2/24 dev z-adas
+sudo ip -n pt   addr add 10.10.40.2/24 dev z-pt
+sudo ip -n info link set z-info up
+sudo ip -n tcu  link set z-tcu up
+sudo ip -n adas link set z-adas up
+sudo ip -n pt   link set z-pt up
+
+# Configure gateway-side addresses
+sudo ip -n gw addr add 10.10.10.1/24 dev g-info
+sudo ip -n gw addr add 10.10.20.1/24 dev g-tcu
+sudo ip -n gw addr add 10.10.30.1/24 dev g-adas
+sudo ip -n gw addr add 10.10.40.1/24 dev g-pt
+for dev in g-info g-tcu g-adas g-pt; do sudo ip -n gw link set "$dev" up; done
+
+# Add default routes in zone namespaces
+sudo ip -n info route add default via 10.10.10.1
+sudo ip -n tcu  route add default via 10.10.20.1
+sudo ip -n adas route add default via 10.10.30.1
+sudo ip -n pt   route add default via 10.10.40.1
+
+# Enable forwarding only inside the gateway namespace
+sudo ip netns exec gw sysctl -w net.ipv4.ip_forward=1
+
+# Verify routes and routed reachability before applying firewall policy
+sudo ip -n gw -br addr
+sudo ip -n info route
+sudo ip netns exec info ping -c 2 10.10.40.2</code></pre></div>
+          <h4>Expected result before firewalling</h4><pre class="expected">net.ipv4.ip_forward = 1
+...
+2 packets transmitted, 2 received, 0% packet loss</pre>
+          <div class="callout warning"><strong>If ping fails:</strong> Verify every interface is UP, each endpoint has a default route, the gateway has all four connected routes, and forwarding is enabled inside <code>gw</code> rather than only on the host.</div>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab3-routes"> All default routes verified</label><label><input type="checkbox" data-progress="lab3-forward"> Routed ping works before firewalling</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 4 — Start services and enforce zone policy</h3><p>Prove both allowed and denied service paths.</p></div><span class="badge note">60 min</span></div>
+        <div class="lab-body stepper">
+          <div class="step"><h4>Start test HTTP services</h4><p>Use separate terminals, or run the commands in the background as shown.</p><div class="codebox"><div class="codebar"><span>Test services</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec info bash -c \
+  'nohup python3 -m http.server 8080 --bind 10.10.10.2 &gt;/tmp/info-http.log 2&gt;&amp;1 &amp;'
+sudo ip netns exec pt bash -c \
+  'nohup python3 -m http.server 8080 --bind 10.10.40.2 &gt;/tmp/pt-http.log 2&gt;&amp;1 &amp;'
+
+sudo ip netns exec info ss -lntp 'sport = :8080'
+sudo ip netns exec pt   ss -lntp 'sport = :8080'</code></pre></div></div>
+          <div class="step"><h4>Apply the nftables ruleset inside the gateway</h4><div class="codebox"><div class="codebar"><span>Default-deny policy</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec gw nft -f - &lt;&lt;'EOF'
+flush ruleset
+
+table inet zonefw {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state invalid counter drop
+    ct state established,related counter accept
+    iifname "g-tcu"  oifname "g-info" tcp dport 8080 counter accept
+    iifname "g-adas" oifname "g-pt"   tcp dport 8080 counter accept
+    limit rate 5/second burst 10 packets counter log prefix "ZONE_DROP " flags all
+    counter drop
+  }
+}
+EOF
+
+# Confirm that the table and base chain now exist inside gw
+sudo ip netns exec gw nft list table inet zonefw
+sudo ip netns exec gw nft list chain inet zonefw forward</code></pre></div>
+            <p><strong>Do not continue if either verification command fails.</strong> The later counter command assumes that both <code>zonefw</code> and <code>forward</code> were created successfully inside the <code>gw</code> namespace.</p>
+          </div>
+          <div class="step"><h4>Verify allowed flows</h4><div class="codebox"><div class="codebar"><span>Expected HTTP success</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec tcu curl --max-time 3 -I http://10.10.10.2:8080/
+sudo ip netns exec adas curl --max-time 3 -I http://10.10.40.2:8080/</code></pre></div><pre class="expected">HTTP/1.0 200 OK
+Server: SimpleHTTP/...
+Date: ...
+Content-type: text/html; charset=utf-8
+Content-Length: ...</pre></div>
+          <div class="step"><h4>Verify blocked flows</h4><div class="codebox"><div class="codebar"><span>Expected timeout</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec info curl --max-time 3 -I http://10.10.40.2:8080/
+sudo ip netns exec tcu  curl --max-time 3 -I http://10.10.40.2:8080/</code></pre></div><pre class="expected">curl: (28) Connection timed out after 300... milliseconds
+# Exact wording and elapsed milliseconds vary by curl version.</pre></div>
+          <div class="step"><h4>Inspect counters</h4><div class="codebox"><div class="codebar"><span>Rules and counters</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Confirm the expected table is in the gateway namespace
+sudo ip netns exec gw nft list tables
+
+# Then display the forward chain with rule handles and counters
+sudo ip netns exec gw nft -a list chain inet zonefw forward</code></pre></div><p>Packet and byte counters should increase on the matched allow or drop rule.</p>
+            <details><summary>Fix: <code>No such file or directory</code> under <code>zonefw</code></summary>
+              <p>This message does <strong>not</strong> mean the <code>nft</code> executable is missing. It means the named nftables object is absent from the network namespace where the command ran. The policy may not have been applied, may have been applied in the host namespace, or the <code>gw</code> namespace may have been deleted and recreated.</p>
+              <div class="codebox"><div class="codebar"><span>Diagnose host vs gateway firewall state</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Host/default network namespace
+sudo nft list tables
+
+# Gateway network namespace
+sudo ip netns exec gw nft list tables
+sudo ip netns exec gw nft list ruleset</code></pre></div>
+              <p>If <code>table inet zonefw</code> is missing from the gateway output, reapply the complete policy there:</p>
+              <div class="codebox"><div class="codebar"><span>Recreate zonefw inside gw</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec gw nft -f - &lt;&lt;'EOF'
+flush ruleset
+
+table inet zonefw {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state invalid counter drop
+    ct state established,related counter accept
+    iifname "g-tcu"  oifname "g-info" tcp dport 8080 counter accept
+    iifname "g-adas" oifname "g-pt"   tcp dport 8080 counter accept
+    limit rate 5/second burst 10 packets counter log prefix "ZONE_DROP " flags all
+    counter drop
+  }
+}
+EOF
+
+sudo ip netns exec gw nft -a list chain inet zonefw forward</code></pre></div>
+              <div class="callout warning"><strong>Namespace lifecycle:</strong> nftables rules are part of the network namespace. Deleting and recreating <code>gw</code> creates a fresh network stack, so its previous <code>zonefw</code> table no longer exists and must be applied again.</div>
+            </details>
+          </div>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab4-allow"> Both approved HTTP paths succeed</label><label><input type="checkbox" data-progress="lab4-deny"> Both forbidden HTTP paths time out</label><label><input type="checkbox" data-progress="lab4-counters"> nftables counters observed</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Lab 5 — Observe packet paths</h3><p>Use tcpdump and nftables counters to connect theory with evidence.</p></div><span class="badge note">30–45 min</span></div>
+        <div class="lab-body">
+          <div class="grid-2">
+            <div><h4>Capture on the source zone</h4><div class="codebox"><div class="codebar"><span>Terminal 1</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec tcu tcpdump -ni z-tcu tcp port 8080</code></pre></div></div>
+            <div><h4>Capture at gateway ingress</h4><div class="codebox"><div class="codebar"><span>Terminal 2</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec gw tcpdump -ni g-tcu tcp port 8080</code></pre></div></div>
+          </div>
+          <div class="codebox"><div class="codebar"><span>Generate traffic in Terminal 3</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec tcu curl --max-time 3 -I http://10.10.10.2:8080/</code></pre></div>
+          <h4>Representative expected capture</h4><pre class="expected">IP 10.10.20.2.4xxxx &gt; 10.10.10.2.8080: Flags [S], seq ..., win ..., length 0
+IP 10.10.10.2.8080 &gt; 10.10.20.2.4xxxx: Flags [S.], seq ..., ack ..., length 0
+# Ephemeral source port, sequence numbers, timestamps, and window values vary.</pre>
+          <div class="callout"><strong>Blocked flow observation:</strong> On an infotainment-to-powertrain test, the SYN appears on <code>g-info</code> but not on <code>g-pt</code>, because the gateway drops it before egress.</div>
+          <div class="checklist"><label><input type="checkbox" data-progress="lab5-capture"> Allowed three-way handshake observed</label><label><input type="checkbox" data-progress="lab5-drop"> Blocked SYN located at ingress only</label></div>
+        </div>
+      </article>
+
+      <article class="lab">
+        <div class="lab-head"><div><h3>Cleanup</h3><p>Remove only the namespaces and links created by this course.</p></div><span class="badge note">5 min</span></div>
+        <div class="lab-body"><div class="codebox"><div class="codebar"><span>Cleanup commands</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>for ns in demo ns-a ns-b ecu-a ecu-b ecu-c ecu-d info tcu adas pt gw; do
+  for pid in $(sudo ip netns pids "$ns" 2&gt;/dev/null); do
+    sudo kill "$pid" 2&gt;/dev/null || true
+  done
+done
+
+for ns in demo ns-a ns-b ecu-a ecu-b ecu-c ecu-d info tcu adas pt gw; do
+  sudo ip netns del "$ns" 2&gt;/dev/null || true
+done
+
+# Remove host-side leftovers from partially completed labs
+for dev in br-lab veth-a veth-b a0 b0 c-host d-host c0 d0 \
+  z-info z-tcu z-adas z-pt g-info g-tcu g-adas g-pt; do
+  sudo ip link del "$dev" 2&gt;/dev/null || true
+done
+
+sudo ip netns list
+ip -br link | grep -E 'br-lab|veth-|a0|b0|c-host|d-host|z-|g-' || true</code></pre></div>
+        <p><strong>Expected:</strong> Course namespaces are absent. Deleting a namespace also deletes veth devices held inside it; deleting one veth endpoint removes its peer.</p></div>
+      </article>
+    </section>
+
+    <section id="packet-observation" class="section-card">
+      <div class="section-head"><div class="section-num">10</div><div><h2>Multi-point packet observation</h2><p class="lead">Capture the same flow at the source, gateway ingress, gateway egress, and destination to locate exactly where communication stops.</p></div></div>
+      <div class="sim-controls">
+        <button class="btn primary capture-scenario" type="button" data-capture="allowed">Animate allowed TCU → Infotainment</button>
+        <button class="btn capture-scenario" type="button" data-capture="blocked">Animate blocked Infotainment → Powertrain</button>
+        <button class="btn" type="button" id="resetCapture">Reset timeline</button>
+      </div>
+      <div class="capture-timeline" aria-label="Packet capture timeline">
+        <div class="capture-hop" data-hop="source"><span class="signal">①</span><strong>Source namespace</strong><p id="captureSource">Capture sees the request leave the ECU interface.</p></div>
+        <div class="capture-hop" data-hop="ingress"><span class="signal">②</span><strong>Gateway ingress</strong><p id="captureIngress">Capture sees the packet enter through the source-zone interface.</p></div>
+        <div class="capture-hop" data-hop="egress"><span class="signal">③</span><strong>Gateway egress</strong><p id="captureEgress">If accepted, the packet appears on the destination-zone interface.</p></div>
+        <div class="capture-hop" data-hop="destination"><span class="signal">④</span><strong>Destination namespace</strong><p id="captureDestination">If delivered, the destination receives it and may respond.</p></div>
+      </div>
+      <div class="result" id="captureResult" aria-live="polite">Choose an allowed or blocked scenario.</div>
+      <h3>Open four VM terminals</h3>
+      <div class="grid-2">
+        <div class="codebox"><div class="codebar"><span>Allowed flow captures</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Terminal 1 — source TCU
+sudo ip netns exec tcu tcpdump -ni any 'tcp port 8080'
+
+# Terminal 2 — gateway ingress from TCU
+sudo ip netns exec gw tcpdump -ni g-tcu 'tcp port 8080'
+
+# Terminal 3 — gateway egress to Infotainment
+sudo ip netns exec gw tcpdump -ni g-info 'tcp port 8080'
+
+# Terminal 4 — destination Infotainment
+sudo ip netns exec info tcpdump -ni any 'tcp port 8080'</code></pre></div>
+        <div class="codebox"><div class="codebar"><span>Generate and verify</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Allowed: request should appear at all four points
+sudo ip netns exec tcu   curl --max-time 3 -I http://10.10.10.2:8080/
+
+# Blocked: request appears at source and g-info ingress,
+# but not on g-pt egress or inside pt
+sudo ip netns exec info   curl --max-time 3 -I http://10.10.40.2:8080/
+
+sudo ip netns exec gw nft list chain inet zonefw forward
+sudo ip netns exec gw conntrack -L -p tcp --dport 8080</code></pre></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Last place packet is visible</th><th>Most likely investigation area</th></tr></thead><tbody>
+        <tr><td>Source only</td><td>Source address, link state, ARP/neighbour resolution, or local route.</td></tr>
+        <tr><td>Gateway ingress</td><td>Forwarding disabled, firewall drop, or no matching route.</td></tr>
+        <tr><td>Gateway egress</td><td>Destination link, destination firewall, service binding, or reverse route.</td></tr>
+        <tr><td>Destination request and response both visible</td><td>Application protocol, DNS, TLS, proxy, or client behavior rather than basic packet delivery.</td></tr>
+      </tbody></table></div>
+      <div class="checklist"><label><input type="checkbox" data-progress="capture-allowed"> Allowed flow observed at all four points</label><label><input type="checkbox" data-progress="capture-blocked"> Blocked flow located at gateway ingress</label><label><input type="checkbox" data-progress="capture-counter"> nftables drop counter change recorded</label></div>
+    </section>
+
+    <section id="fault-lab" class="section-card">
+      <div class="section-head"><div class="section-num">11</div><div><h2>Failure-injection troubleshooting lab</h2><p class="lead">Break one component at a time, predict the symptom, prove the cause, and restore the topology.</p></div></div>
+      <div class="callout danger"><strong>Lab rule:</strong> Inject only one fault at a time. Run the matching restore command before selecting another fault, or symptoms can overlap and mislead the diagnosis.</div>
+      <div class="fault-grid" role="group" aria-label="Select a fault">
+        <button class="fault-btn active" type="button" data-fault="link">Link down</button>
+        <button class="fault-btn" type="button" data-fault="route">Missing route</button>
+        <button class="fault-btn" type="button" data-fault="forward">Forwarding off</button>
+        <button class="fault-btn" type="button" data-fault="firewall">Injected firewall drop</button>
+        <button class="fault-btn" type="button" data-fault="service">Service stopped</button>
+      </div>
+      <div class="result" id="faultResult" aria-live="polite"></div>
+      <details open><summary>Fault command and safe restore</summary><div id="faultCommands"></div></details>
+      <h3>Correct nftables packet tracing</h3>
+      <p><code>nft monitor trace</code> displays only packets whose nftables trace flag has been enabled. The temporary chain below marks one blocked flow before the main firewall chain evaluates it.</p>
+      <div class="codebox"><div class="codebar"><span>Temporary nftrace chain</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Create a temporary earlier-priority trace chain
+sudo ip netns exec gw nft delete table inet trace_lab 2>/dev/null || true
+sudo ip netns exec gw nft 'add table inet trace_lab'
+sudo ip netns exec gw nft   'add chain inet trace_lab forward_trace { type filter hook forward priority -20; policy accept; }'
+sudo ip netns exec gw nft   'add rule inet trace_lab forward_trace ip saddr 10.10.10.2 ip daddr 10.10.40.2 meta nftrace set 1'
+
+# Terminal A: watch rule-by-rule evaluation
+sudo ip netns exec gw nft monitor trace
+
+# Terminal B: generate the blocked flow
+sudo ip netns exec info   curl --max-time 3 -I http://10.10.40.2:8080/
+
+# Always remove the temporary tracing table
+sudo ip netns exec gw nft delete table inet trace_lab</code></pre></div>
+      <div class="checklist"><label><input type="checkbox" data-progress="fault-predict"> Predicted each symptom before testing</label><label><input type="checkbox" data-progress="fault-prove"> Proved each root cause with evidence</label><label><input type="checkbox" data-progress="fault-restore"> Restored and re-tested after every fault</label></div>
+    </section>
+
+    <section id="capstone" class="section-card">
+      <div class="section-head"><div class="section-num">12</div><div><h2>Capstone: design and defend a zonal vehicle network</h2><p class="lead">Build independently from requirements, then submit technical evidence rather than only screenshots of successful pings.</p></div></div>
+      <div class="grid-2">
+        <div class="mini-card"><h3>Required zones</h3><ul><li>Infotainment — <code>10.20.10.0/24</code></li><li>Telematics — <code>10.20.20.0/24</code></li><li>ADAS — <code>10.20.30.0/24</code></li><li>Powertrain — <code>10.20.40.0/24</code></li><li>Diagnostics — <code>10.20.50.0/24</code></li></ul></div>
+        <div class="mini-card"><h3>Policy requirements</h3><ul><li>Diagnostics reaches only approved diagnostic service ports.</li><li>Infotainment cannot initiate traffic to ADAS or Powertrain.</li><li>ADAS reaches exactly one approved Powertrain TCP service.</li><li>Powertrain cannot initiate new inter-zone sessions.</li><li>Invalid traffic drops; established return traffic works.</li><li>Denied traffic has counters; selected denials are rate-limited and logged.</li></ul></div>
+      </div>
+      <h3>Evidence package</h3>
+      <div class="checklist grid-2">
+        <label><input type="checkbox" data-progress="cap-ns"> Namespace list and topology diagram</label>
+        <label><input type="checkbox" data-progress="cap-ip"> Address and route tables for every zone</label>
+        <label><input type="checkbox" data-progress="cap-fw"> Complete nftables ruleset with comments</label>
+        <label><input type="checkbox" data-progress="cap-allow"> Evidence for every approved flow</label>
+        <label><input type="checkbox" data-progress="cap-deny"> Evidence for every prohibited flow</label>
+        <label><input type="checkbox" data-progress="cap-counter"> Before/after firewall counters</label>
+        <label><input type="checkbox" data-progress="cap-pcap"> At least one multi-point packet capture</label>
+        <label><input type="checkbox" data-progress="cap-clean"> Cleanup and zero-leftover verification</label>
+      </div>
+      <h3>Assessment rubric</h3>
+      <div class="table-wrap"><table class="rubric"><thead><tr><th>Criterion</th><th>Points</th><th>Full-credit standard</th></tr></thead><tbody>
+        <tr><td>Topology and addressing</td><td>20</td><td>Five isolated stacks, correct prefixes, stable interface naming, and working return routes.</td></tr>
+        <tr><td>Routing and forwarding</td><td>15</td><td>Only the gateway forwards; routes are minimal and explainable.</td></tr>
+        <tr><td>Least-privilege firewall</td><td>30</td><td>Default deny, state handling, narrow service rules, counters, and controlled logging.</td></tr>
+        <tr><td>Verification quality</td><td>20</td><td>Positive and negative tests plus packet-path and counter evidence.</td></tr>
+        <tr><td>Troubleshooting and cleanup</td><td>15</td><td>One injected fault diagnosed systematically; all lab resources removed safely.</td></tr>
+      </tbody></table></div>
+      <div class="callout success"><strong>Pass recommendation:</strong> 75/100 overall, with no critical error that permits unrestricted Infotainment-to-Powertrain access.</div>
+    </section>
+
+    <section id="troubleshooting" class="section-card">
+      <div class="section-head"><div class="section-num">13</div><div><h2>Troubleshooting decision guide</h2><p class="lead">Start with link state, then addressing, routing, forwarding, and firewall policy.</p></div></div>
+      <details><summary>Namespace exists, but only loopback is visible</summary><div><p>The veth peer was not moved into the namespace, or the wrong namespace was inspected.</p><div class="codebox"><div class="codebar"><span>Check ownership</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Host/default namespace
+ip -d link show
+
+# Concrete course examples
+sudo ip -n info -d link show z-info
+sudo ip -n gw   -d link show g-info</code></pre></div></div></details>
+      <details><summary>Ping says “Network is unreachable”</summary><div><p>The source has no matching connected route or default route. Inspect <code>ip route</code> inside the source namespace.</p></div></details>
+      <details><summary>Ping works to gateway, but not to another zone</summary><div><p>Check <code>net.ipv4.ip_forward</code> inside <code>gw</code>, destination return route, and the nftables forward chain.</p><div class="codebox"><div class="codebar"><span>Gateway checks</span><button class="copy-btn" data-copy>Copy</button></div><pre><code>sudo ip netns exec gw sysctl net.ipv4.ip_forward
+sudo ip -n gw route
+sudo ip netns exec gw nft list ruleset</code></pre></div></div></details>
+      <details><summary>curl reports “Connection refused”</summary><div><p>Routing reached the destination, but no process is listening at that IP/port, or the service bound only to another address. Check <code>ss -lntp</code> in the destination namespace.</p></div></details>
+      <details><summary>curl times out after firewall rules are applied</summary><div><p>This usually means the packet was dropped. Confirm interface names, compare counters before and after the test, and capture on ingress and egress gateway interfaces. For rule-by-rule tracing, first enable <code>meta nftrace set 1</code> for the selected flow as shown in the failure-injection lab; running <code>nft monitor trace</code> alone is insufficient.</p></div></details>
+      <details><summary>Host nftables looks empty, but traffic is blocked</summary><div><p>The active rules are inside <code>gw</code>. Run <code>sudo ip netns exec gw nft list ruleset</code>.</p></div></details>
+      <details><summary>nft command fails with “Operation not permitted”</summary><div><p>The command lacks the required privileges, or the environment is an unprivileged container. Use a full VM with root/sudo and kernel namespace support.</p></div></details>
+    </section>
+
+    <section id="assessment" class="section-card">
+      <div class="section-head"><div class="section-num">14</div><div><h2>Knowledge check</h2><p class="lead">Answer all questions, then score the assessment.</p></div></div>
+      <form id="quizForm">
+        <div class="quiz-q" data-answer="b"><fieldset><legend>1. What is isolated by a network namespace?</legend><label><input type="radio" name="q1" value="a"> The physical CPU</label><label><input type="radio" name="q1" value="b"> Interfaces, routes, sockets, and firewall state</label><label><input type="radio" name="q1" value="c"> The entire filesystem automatically</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="c"><fieldset><legend>2. A veth pair is best described as:</legend><label><input type="radio" name="q2" value="a"> A routing table</label><label><input type="radio" name="q2" value="b"> A packet filter</label><label><input type="radio" name="q2" value="c"> Two connected virtual Ethernet endpoints</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="a"><fieldset><legend>3. Two namespaces on the same bridge and subnet normally need:</legend><label><input type="radio" name="q3" value="a"> No IP router between them</label><label><input type="radio" name="q3" value="b"> NAT</label><label><input type="radio" name="q3" value="c"> A default route through the internet</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="b"><fieldset><legend>4. Inter-zone packets traverse which nftables hook in the gateway?</legend><label><input type="radio" name="q4" value="a"> input</label><label><input type="radio" name="q4" value="b"> forward</label><label><input type="radio" name="q4" value="c"> output</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="c"><fieldset><legend>5. Why accept established,related traffic?</legend><label><input type="radio" name="q5" value="a"> To allow every new connection</label><label><input type="radio" name="q5" value="b"> To disable connection tracking</label><label><input type="radio" name="q5" value="c"> To permit return traffic for approved connections</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="a"><fieldset><legend>6. Where must IPv4 forwarding be enabled in this lab?</legend><label><input type="radio" name="q6" value="a"> Inside the gateway namespace</label><label><input type="radio" name="q6" value="b"> Only inside infotainment</label><label><input type="radio" name="q6" value="c"> Inside every endpoint namespace</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="b"><fieldset><legend>7. Which test best proves a default-deny rule is working?</legend><label><input type="radio" name="q7" value="a"> Only test allowed traffic</label><label><input type="radio" name="q7" value="b"> Test both approved and forbidden flows and inspect counters</label><label><input type="radio" name="q7" value="c"> Check that the namespace name exists</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="c"><fieldset><legend>8. What does this namespace model not prove?</legend><label><input type="radio" name="q8" value="a"> Whether a route exists</label><label><input type="radio" name="q8" value="b"> Whether a firewall path is allowed</label><label><input type="radio" name="q8" value="c"> Real ECU timing, safety, and production security assurance</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="b"><fieldset><legend>9. A packet is visible on gateway ingress but not gateway egress. What should be checked first?</legend><label><input type="radio" name="q9" value="a"> The browser theme</label><label><input type="radio" name="q9" value="b"> Forwarding, route lookup, and the forward-chain verdict</label><label><input type="radio" name="q9" value="c"> Only the destination application</label></fieldset><div class="quiz-feedback"></div></div>
+        <div class="quiz-q" data-answer="c"><fieldset><legend>10. Why might <code>nft monitor trace</code> show nothing?</legend><label><input type="radio" name="q10" value="a"> tcpdump must always be stopped first</label><label><input type="radio" name="q10" value="b"> The bridge FDB is empty</label><label><input type="radio" name="q10" value="c"> No matching packet was marked with <code>meta nftrace set 1</code></label></fieldset><div class="quiz-feedback"></div></div>
+        <button class="btn primary" type="submit">Score quiz</button>
+        <div class="result" id="quizResult" aria-live="polite" style="margin-top:12px">Not scored yet.</div>
+      </form>
+    </section>
+
+    <section id="validation" class="section-card">
+      <div class="section-head"><div class="section-num">15</div><div><h2>Validation and correctness notes</h2><p class="lead">What was checked, and what requires a real privileged VM to verify.</p></div></div>
+      <div class="grid-2">
+        <div class="mini-card"><h3>Document checks</h3><ul><li>HTML parsed successfully.</li><li>JavaScript syntax checked.</li><li>Interactive controls loaded in a headless Chromium browser.</li><li>Bridge/router/firewall mode switch, matrix cells, packet timeline, failure selector, tabs, quiz, theme, and download buttons exercised.</li><li>Internal navigation targets and duplicate IDs checked.</li><li>Reduced-motion and print behavior included.</li></ul></div>
+        <div class="mini-card"><h3>Technical checks</h3><ul><li>Namespace, veth, bridge, route, forwarding, nftables, rate-limited logging, packet capture, and temporary nftrace command order reviewed.</li><li>A lifecycle audit confirmed that namespaces are created before use, veth peers are moved from the namespace that currently owns them, and every later command uses the correct owner namespace.</li><li>The downloadable setup and cleanup scripts pass <code>bash -n</code>; the generated versions were downloaded through the browser and checked again.</li><li>Interface names stay within Linux’s 15-byte limit.</li><li>Examples use documentation address ranges where appropriate and isolated RFC1918 zone ranges for the routed lab.</li><li>Expected outputs identify values that vary by version or run.</li></ul></div>
+      </div>
+      <div class="callout warning"><strong>Execution limitation:</strong> Browser simulations are educational visualizations; they do not alter the host. Full command execution requires a privileged Linux VM. A restricted container cannot reliably create persistent named namespaces because mount and network capabilities may be blocked.</div>
+      <h3>Authoritative references</h3>
+      <ul>
+        <li><a href="https://man7.org/linux/man-pages/man7/network_namespaces.7.html" target="_blank" rel="noopener">network_namespaces(7) — Linux manual page</a></li>
+        <li><a href="https://man7.org/linux/man-pages/man8/ip-netns.8.html" target="_blank" rel="noopener">ip-netns(8) — Linux manual page</a></li>
+        <li><a href="https://man7.org/linux/man-pages/man4/veth.4.html" target="_blank" rel="noopener">veth(4) — Linux manual page</a></li>
+        <li><a href="https://man7.org/linux/man-pages/man8/ip-link.8.html" target="_blank" rel="noopener">ip-link(8) — Linux manual page</a></li>
+        <li><a href="https://man7.org/linux/man-pages/man8/bridge.8.html" target="_blank" rel="noopener">bridge(8) — Linux manual page</a></li>
+        <li><a href="https://www.netfilter.org/projects/nftables/manpage.html" target="_blank" rel="noopener">nftables official manual</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">Linux Network Namespaces · Interactive Automotive Zone Lab · Self-contained single HTML file</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, root = document) => root.querySelector(s);
+  const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+  const toast = $('#toast');
+  const notify = (text) => {
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(notify.timer);
+    notify.timer = setTimeout(() => toast.classList.remove('show'), 1800);
+  };
+
+  // Storage is optional because some locked-down browsers block localStorage for local files.
+  const store = (() => {
+    try {
+      const s = window.localStorage;
+      const testKey = '__netns_storage_test__';
+      s.setItem(testKey, '1'); s.removeItem(testKey);
+      return {
+        get: key => s.getItem(key),
+        set: (key, value) => s.setItem(key, value),
+        clearPrefix: prefix => Object.keys(s).filter(k => k.startsWith(prefix)).forEach(k => s.removeItem(k))
+      };
+    } catch {
+      return { get: () => null, set: () => {}, clearPrefix: () => {} };
+    }
+  })();
+
+  // Theme
+  const themeBtn = $('#themeBtn');
+  const savedTheme = store.get('netns-theme');
+  if (savedTheme === 'dark') document.documentElement.dataset.theme = 'dark';
+  const syncTheme = () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    themeBtn.textContent = dark ? '☀️ Light' : '🌙 Dark';
+    themeBtn.setAttribute('aria-pressed', String(dark));
+  };
+  syncTheme();
+  themeBtn.addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    if (dark) delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = 'dark';
+    store.set('netns-theme', dark ? 'light' : 'dark');
+    syncTheme();
+  });
+  $('#printBtn').addEventListener('click', () => window.print());
+
+  // Reading progress and active navigation
+  const progressBar = $('#progressBar');
+  const navLinks = $$('.sidebar a');
+  const sections = navLinks.map(a => $(a.getAttribute('href'))).filter(Boolean);
+  const updateScroll = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progressBar.style.width = `${max > 0 ? (scrollY / max) * 100 : 0}%`;
+    let current = sections[0]?.id;
+    sections.forEach(sec => { if (sec.getBoundingClientRect().top < 150) current = sec.id; });
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${current}`));
+  };
+  addEventListener('scroll', updateScroll, {passive:true});
+  updateScroll();
+
+  // Tabs
+  $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.setAttribute('aria-selected', 'false'));
+    $$('.tab-panel').forEach(p => p.hidden = true);
+    btn.setAttribute('aria-selected', 'true');
+    $(`#${btn.getAttribute('aria-controls')}`).hidden = false;
+  }));
+
+  // Copy buttons
+  $$('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+    const text = btn.closest('.codebox').querySelector('code').innerText;
+    try { await navigator.clipboard.writeText(text); notify('Copied to clipboard'); }
+    catch { notify('Clipboard blocked — select and copy manually'); }
+  }));
+
+  // veth animation
+  const packet = $('#vethPacket');
+  $('#sendVeth').addEventListener('click', () => {
+    packet.classList.remove('fly'); void packet.offsetWidth; packet.classList.add('fly');
+    $('#vethResult').innerHTML = '<strong>1.</strong> Namespace A emits an Ethernet frame through its endpoint. <strong>2.</strong> The peer endpoint receives it immediately. <strong>3.</strong> Namespace B processes the destination IP in its own stack.';
+  });
+  $('#resetVeth').addEventListener('click', () => { packet.classList.remove('fly'); $('#vethResult').textContent = 'Press “Send packet” to trace the frame through the peer link.'; });
+
+  // Bridge learning simulator
+  const fdb = new Map();
+  const renderFdb = () => {
+    $('#macTable').innerHTML = fdb.size ? [...fdb].map(([mac, port]) => `<div><code>${mac}</code> → ${port}</div>`).join('') : 'No entries yet.';
+  };
+  $$('.mac-send').forEach(btn => btn.addEventListener('click', () => {
+    const {src, port, dst} = btn.dataset;
+    fdb.set(src, port);
+    const out = fdb.get(dst);
+    $('#bridgeResult').innerHTML = out
+      ? `Bridge learns <code>${src}</code> on <code>${port}</code>, finds <code>${dst}</code> on <code>${out}</code>, and unicasts the frame only to that port.`
+      : `Bridge learns <code>${src}</code> on <code>${port}</code>. Destination <code>${dst}</code> is unknown, so the frame is flooded to the other forwarding ports.`;
+    renderFdb();
+  }));
+  $('#clearMac').addEventListener('click', () => { fdb.clear(); renderFdb(); $('#bridgeResult').textContent = 'The bridge table is empty. The first unknown destination will be flooded.'; });
+
+  // Routing simulator
+  const zoneData = {
+    info: {name:'Infotainment', subnet:'10.10.10.0/24', ip:'10.10.10.2', gw:'10.10.10.1', iface:'g-info'},
+    tcu: {name:'Telematics', subnet:'10.10.20.0/24', ip:'10.10.20.2', gw:'10.10.20.1', iface:'g-tcu'},
+    adas: {name:'ADAS', subnet:'10.10.30.0/24', ip:'10.10.30.2', gw:'10.10.30.1', iface:'g-adas'},
+    pt: {name:'Powertrain', subnet:'10.10.40.0/24', ip:'10.10.40.2', gw:'10.10.40.1', iface:'g-pt'}
+  };
+  const zoneForIp = ip => Object.values(zoneData).find(z => ip.startsWith(z.ip.split('.').slice(0,3).join('.') + '.'));
+  $('#routeBtn').addEventListener('click', () => {
+    const src = zoneData[$('#routeSource').value];
+    const destIp = $('#routeDest').value;
+    const dest = zoneForIp(destIp);
+    if (dest && dest.subnet === src.subnet) {
+      $('#routeResult').innerHTML = `<strong>Directly connected:</strong> ${src.name} uses ARP and sends the frame on its own zone link. The gateway is not needed.`;
+    } else if (dest) {
+      $('#routeResult').innerHTML = `<strong>Inter-zone route:</strong> ${src.name} sends the packet to default gateway <code>${src.gw}</code>. The <code>gw</code> namespace receives it, matches connected route <code>${dest.subnet}</code>, and proposes egress interface <code>${dest.iface}</code>. nftables must still permit the forward.`;
+    } else {
+      $('#routeResult').innerHTML = `<strong>No route in this lab:</strong> ${src.name} sends to its default gateway, but <code>gw</code> has no default route for <code>${destIp}</code>. The packet cannot leave unless an upstream route/NAT design is added.`;
+    }
+  });
+
+  // Bridge vs router vs firewall comparison
+  const comparisonModes = {
+    bridge: {
+      leftTitle:'ECU-A', leftMeta:'192.0.2.10/24 · MAC AA:AA', coreTitle:'Linux bridge',
+      coreText:'Learns the source MAC and looks up the destination MAC in its forwarding database.', key:'bridge fdb show',
+      inspect:'Read destination MAC.', decide:'Choose learned bridge port.', forward:'Transmit the Ethernet frame.',
+      result:'<strong>Bridge:</strong> endpoints are in one subnet and broadcast domain. IP forwarding is not required.'
+    },
+    router: {
+      leftTitle:'Infotainment', leftMeta:'10.10.10.2/24 · default via 10.10.10.1', coreTitle:'Gateway router',
+      coreText:'Reads the destination IP, performs longest-prefix route lookup, and selects an egress interface.', key:'ip route get 10.10.40.2',
+      inspect:'Read destination IP.', decide:'Longest-prefix route lookup.', forward:'Decrement TTL and emit a new frame.',
+      result:'<strong>Router:</strong> zones use separate subnets. The endpoint needs a gateway route, and <code>net.ipv4.ip_forward=1</code> must be enabled inside <code>gw</code>.'
+    },
+    firewall: {
+      leftTitle:'Lower-trust zone', leftMeta:'new TCP flow · iif g-info', coreTitle:'nftables forward chain',
+      coreText:'Evaluates connection state and ordered rules after routing has proposed an output interface.', key:'nft list chain inet zonefw forward',
+      inspect:'Read state, interfaces, IPs, ports.', decide:'First matching rule or chain policy.', forward:'Accept, reject, or drop.',
+      result:'<strong>Firewall:</strong> routing can be valid while policy still blocks the packet. A default-drop chain permits only explicitly approved services and return traffic.'
+    }
+  };
+  const renderComparison = mode => {
+    const d = comparisonModes[mode];
+    $('#compareLeftTitle').textContent = d.leftTitle;
+    $('#compareLeftMeta').textContent = d.leftMeta;
+    $('#compareCoreTitle').textContent = d.coreTitle;
+    $('#compareCoreText').textContent = d.coreText;
+    $('#compareKey').textContent = d.key;
+    $('#compareInspect').textContent = d.inspect;
+    $('#compareDecide').textContent = d.decide;
+    $('#compareForward').textContent = d.forward;
+    $('#compareResult').innerHTML = d.result;
+    $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.netmode === mode));
+  };
+  $$('.mode-btn').forEach(btn => btn.addEventListener('click', () => renderComparison(btn.dataset.netmode)));
+
+  // Firewall and policy-matrix simulator
+  const runFirewallSimulation = () => {
+    const srcKey = $('#fwSrc').value, dstKey = $('#fwDst').value, proto = $('#fwProto').value;
+    const src = zoneData[srcKey], dst = zoneData[dstKey];
+    const box = $('#fwResult');
+    box.classList.remove('allow', 'block');
+    if (srcKey === dstKey) {
+      box.classList.add('allow');
+      box.innerHTML = `<strong>LOCAL-ZONE CASE:</strong> ${src.name} → ${dst.name} does not traverse <code>gw</code> in this simplified topology, so the gateway forward chain is not evaluated.`;
+      return;
+    }
+    if (proto === 'invalid') {
+      box.classList.add('block');
+      box.innerHTML = `<strong>BLOCKED:</strong> path <code>${src.iface} → ${dst.iface}</code>. First match: <code>ct state invalid counter drop</code>. No service rule is considered.`;
+      return;
+    }
+    if (proto === 'established') {
+      box.classList.add('allow');
+      box.innerHTML = `<strong>ALLOWED ASSUMPTION:</strong> path <code>${src.iface} → ${dst.iface}</code>. The packet is treated as part of a connection that was already approved, so <code>ct state established,related counter accept</code> matches. This option does not authorize a new connection.`;
+      return;
+    }
+    const allowed = proto === 'tcp8080' && ((srcKey === 'tcu' && dstKey === 'info') || (srcKey === 'adas' && dstKey === 'pt'));
+    if (allowed) {
+      box.classList.add('allow');
+      box.innerHTML = `<strong>ALLOWED:</strong> route proposes <code>${src.iface} → ${dst.iface}</code>. The explicit TCP 8080 rule matches; replies are later accepted as established traffic.`;
+    } else {
+      box.classList.add('block');
+      const service = proto === 'tcp8080' ? 'TCP 8080' : proto === 'tcp22' ? 'SSH TCP 22' : 'ICMP echo';
+      box.innerHTML = `<strong>BLOCKED:</strong> ${src.name} → ${dst.name} (${service}) enters on <code>${src.iface}</code> and would leave on <code>${dst.iface}</code>, but no explicit new-flow rule matches. The attempt is rate-limited for logging and then dropped.`;
+    }
+  };
+  $('#fwTest').addEventListener('click', runFirewallSimulation);
+  $$('.matrix-button').forEach(btn => btn.addEventListener('click', () => {
+    $('#fwSrc').value = btn.dataset.matrixSrc;
+    $('#fwDst').value = btn.dataset.matrixDst;
+    $('#fwProto').value = btn.dataset.matrixProto;
+    runFirewallSimulation();
+    $('#fwResult').scrollIntoView({behavior:'smooth', block:'center'});
+  }));
+
+  // Packet observation animation
+  const setCaptureScenario = scenario => {
+    const hops = $$('.capture-hop');
+    hops.forEach(h => h.classList.remove('seen', 'blocked'));
+    if (scenario === 'allowed') {
+      hops.forEach((h, i) => setTimeout(() => h.classList.add('seen'), i * 180));
+      $('#captureResult').innerHTML = '<strong>Allowed flow:</strong> the request appears at source, gateway ingress, gateway egress, and destination. The response follows the reverse path as established traffic.';
+    } else {
+      hops[0].classList.add('seen');
+      setTimeout(() => hops[1].classList.add('seen'), 180);
+      setTimeout(() => hops[2].classList.add('blocked'), 360);
+      setTimeout(() => hops[3].classList.add('blocked'), 540);
+      $('#captureResult').innerHTML = '<strong>Blocked flow:</strong> the request reaches gateway ingress, but the forward chain drops it before destination-zone egress. No request should be visible inside Powertrain.';
+    }
+  };
+  $$('.capture-scenario').forEach(btn => btn.addEventListener('click', () => setCaptureScenario(btn.dataset.capture)));
+  $('#resetCapture').addEventListener('click', () => {
+    $$('.capture-hop').forEach(h => h.classList.remove('seen', 'blocked'));
+    $('#captureResult').textContent = 'Choose an allowed or blocked scenario.';
+  });
+
+  // Failure injection selector
+  const faultData = {
+    link: {
+      summary:'<strong>Link-down fault:</strong> Infotainment cannot reach even its gateway. <code>ip -br link</code> shows <code>z-info</code> DOWN. Firewall counters may not change because the packet never reaches the gateway.',
+      commands:`<div class="codebox"><div class="codebar"><span>Inject and restore</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Inject
+sudo ip -n info link set z-info down
+sudo ip netns exec info ping -c 1 10.10.10.1
+sudo ip -n info -br link
+
+# Restore
+sudo ip -n info link set z-info up</code></pre></div>`
+    },
+    route: {
+      summary:'<strong>Missing-route fault:</strong> ADAS reports “Network is unreachable” for other zones. Its local subnet remains reachable, but no default route exists.',
+      commands:`<div class="codebox"><div class="codebar"><span>Inject and restore</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Inject
+sudo ip -n adas route del default
+sudo ip netns exec adas ip route
+sudo ip netns exec adas ping -c 1 10.10.40.2
+
+# Restore
+sudo ip -n adas route add default via 10.10.30.1</code></pre></div>`
+    },
+    forward: {
+      summary:'<strong>Forwarding-off fault:</strong> every inter-zone route fails although gateway addresses remain reachable. Check the sysctl inside <code>gw</code>, not only on the host.',
+      commands:`<div class="codebox"><div class="codebar"><span>Inject and restore</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Inject
+sudo ip netns exec gw sysctl -w net.ipv4.ip_forward=0
+sudo ip netns exec gw sysctl net.ipv4.ip_forward
+
+# Restore
+sudo ip netns exec gw sysctl -w net.ipv4.ip_forward=1</code></pre></div>`
+    },
+    firewall: {
+      summary:'<strong>Injected firewall fault:</strong> the previously allowed TCU-to-Infotainment service now stops at gateway ingress. A temporary earlier-priority chain deliberately drops that exact flow.',
+      commands:`<div class="codebox"><div class="codebar"><span>Inject and restore</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Inject a temporary earlier-priority drop chain
+sudo ip netns exec gw nft delete table inet faultlab 2>/dev/null || true
+sudo ip netns exec gw nft 'add table inet faultlab'
+sudo ip netns exec gw nft \
+  'add chain inet faultlab preforward { type filter hook forward priority -10; policy accept; }'
+sudo ip netns exec gw nft \
+  'add rule inet faultlab preforward iifname "g-tcu" oifname "g-info" tcp dport 8080 counter drop'
+
+# Prove
+sudo ip netns exec tcu curl --max-time 3 -I http://10.10.10.2:8080/
+sudo ip netns exec gw nft list table inet faultlab
+
+# Restore
+sudo ip netns exec gw nft delete table inet faultlab</code></pre></div>`
+    },
+    service: {
+      summary:'<strong>Service-down fault:</strong> routing and firewall permit the flow, but TCP returns “Connection refused” or fails because no process listens on 10.10.40.2:8080. Inspect <code>ss -lntp</code> inside Powertrain.',
+      commands:`<div class="codebox"><div class="codebar"><span>Inject and restore</span><button class="copy-btn" data-copy>Copy</button></div><pre><code># Inject
+sudo ip netns exec pt pkill -f 'python3 -m http.server 8080' || true
+sudo ip netns exec pt ss -lntp
+
+# Restore
+sudo ip netns exec pt bash -c \
+  'nohup python3 -m http.server 8080 --bind 10.10.40.2 >/tmp/pt-http.log 2>&1 &amp;'
+sudo ip netns exec pt ss -lntp</code></pre></div>`
+    }
+  };
+  const bindDynamicCopy = root => $$('[data-copy]', root).forEach(btn => btn.addEventListener('click', async () => {
+    const text = btn.closest('.codebox').querySelector('code').innerText;
+    try { await navigator.clipboard.writeText(text); notify('Copied to clipboard'); }
+    catch { notify('Clipboard blocked — select and copy manually'); }
+  }));
+  const renderFault = key => {
+    const d = faultData[key];
+    $('#faultResult').innerHTML = d.summary;
+    $('#faultCommands').innerHTML = d.commands;
+    bindDynamicCopy($('#faultCommands'));
+    $$('.fault-btn').forEach(b => b.classList.toggle('active', b.dataset.fault === key));
+  };
+  $$('.fault-btn').forEach(btn => btn.addEventListener('click', () => renderFault(btn.dataset.fault)));
+  renderFault('link');
+
+  // Checklist persistence
+  const checks = $$('[data-progress]');
+  checks.forEach(c => {
+    c.checked = store.get(`netns-${c.dataset.progress}`) === '1';
+    c.addEventListener('change', () => store.set(`netns-${c.dataset.progress}`, c.checked ? '1' : '0')); 
+  });
+  $('#resetBtn').addEventListener('click', () => {
+    if (!confirm('Reset saved checklist, quiz, and theme preferences for this guide?')) return;
+    store.clearPrefix('netns-');
+    checks.forEach(c => c.checked = false);
+    $('#quizForm').reset();
+    $$('.quiz-feedback').forEach(x => x.textContent = '');
+    $('#quizResult').textContent = 'Not scored yet.';
+    delete document.documentElement.dataset.theme; syncTheme(); notify('Progress reset');
+  });
+
+  // Quiz
+  $('#quizForm').addEventListener('submit', e => {
+    e.preventDefault(); let score = 0;
+    $$('.quiz-q').forEach((q, i) => {
+      const chosen = q.querySelector('input:checked');
+      const correct = chosen?.value === q.dataset.answer;
+      if (correct) score++;
+      q.querySelector('.quiz-feedback').textContent = correct ? '✓ Correct' : `✗ Review this topic (correct option: ${q.dataset.answer.toUpperCase()})`;
+      q.querySelector('.quiz-feedback').style.color = correct ? 'var(--success)' : 'var(--danger)';
+    });
+    const total = $$('.quiz-q').length;
+    const pct = Math.round(score / total * 100);
+    $('#quizResult').innerHTML = `<strong>${score}/${total} (${pct}%)</strong> — ${pct >= 75 ? 'Ready for the capstone lab.' : 'Review routing, forwarding, packet observation, and firewall sections, then retry.'}`;
+    store.set('netns-quiz-score', String(score));
+  });
+
+  // Script downloads
+  const setupScript = `#!/usr/bin/env bash
+set -euo pipefail
+
+cleanup() {
+  for ns in info tcu adas pt gw; do
+    for pid in $(ip netns pids "$ns" 2>/dev/null); do kill "$pid" 2>/dev/null || true; done
+  done
+  for ns in info tcu adas pt gw; do ip netns del "$ns" 2>/dev/null || true; done
+  for dev in z-info z-tcu z-adas z-pt g-info g-tcu g-adas g-pt; do ip link del "$dev" 2>/dev/null || true; done
+}
+trap 'rc=$?; echo "Setup failed; removing partial topology." >&2; cleanup; exit $rc' ERR
+
+if [[ $EUID -ne 0 ]]; then echo "Run with sudo: sudo bash $0" >&2; exit 1; fi
+for cmd in ip bridge ss nft ping python3 curl tcpdump sysctl pkill; do command -v "$cmd" >/dev/null || { echo "Missing command: $cmd" >&2; exit 1; }; done
+cleanup
+for ns in info tcu adas pt gw; do ip netns add "$ns"; ip -n "$ns" link set lo up; done
+ip link add z-info type veth peer name g-info
+ip link add z-tcu  type veth peer name g-tcu
+ip link add z-adas type veth peer name g-adas
+ip link add z-pt   type veth peer name g-pt
+ip link set z-info netns info; ip link set g-info netns gw
+ip link set z-tcu  netns tcu;  ip link set g-tcu  netns gw
+ip link set z-adas netns adas; ip link set g-adas netns gw
+ip link set z-pt   netns pt;   ip link set g-pt   netns gw
+ip -n info addr add 10.10.10.2/24 dev z-info; ip -n info link set z-info up; ip -n info route add default via 10.10.10.1
+ip -n tcu  addr add 10.10.20.2/24 dev z-tcu;  ip -n tcu  link set z-tcu up;  ip -n tcu  route add default via 10.10.20.1
+ip -n adas addr add 10.10.30.2/24 dev z-adas; ip -n adas link set z-adas up; ip -n adas route add default via 10.10.30.1
+ip -n pt   addr add 10.10.40.2/24 dev z-pt;   ip -n pt   link set z-pt up;   ip -n pt   route add default via 10.10.40.1
+ip -n gw addr add 10.10.10.1/24 dev g-info; ip -n gw link set g-info up
+ip -n gw addr add 10.10.20.1/24 dev g-tcu;  ip -n gw link set g-tcu up
+ip -n gw addr add 10.10.30.1/24 dev g-adas; ip -n gw link set g-adas up
+ip -n gw addr add 10.10.40.1/24 dev g-pt;   ip -n gw link set g-pt up
+ip netns exec gw sysctl -w net.ipv4.ip_forward=1
+ip netns exec gw nft -f - <<'EOF'
+flush ruleset
+table inet zonefw {
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+    ct state invalid counter drop
+    ct state established,related counter accept
+    iifname "g-tcu" oifname "g-info" tcp dport 8080 counter accept
+    iifname "g-adas" oifname "g-pt" tcp dport 8080 counter accept
+    limit rate 5/second burst 10 packets counter log prefix "ZONE_DROP " flags all
+    counter drop
+  }
+}
+EOF
+ip netns exec info bash -c 'nohup python3 -m http.server 8080 --bind 10.10.10.2 >/tmp/info-http.log 2>&1 &'
+ip netns exec pt bash -c 'nohup python3 -m http.server 8080 --bind 10.10.40.2 >/tmp/pt-http.log 2>&1 &'
+ip netns exec gw nft list chain inet zonefw forward >/dev/null
+ip netns exec info ss -lnt 'sport = :8080' | grep -q ':8080'
+ip netns exec pt   ss -lnt 'sport = :8080' | grep -q ':8080'
+echo "Topology ready. Test allowed: ip netns exec tcu curl --max-time 3 -I http://10.10.10.2:8080/"
+echo "Test blocked: ip netns exec info curl --max-time 3 -I http://10.10.40.2:8080/"
+`;
+  const cleanupScript = `#!/usr/bin/env bash
+set -u
+if [[ $EUID -ne 0 ]]; then echo "Run with sudo: sudo bash $0" >&2; exit 1; fi
+for ns in demo ns-a ns-b ecu-a ecu-b ecu-c ecu-d info tcu adas pt gw; do
+  for pid in $(ip netns pids "$ns" 2>/dev/null); do kill "$pid" 2>/dev/null || true; done
+done
+for ns in demo ns-a ns-b ecu-a ecu-b ecu-c ecu-d info tcu adas pt gw; do ip netns del "$ns" 2>/dev/null || true; done
+for dev in br-lab veth-a veth-b a0 b0 c-host d-host c0 d0 z-info z-tcu z-adas z-pt g-info g-tcu g-adas g-pt; do
+  ip link del "$dev" 2>/dev/null || true
+done
+echo "Course topology removed."
+`;
+  const download = (name, text) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], {type:'text/x-shellscript'}));
+    a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 500); notify(`${name} generated`);
+  };
+  $('#downloadSetup').addEventListener('click', () => download('setup-zone-lab.sh', setupScript));
+  $('#downloadCleanup').addEventListener('click', () => download('cleanup-zone-lab.sh', cleanupScript));
+
+  // Capture runtime errors in a visible, non-intrusive way for validation.
+  addEventListener('error', e => console.error('Interactive guide error:', e.message));
+})();
+</script>
+</body>
+</html>

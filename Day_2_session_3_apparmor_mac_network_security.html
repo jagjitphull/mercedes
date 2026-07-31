@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="Animated interactive trainee reference for AppArmor MAC, profile development, audit-log analysis, daemon confinement, systemd hardening, nftables defense-in-depth, troubleshooting, and capstone labs." name="description"/>
+<title>Session 3 — AppArmor and MAC for Network Security</title>
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#ffffff;--surface2:#eef3f9;--text:#182230;--muted:#526173;
+  --primary:#4b4ded;--primary2:#7778ff;--accent:#e65b2f;--success:#16875d;--danger:#c9363e;
+  --warning:#9a6500;--border:#d9e1ec;--shadow:0 12px 30px rgba(28,42,66,.10);
+  --code:#101722;--codeText:#e7eef9;--focus:#ffbf47;--radius:18px;
+}
+[data-theme="dark"]{
+  --bg:#0e1420;--surface:#151e2d;--surface2:#1c2839;--text:#eff5ff;--muted:#afbdd0;
+  --primary:#9294ff;--primary2:#b4b5ff;--accent:#ff8b66;--success:#54d8a5;--danger:#ff7d84;
+  --warning:#ffd274;--border:#314057;--shadow:0 15px 35px rgba(0,0,0,.28);--code:#070b12;--codeText:#eef4ff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6}
+a{color:var(--primary)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.skip{position:absolute;left:-999px;top:0;background:var(--focus);color:#111;padding:.7rem 1rem;z-index:999}
+.skip:focus{left:1rem;top:1rem}
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topinner{max-width:1280px;margin:auto;padding:.7rem 1rem;display:flex;align-items:center;gap:.8rem}
+.brand{display:flex;align-items:center;gap:.65rem;font-weight:800;color:var(--text);text-decoration:none;white-space:nowrap}
+.brandmark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:grid;place-items:center;color:white;box-shadow:var(--shadow)}
+.progress{height:5px;background:var(--surface2)}
+.progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .15s linear}
+.navlinks{display:flex;gap:.25rem;overflow:auto;flex:1;scrollbar-width:thin}
+.navlinks a{padding:.45rem .7rem;border-radius:9px;color:var(--muted);text-decoration:none;font-size:.9rem;white-space:nowrap}
+.navlinks a:hover,.navlinks a:focus{background:var(--surface2);color:var(--text)}
+.iconbtn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:.45rem .7rem}
+.hero{max-width:1280px;margin:0 auto;padding:4.5rem 1.2rem 2rem;display:grid;grid-template-columns:1.08fr .92fr;gap:2rem;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem .7rem;border-radius:999px;background:color-mix(in srgb,var(--primary) 12%,var(--surface));color:var(--primary);font-weight:750;font-size:.85rem}
+h1{font-size:clamp(2.2rem,5vw,4.6rem);line-height:1.04;margin:.8rem 0 1rem;letter-spacing:-.045em}
+.lead{font-size:clamp(1.05rem,2vw,1.32rem);color:var(--muted);max-width:65ch}
+.heroActions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.4rem}
+.btn{border:0;border-radius:11px;padding:.75rem 1rem;font-weight:760;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem}
+.btn.primary{background:var(--primary);color:#fff}.btn.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.heroCard{background:linear-gradient(145deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:28px;padding:1rem;box-shadow:var(--shadow);overflow:hidden}
+.heroCard svg{width:100%;height:auto;display:block}
+.packet{animation:travel 4s linear infinite}.pulse{animation:pulse 2s ease-in-out infinite;transform-origin:center}
+@keyframes travel{0%{transform:translateX(-35px);opacity:0}12%{opacity:1}80%{opacity:1}100%{transform:translateX(390px);opacity:0}}
+@keyframes pulse{50%{transform:scale(1.08)}}
+main{max-width:1280px;margin:auto;padding:1rem 1.2rem 5rem}
+section{scroll-margin-top:85px;margin-top:3.5rem}
+.sectionHead{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;color:var(--primary);font-weight:850}
+h2{font-size:clamp(1.65rem,3vw,2.65rem);line-height:1.12;margin:.25rem 0}
+h3{font-size:1.22rem;margin:.3rem 0 .7rem}
+.grid{display:grid;gap:1rem}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.15rem;box-shadow:0 5px 15px rgba(28,42,66,.04)}
+.card p:last-child{margin-bottom:0}.muted{color:var(--muted)}
+.callout{border-left:5px solid var(--primary);background:color-mix(in srgb,var(--primary) 8%,var(--surface));padding:1rem 1.1rem;border-radius:0 14px 14px 0}
+.callout.warning{border-color:var(--warning);background:color-mix(in srgb,var(--warning) 10%,var(--surface))}
+.callout.danger{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
+.callout.success{border-color:var(--success);background:color-mix(in srgb,var(--success) 8%,var(--surface))}
+.badge{display:inline-block;padding:.18rem .5rem;border-radius:999px;font-size:.75rem;font-weight:800;background:var(--surface2);border:1px solid var(--border)}
+.compare{overflow:auto}.compare table{border-collapse:collapse;width:100%;min-width:760px;background:var(--surface);border-radius:14px;overflow:hidden}.compare th,.compare td{text-align:left;padding:.8rem;border-bottom:1px solid var(--border);vertical-align:top}.compare th{background:var(--surface2)}
+.diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;overflow:auto}.diagram svg{display:block;width:100%;min-width:700px;height:auto}
+.controls{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin:.8rem 0}.toggle{display:flex;align-items:center;gap:.45rem;padding:.5rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px}.toggle input{accent-color:var(--primary);width:1.1rem;height:1.1rem}
+.sim{background:linear-gradient(145deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:22px;padding:1.2rem;box-shadow:var(--shadow)}
+.result{min-height:76px;border:1px dashed var(--border);border-radius:13px;padding:.8rem;background:var(--surface);display:flex;align-items:center;gap:.8rem}.result .orb{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;flex:0 0 auto}.allow .orb{background:var(--success)}.deny .orb{background:var(--danger)}
+.profileViewer{display:grid;grid-template-columns:1.15fr .85fr;gap:1rem}.codepanel{position:relative;background:var(--code);color:var(--codeText);border-radius:15px;overflow:auto}.codepanel pre{margin:0;padding:1rem;white-space:pre;tab-size:2;font-family:"SFMono-Regular",Consolas,monospace;font-size:.9rem}.codeLine{display:block;padding:0 .35rem;margin:0 -.35rem;border-radius:5px}.codeLine:hover,.codeLine.active{background:rgba(146,148,255,.18)}
+.anatomy{min-height:230px}.anatomy strong{color:var(--primary)}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem}.tab{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:.5rem .75rem;border-radius:9px;font-weight:700}.tab[aria-selected="true"]{background:var(--primary);color:#fff;border-color:var(--primary)}.tabpanel[hidden]{display:none}
+.timeline{display:grid;gap:.55rem}.event{display:grid;grid-template-columns:90px 1fr;gap:.7rem;align-items:start}.event time{font-family:monospace;color:var(--muted)}
+.lab{border:1px solid var(--border);background:var(--surface);border-radius:20px;margin:1rem 0;overflow:hidden}.lab summary{cursor:pointer;padding:1rem 1.2rem;font-weight:830;background:var(--surface2);display:flex;gap:.7rem;align-items:center}.lab[open] summary{border-bottom:1px solid var(--border)}.labBody{padding:1.1rem}.labMeta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem}
+.cmd{position:relative;background:var(--code);color:var(--codeText);border-radius:13px;margin:.7rem 0;overflow:auto}.cmd pre{margin:0;padding:1rem 3.4rem 1rem 1rem;font-size:.86rem;white-space:pre-wrap;word-break:break-word}.copy{position:absolute;right:.45rem;top:.45rem;border:1px solid #3f4b5e;background:#1d2938;color:#eef4ff;border-radius:8px;padding:.32rem .55rem;font-size:.75rem}
+.expected{background:color-mix(in srgb,var(--success) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--success) 38%,var(--border));border-radius:12px;padding:.8rem;margin:.65rem 0}.expected b{color:var(--success)}
+.checklist{display:grid;gap:.5rem}.checkitem{display:flex;gap:.65rem;align-items:flex-start;padding:.6rem;border-radius:10px;background:var(--surface2)}.checkitem input{margin-top:.3rem;accent-color:var(--success)}
+.flow{display:grid;grid-template-columns:repeat(7,auto);gap:.45rem;align-items:center;justify-content:center;overflow:auto;padding:1rem}.node{padding:.65rem .8rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);text-align:center;min-width:112px}.arrow{color:var(--primary);font-weight:900}
+.matrix{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.layer{border:1px solid var(--border);border-radius:15px;padding:.9rem;background:var(--surface)}.layer.on{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--success) 65%,transparent)}.layer.off{opacity:.58;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--danger) 55%,transparent)}
+.quizQ{margin:1rem 0;padding:1rem;border:1px solid var(--border);border-radius:14px;background:var(--surface)}.quizQ label{display:block;padding:.35rem .4rem;border-radius:8px}.quizQ label:hover{background:var(--surface2)}.quizFeedback{margin-top:.5rem;font-weight:760}.score{font-size:1.3rem;font-weight:850}
+.footer{border-top:1px solid var(--border);padding:2rem 1.2rem;color:var(--muted);text-align:center}
+.toast{position:fixed;right:1rem;bottom:1rem;background:#111827;color:white;padding:.7rem 1rem;border-radius:10px;transform:translateY(120px);opacity:0;transition:.25s;z-index:90}.toast.show{transform:none;opacity:1}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .55s ease,transform .55s ease}.reveal.visible{opacity:1;transform:none}
+.small{font-size:.86rem}.mono{font-family:"SFMono-Regular",Consolas,monospace}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:3rem}.g2,.g3,.g4,.profileViewer,.matrix{grid-template-columns:1fr}.navlinks{display:none}.heroCard{max-width:680px}.sectionHead{display:block}.flow{justify-content:start}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+@media print{.topbar,.heroActions,.copy,.controls,.quizControls,.toast{display:none!important}body{background:white;color:black}.card,.lab,.sim,.diagram{box-shadow:none;break-inside:avoid}section{margin-top:1.5rem}.hero{padding:1rem;display:block}.heroCard{display:none}.lab{break-inside:avoid}.labBody{display:block!important}}
+
+/* Enhanced operational-learning components */
+.pathSwitch{display:flex;gap:.55rem;flex-wrap:wrap;margin:.9rem 0}.pathBtn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:.58rem .82rem;border-radius:10px;font-weight:780}.pathBtn[aria-pressed="true"]{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pathItem{transition:opacity .2s ease,filter .2s ease}.pathItem.dim{opacity:.32;filter:grayscale(.7)}
+.lifecycle{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));gap:.55rem;overflow:auto;padding:.7rem 0}.lifeStep{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:.8rem;min-height:132px;position:relative}.lifeStep::after{content:'→';position:absolute;right:-.46rem;top:45%;font-weight:900;color:var(--primary);z-index:2}.lifeStep:last-child::after{display:none}.lifeStep.active{box-shadow:inset 0 0 0 2px var(--primary);background:color-mix(in srgb,var(--primary) 8%,var(--surface))}.lifeStep button{all:unset;cursor:pointer;display:block;width:100%;height:100%}.lifeStep .num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;font-weight:900;margin-bottom:.5rem}
+.auditGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem}.auditRecord{font-family:"SFMono-Regular",Consolas,monospace;line-height:2.05}.auditField{display:inline-block;border:0;background:rgba(146,148,255,.16);color:var(--codeText);border-radius:6px;padding:.05rem .25rem;margin:.05rem;cursor:pointer}.auditField:hover,.auditField.active{outline:2px solid var(--focus);background:rgba(255,191,71,.22)}
+.statusList{display:grid;gap:.45rem}.miniStatus{display:flex;gap:.65rem;align-items:flex-start;padding:.65rem;border:1px solid var(--border);border-radius:11px;background:var(--surface2)}.statusIcon{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;flex:0 0 auto}.pass .statusIcon{background:var(--success)}.warn .statusIcon{background:var(--warning)}.fail .statusIcon{background:var(--danger)}
+.decisionWrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:1rem}.decisionControls{display:grid;gap:.55rem}.decisionControls label{display:flex;gap:.6rem;align-items:center;padding:.65rem;border:1px solid var(--border);border-radius:11px;background:var(--surface2)}.decisionResult{min-height:270px}.decisionStep{padding:.65rem .75rem;border-left:4px solid var(--border);margin:.45rem 0;background:var(--surface2);border-radius:0 10px 10px 0}.decisionStep.current{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 9%,var(--surface))}.decisionStep.stop{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--surface))}.decisionStep.done{border-color:var(--success);background:color-mix(in srgb,var(--success) 8%,var(--surface))}
+.respTable td:nth-child(2),.respTable td:nth-child(3){text-align:center;font-weight:850}.yes{color:var(--success)}.no{color:var(--danger)}.partial{color:var(--warning)}
+.ruleMap{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.ruleTarget{border:2px dashed var(--border);border-radius:16px;padding:1rem;text-align:center;transition:.2s}.ruleTarget.active{border-style:solid;border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow)}
+.worksheet{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1rem}.writeLine{border-bottom:1px solid var(--border);min-height:34px;margin:.35rem 0 1rem}.evidenceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.evidenceBox{border:1px dashed var(--border);border-radius:12px;min-height:115px;padding:.7rem}
+.capstonePhase{counter-increment:phase}.capstone{counter-reset:phase}.capstonePhase h3::before{content:counter(phase);display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--primary);color:white;margin-right:.5rem;font-size:.9rem}
+.commandLegend{display:flex;gap:.5rem;flex-wrap:wrap}.commandLegend span{padding:.25rem .55rem;border-radius:999px;border:1px solid var(--border);background:var(--surface2);font-size:.8rem}
+@media(max-width:900px){.auditGrid,.decisionWrap,.ruleMap,.evidenceGrid{grid-template-columns:1fr}.lifecycle{grid-template-columns:repeat(7,150px)}}
+@media print{.pathSwitch,.decisionControls{display:none!important}.pathItem.dim{opacity:1;filter:none}.auditGrid,.decisionWrap,.ruleMap,.evidenceGrid{grid-template-columns:1fr 1fr}.writeLine{min-height:55px}.evidenceBox{min-height:150px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+<div class="topinner">
+<a class="brand" href="#top"><span class="brandmark">AA</span><span>Session 3</span></a>
+<nav aria-label="Section navigation" class="navlinks">
+<a href="#dacmac">DAC vs MAC</a><a href="#lifecycle">Lifecycle</a><a href="#defense">Defense</a><a href="#troubleshooting">Troubleshoot</a><a href="#capstone">Capstone</a>
+</nav>
+<button class="iconbtn" id="printBtn" title="Print reference">🖨️</button>
+<button aria-label="Toggle dark mode" class="iconbtn" id="themeBtn" title="Toggle theme">🌙</button>
+</div>
+<div aria-hidden="true" class="progress"><span id="readProgress"></span></div>
+</header>
+<div id="top"></div>
+<section aria-labelledby="heroTitle" class="hero">
+<div>
+<span class="eyebrow">🛡️ Linux Mandatory Access Control</span>
+<h1 id="heroTitle">AppArmor and MAC for Network Security</h1>
+<p class="lead">Learn how AppArmor confines a network daemon, how complain and enforce modes differ, and why nftables plus AppArmor create stronger protection than either control alone.</p>
+<div class="heroActions">
+<a class="btn primary" href="#labs">▶ Start the labs</a>
+<a class="btn secondary" href="#dacmac">Explore the concepts</a>
+</div>
+<p class="small muted"><b>Target:</b><b>Environment:</b><b>Format:</b></p>
+</div>
+<div aria-label="Animated defense-in-depth illustration" class="heroCard">
+<svg aria-labelledby="heroSvgTitle heroSvgDesc" role="img" viewbox="0 0 620 420">
+<title id="heroSvgTitle">Defense in depth packet path</title><desc id="heroSvgDesc">A packet passes through an nftables gate to an AppArmor-confined daemon and protected files.</desc>
+<defs><lineargradient id="g1" x1="0" x2="1"><stop stop-color="#4b4ded"></stop><stop offset="1" stop-color="#e65b2f"></stop></lineargradient></defs>
+<rect fill="none" height="360" opacity=".12" rx="28" stroke="currentColor" width="584" x="18" y="28"></rect>
+<g transform="translate(40,140)"><rect fill="#25354c" height="110" rx="20" width="120"></rect><circle cx="60" cy="42" fill="#ff8b66" r="20"></circle><path d="M28 91c8-25 56-25 64 0" fill="none" stroke="#fff" stroke-width="8"></path><text fill="currentColor" font-weight="700" text-anchor="middle" x="60" y="135">Remote client</text></g>
+<g class="pulse" transform="translate(205,110)"><path d="M55 0 110 24v55c0 48-35 78-55 88C35 157 0 127 0 79V24Z" fill="url(#g1)"></path><path d="m31 76 16 16 34-42" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="11"></path><text fill="currentColor" font-weight="700" text-anchor="middle" x="55" y="195">nftables gate</text></g>
+<g transform="translate(370,95)"><rect fill="#25354c" height="170" rx="22" width="150"></rect><rect fill="#111827" height="80" rx="12" width="104" x="23" y="26"></rect><circle cx="48" cy="51" fill="#54d8a5" r="7"></circle><circle cx="75" cy="51" fill="#ffd274" r="7"></circle><path d="M42 80h68" stroke="#9294ff" stroke-width="8"></path><path d="M55 126h40" stroke="#fff" stroke-linecap="round" stroke-width="9"></path><text fill="currentColor" font-weight="700" text-anchor="middle" x="75" y="198">Confined daemon</text></g>
+<g transform="translate(480,280)"><rect fill="#e6edf8" height="75" rx="14" width="105"></rect><path d="M17 20h71M17 37h71M17 54h46" stroke="#4b4ded" stroke-linecap="round" stroke-width="6"></path><text fill="currentColor" font-weight="700" text-anchor="middle" x="52" y="97">Allowed data</text></g>
+<g transform="translate(335,295)"><rect fill="#ffdfe1" height="65" rx="14" width="105"></rect><path d="M38 28v-8a15 15 0 0 1 30 0v8M31 28h44v28H31z" fill="#c9363e"></path><text fill="currentColor" font-weight="700" text-anchor="middle" x="52" y="92">Secrets denied</text></g>
+<g class="packet" transform="translate(150,85)"><rect fill="#54d8a5" height="28" rx="7" width="48"></rect><path d="m8 8 16 9 16-9" fill="none" stroke="#fff" stroke-width="3"></path></g>
+<path d="M158 192H205M315 192h55M445 265v22" fill="none" stroke="#9294ff" stroke-dasharray="10 8" stroke-width="5"></path>
+<text fill="currentColor" font-size="20" font-weight="800" text-anchor="middle" x="310" y="55">Packet filtering + process confinement</text>
+</svg>
+</div>
+</section>
+<main id="content">
+<section class="reveal" id="outcomes">
+<div class="sectionHead"><div><div class="kicker">Learning map</div><h2>What trainees will be able to do</h2></div><span class="badge">Recommended: 6–7 hours</span></div>
+<div class="grid g3">
+<article class="card"><h3>🧠 Explain</h3><p>Distinguish DAC from MAC and describe why root privileges do not automatically bypass an enforced AppArmor policy.</p></article>
+<article class="card"><h3>🧩 Build</h3><p>Read and create an AppArmor profile with includes, attachment, file rules, execution permissions, and network rules.</p></article>
+<article class="card"><h3>🔁 Operate</h3><p>Move a profile through complain and enforce mode, reload policy, inspect status, and interpret denial logs.</p></article>
+<article class="card"><h3>🌐 Confine</h3><p>Run a small HTTP daemon that can read only its web root and create only the socket types granted by policy.</p></article>
+<article class="card"><h3>🔥 Layer</h3><p>Use a dedicated nftables table to restrict who can reach the daemon while AppArmor restricts what the daemon can do.</p></article>
+<article class="card"><h3>🧪 Validate</h3><p>Syntax-check configurations, compare expected output, test allowed and denied actions, and cleanly remove lab changes.</p></article>
+</div>
+<div class="callout warning" style="margin-top:1rem"><b>Lab safety:</b> Use disposable snapshots. The nftables exercise creates a dedicated table and never flushes the existing ruleset. The “secret” is fake training data.</div>
+</section><section class="reveal" id="paths">
+<div class="sectionHead"><div><div class="kicker">Mixed-audience support</div><h2>Choose a learning path</h2></div><span class="badge">Switch at any time</span></div>
+<div class="sim">
+<p>Select a path to highlight the most relevant material. Nothing is removed; non-priority content is only dimmed.</p>
+<div aria-label="Learning path selector" class="pathSwitch" role="group">
+<button aria-pressed="true" class="pathBtn" data-path="all">All content</button>
+<button aria-pressed="false" class="pathBtn" data-path="beginner">Beginner path</button>
+<button aria-pressed="false" class="pathBtn" data-path="advanced">Administrator path</button>
+</div>
+<div class="grid g2">
+<div class="card pathItem" data-level="beginner"><h3>🌱 Beginner path</h3><p>DAC versus MAC, profile anatomy, complain/enforce, basic log reading, daemon confinement, and the core AppArmor+nftables lab.</p></div>
+<div class="card pathItem" data-level="advanced"><h3>🧰 Administrator path</h3><p>Lifecycle design, abstractions, local overrides, systemd hardening, break/fix scenarios, upgrade handling, evidence collection, and the capstone.</p></div>
+</div>
+</div>
+</section>
+<section class="reveal" id="scenario">
+<div class="sectionHead"><div><div class="kicker">Real-world framing</div><h2>Connected-vehicle telemetry gateway</h2></div></div>
+<div class="grid g2">
+<div class="card">
+<h3>The situation</h3>
+<p>A telemetry daemon accepts health requests from a trusted diagnostics workstation. It must serve public status files, but it must not read private keys, modify system configuration, open raw sockets, or accept traffic from arbitrary networks.</p>
+<p class="muted">The same model applies to web servers, API gateways, DNS services, database listeners, monitoring agents, and update daemons.</p>
+</div>
+<div class="card">
+<h3>Control ownership</h3>
+<p><b>nftables</b> answers: “Which packets may reach port 8080?”</p>
+<p><b>AppArmor</b> answers: “Once the daemon runs, which files, capabilities, processes, and socket operations may it use?”</p>
+<p><b>DAC</b> still applies underneath: Unix owner/group/mode bits remain relevant, but MAC can impose an additional restriction.</p>
+</div>
+</div>
+</section>
+<section class="reveal" id="dacmac">
+<div class="sectionHead"><div><div class="kicker">Concept 1</div><h2>DAC vs MAC: who decides?</h2></div></div>
+<div class="compare">
+<table>
+<thead><tr><th>Question</th><th>DAC — Discretionary Access Control</th><th>MAC — Mandatory Access Control</th></tr></thead>
+<tbody>
+<tr><td>Primary decision source</td><td>File owner, group, mode bits, ACLs, process UID/GID</td><td>System-loaded policy enforced by a Linux Security Module</td></tr>
+<tr><td>Can a file owner loosen access?</td><td>Usually yes, within normal privilege rules</td><td>Not beyond the mandatory policy</td></tr>
+<tr><td>What AppArmor labels</td><td>Not applicable</td><td>Programs/processes are associated with path-oriented profiles</td></tr>
+<tr><td>Typical failure example</td><td>A daemon running as root can read a root-owned secret</td><td>The daemon is denied because its profile does not grant that path</td></tr>
+<tr><td>Security value</td><td>Basic ownership and collaboration controls</td><td>Limits blast radius if an application is compromised</td></tr>
+</tbody>
+</table>
+</div>
+<div aria-labelledby="dacSimTitle" class="sim" style="margin-top:1rem">
+<h3 id="dacSimTitle">Interactive access-decision simulator</h3>
+<p class="muted">A root-run telemetry daemon attempts to read <span class="mono">/root/aa-lab-secret.txt</span>.</p>
+<div class="controls">
+<label class="toggle"><input checked="" id="dacAllows" type="checkbox"/> DAC allows read</label>
+<label class="toggle"><input checked="" id="macLoaded" type="checkbox"/> AppArmor profile loaded</label>
+<label class="toggle"><input id="macRule" type="checkbox"/> Profile grants secret path</label>
+</div>
+<div aria-live="polite" class="result deny" id="dacResult"></div>
+<div class="callout" style="margin-top:.8rem"><b>Decision rule:</b> for access to succeed, every applicable security layer must allow it. One enforced denial is enough to stop the operation.</div>
+</div>
+</section>
+<section class="reveal" id="profiles">
+<div class="sectionHead"><div><div class="kicker">Concept 2</div><h2>AppArmor profile structure</h2></div></div>
+<div class="profileViewer">
+<div aria-label="Clickable AppArmor profile lines" class="codepanel" role="listbox">
+<pre><code><span class="codeLine" data-info="Global tunables define reusable variables such as home-directory patterns. Includes do not end with a comma." tabindex="0">#include &lt;tunables/global&gt;</span>
+<span class="codeLine" data-info="This declares a named profile and attaches it to the exact executable path. The kernel applies the profile when that path is executed." tabindex="0">profile aa-lab-server /opt/aa-lab/bin/aa-demo-busybox {</span>
+<span class="codeLine" data-info="Abstractions are reusable rule bundles. abstractions/base grants common runtime access and keeps profiles maintainable." tabindex="0">  #include &lt;abstractions/base&gt;</span>
+<span class="codeLine" data-info="The executable may be memory-mapped and read. 'm' is executable mapping; 'r' is read." tabindex="0">  /opt/aa-lab/bin/aa-demo-busybox mr,</span>
+<span class="codeLine" data-info="The daemon may traverse and read its web-root directory." tabindex="0">  /srv/aa-lab/www/ r,</span>
+<span class="codeLine" data-info="The recursive rule grants read access to files and subdirectories below the web root. It does not grant writes." tabindex="0">  /srv/aa-lab/www/** r,</span>
+<span class="codeLine" data-info="BusyBox httpd may consult the MIME type database. This narrowly grants read access to that file." tabindex="0">  /etc/mime.types r,</span>
+<span class="codeLine" data-info="This allows IPv4 stream socket operations. It is intentionally broader than a packet filter; source and destination policy are handled by nftables in this core lab." tabindex="0">  network inet stream,</span>
+<span class="codeLine" data-info="Anything not granted is denied while the profile is enforcing. The closing brace ends the profile." tabindex="0">}</span></code></pre>
+</div>
+<aside class="card anatomy" id="anatomyText">
+<h3>Click a profile line</h3><p class="muted">The explanation will appear here. Notice the allow-list model: absent permissions are denied when enforcing.</p>
+<hr style="border:0;border-top:1px solid var(--border)"/>
+<p><strong>Common permissions:</strong> <span class="mono">r</span> read, <span class="mono">w</span> write, <span class="mono">m</span> executable mapping, <span class="mono">ix</span> inherit current profile on exec, <span class="mono">Px</span> transition to another profile.</p>
+</aside>
+</div>
+<div class="grid g3" style="margin-top:1rem">
+<div class="card"><h3>Path-oriented</h3><p>AppArmor commonly expresses file policy using path patterns. Renames, bind mounts, aliases, deleted paths, and namespaces deserve deliberate testing.</p></div>
+<div class="card"><h3>Least privilege</h3><p>Grant the smallest file, capability, network, signal, DBus, and execution permissions needed for normal operation.</p></div>
+<div class="card"><h3>Order-independent</h3><p>Rules in a profile are declarative; their order does not create firewall-like first-match behavior. Permissions accumulate.</p></div>
+</div>
+</section><section class="reveal pathItem" data-level="advanced" id="lifecycle">
+<div class="sectionHead"><div><div class="kicker">Operational method</div><h2>Safe profile-development lifecycle</h2></div><span class="badge">Do not blindly accept generated rules</span></div>
+<div aria-label="AppArmor profile lifecycle" class="lifecycle">
+<div class="lifeStep active" data-life="0"><button><span class="num">1</span><b>Define behavior</b><br/><span class="small muted">List legitimate files, sockets, child processes, capabilities, and failure cases.</span></button></div>
+<div class="lifeStep" data-life="1"><button><span class="num">2</span><b>Create baseline</b><br/><span class="small muted">Write a narrow profile or use <span class="mono">aa-genprof</span> as a starting point.</span></button></div>
+<div class="lifeStep" data-life="2"><button><span class="num">3</span><b>Complain</b><br/><span class="small muted">Exercise all legitimate functions and deliberately trigger abnormal actions.</span></button></div>
+<div class="lifeStep" data-life="3"><button><span class="num">4</span><b>Review logs</b><br/><span class="small muted">Classify each event as required access, expected denial, or unrelated noise.</span></button></div>
+<div class="lifeStep" data-life="4"><button><span class="num">5</span><b>Refine</b><br/><span class="small muted">Prefer exact paths and reusable abstractions over broad recursive rules.</span></button></div>
+<div class="lifeStep" data-life="5"><button><span class="num">6</span><b>Enforce</b><br/><span class="small muted">Switch to enforce, repeat positive and negative tests, then capture evidence.</span></button></div>
+<div class="lifeStep" data-life="6"><button><span class="num">7</span><b>Maintain</b><br/><span class="small muted">Retest on upgrades and review policy drift, denials, and local overrides.</span></button></div>
+</div>
+<div class="callout" id="lifeDetail"><b>Step 1 — Define behavior:</b> A useful security profile begins with a test plan. Decide what normal operation needs and what a compromised process must never do.</div>
+<div class="grid g2" style="margin-top:1rem">
+<div class="card"><h3>Useful tools</h3><div class="cmd"><button class="copy">Copy</button><pre>sudo aa-genprof /path/to/application
+sudo aa-logprof
+sudo aa-complain /path/to/application
+sudo aa-enforce /path/to/application</pre></div></div>
+<div class="callout warning"><b>Security trap:</b> <span class="mono">aa-logprof</span> proposes rules from observed events. Review every suggestion. A malicious or accidental action observed during learning can otherwise become permanently allowed.</div>
+</div>
+</section>
+<section class="reveal" id="modes">
+<div class="sectionHead"><div><div class="kicker">Concept 3</div><h2>Complain and enforce mode</h2></div></div>
+<div aria-label="AppArmor mode comparison" class="tabs" role="tablist">
+<button aria-controls="panelComplain" aria-selected="true" class="tab" id="tabComplain" role="tab">📝 Complain</button>
+<button aria-controls="panelEnforce" aria-selected="false" class="tab" id="tabEnforce" role="tab">⛔ Enforce</button>
+</div>
+<div aria-labelledby="tabComplain" class="tabpanel card" id="panelComplain" role="tabpanel">
+<h3>Observe without blocking most policy violations</h3><p>Complain mode is useful during profile development. Potential violations are logged, but the attempted access is normally allowed. This is not a production protection mode.</p>
+<div class="expected"><b>Typical log direction:</b> an event can appear as <span class="mono">apparmor="ALLOWED"</span> because policy would have denied it under enforcement.</div>
+</div>
+<div aria-labelledby="tabEnforce" class="tabpanel card" hidden="" id="panelEnforce" role="tabpanel">
+<h3>Block and log policy violations</h3><p>Enforce mode applies the profile. Missing permissions cause the kernel to reject the operation and record a denial event.</p>
+<div class="expected"><b>Typical log direction:</b> <span class="mono">apparmor="DENIED" operation="open" ... requested_mask="r" denied_mask="r"</span>.</div>
+</div>
+<div class="sim" style="margin-top:1rem">
+<h3>Mode event player</h3>
+<div class="controls"><button class="btn primary" id="runModeSim">Run scenario</button><select aria-label="Mode" id="modeSelect"><option value="complain">Complain mode</option><option value="enforce">Enforce mode</option></select></div>
+<div aria-live="polite" class="timeline" id="modeTimeline"></div>
+</div>
+</section><section class="reveal" id="audit">
+<div class="sectionHead"><div><div class="kicker">Evidence and diagnosis</div><h2>Read an AppArmor audit event</h2></div><span class="badge">Click any highlighted field</span></div>
+<div class="auditGrid">
+<div class="codepanel"><pre class="auditRecord"><code>audit: type=1400
+<span class="auditField" data-key="decision" tabindex="0">apparmor="DENIED"</span>
+<span class="auditField" data-key="operation" tabindex="0">operation="open"</span>
+<span class="auditField" data-key="profile" tabindex="0">profile="aa-lab-server"</span>
+<span class="auditField" data-key="name" tabindex="0">name="/root/aa-lab-secret.txt"</span>
+<span class="auditField" data-key="requested" tabindex="0">requested_mask="r"</span>
+<span class="auditField" data-key="denied" tabindex="0">denied_mask="r"</span>
+<span class="auditField" data-key="comm" tabindex="0">comm="aa-demo-busybox"</span>
+<span class="auditField" data-key="pid" tabindex="0">pid="2418"</span></code></pre></div>
+<aside class="card" id="auditExplain"><h3>Start with the decision</h3><p><b>DENIED</b> means an enforcing profile blocked an operation. Then identify the operation, confined profile, target resource, and requested permission.</p><div class="callout"><b>Triage question:</b> Was this access part of intended application behavior, an application defect, or the exact hostile action the profile was designed to stop?</div></aside>
+</div>
+<div class="grid g3" style="margin-top:1rem">
+<div class="card"><h3>Find recent kernel events</h3><div class="cmd"><button class="copy">Copy</button><pre>sudo journalctl -k --since '-10 min' | grep -i 'apparmor='</pre></div></div>
+<div class="card"><h3>Find audit records</h3><div class="cmd"><button class="copy">Copy</button><pre>sudo ausearch -m AVC,USER_AVC -ts recent 2&gt;/dev/null</pre></div></div>
+<div class="card"><h3>Confirm actual process label</h3><div class="cmd"><button class="copy">Copy</button><pre>sudo cat /proc/&lt;PID&gt;/attr/current</pre></div></div>
+</div>
+</section>
+<section class="reveal" id="network">
+<div class="sectionHead"><div><div class="kicker">Concept 4</div><h2>Network restrictions and daemon confinement</h2></div></div>
+<div class="diagram">
+<svg aria-labelledby="netTitle netDesc" role="img" viewbox="0 0 1000 380">
+<title id="netTitle">AppArmor daemon confinement diagram</title><desc id="netDesc">A daemon is allowed to read its web root and use IPv4 stream sockets, while secrets, writes, raw sockets, and arbitrary execution are denied.</desc>
+<defs><marker id="arr" markerheight="10" markerwidth="10" orient="auto" refx="8" refy="3"><path d="M0,0 L0,6 L9,3 z" fill="#4b4ded"></path></marker><marker id="arrD" markerheight="10" markerwidth="10" orient="auto" refx="8" refy="3"><path d="M0,0 L0,6 L9,3 z" fill="#c9363e"></path></marker></defs>
+<rect fill="#e9e9ff" height="220" rx="28" stroke="#4b4ded" stroke-width="4" width="320" x="340" y="80"></rect><text fill="#26277d" font-size="24" font-weight="900" text-anchor="middle" x="500" y="120">AppArmor profile boundary</text>
+<rect fill="#25354c" height="90" rx="18" width="160" x="420" y="155"></rect><text fill="white" font-size="20" font-weight="800" text-anchor="middle" x="500" y="195">HTTP daemon</text><text fill="#cbd5e1" text-anchor="middle" x="500" y="221">root UID, confined</text>
+<rect fill="#dff7ed" height="90" rx="18" width="200" x="30" y="65"></rect><text fill="#0d6443" font-weight="800" text-anchor="middle" x="130" y="103">IPv4 TCP socket</text><text fill="#0d6443" text-anchor="middle" x="130" y="130">allowed</text>
+<rect fill="#ffe2e4" height="90" rx="18" width="200" x="30" y="225"></rect><text fill="#98262d" font-weight="800" text-anchor="middle" x="130" y="263">Raw socket</text><text fill="#98262d" text-anchor="middle" x="130" y="290">not granted</text>
+<rect fill="#dff7ed" height="90" rx="18" width="200" x="770" y="45"></rect><text fill="#0d6443" font-weight="800" text-anchor="middle" x="870" y="83">/srv/aa-lab/www</text><text fill="#0d6443" text-anchor="middle" x="870" y="110">read only</text>
+<rect fill="#ffe2e4" height="90" rx="18" width="200" x="770" y="165"></rect><text fill="#98262d" font-weight="800" text-anchor="middle" x="870" y="203">/root/*</text><text fill="#98262d" text-anchor="middle" x="870" y="230">denied</text>
+<rect fill="#ffe2e4" height="70" rx="18" width="200" x="770" y="285"></rect><text fill="#98262d" font-weight="800" text-anchor="middle" x="870" y="327">write / execute</text>
+<path d="M230 110H410" marker-end="url(#arr)" stroke="#4b4ded" stroke-width="5"></path><path d="M230 270H330" marker-end="url(#arrD)" stroke="#c9363e" stroke-dasharray="9 7" stroke-width="5"></path><path d="M590 180 760 90" marker-end="url(#arr)" stroke="#4b4ded" stroke-width="5"></path><path d="M590 205H760" marker-end="url(#arrD)" stroke="#c9363e" stroke-dasharray="9 7" stroke-width="5"></path><path d="M580 235 760 315" marker-end="url(#arrD)" stroke="#c9363e" stroke-dasharray="9 7" stroke-width="5"></path>
+</svg>
+</div>
+<div class="callout warning" style="margin-top:1rem"><b>Important boundary:</b> AppArmor network rules govern socket operations available to the process. nftables evaluates packets in the network stack. The core lab intentionally uses <span class="mono">network inet stream,</span> and delegates source IP and destination-port filtering to nftables. Fine-grained AppArmor IP/port syntax exists in newer policy ABIs, but support must be verified on the target kernel and userspace.</div>
+<div class="grid g3" style="margin-top:1rem">
+<div class="card"><h3>What to confine</h3><p>Executable path, web/config directories, log path, required libraries, DNS files, capabilities, socket families/types, child execution, signals, and IPC.</p></div>
+<div class="card"><h3>What to observe</h3><p>Service logs, AppArmor audit events, listening sockets, process profile label, nftables counters, and the application’s normal transaction tests.</p></div>
+<div class="card"><h3>What not to do</h3><p>Do not blindly approve every <span class="mono">aa-logprof</span> suggestion. A noisy application can train an over-permissive profile.</p></div>
+</div>
+</section>
+<section class="reveal" id="defense">
+<div class="sectionHead"><div><div class="kicker">Concept 5</div><h2>Defense-in-depth with AppArmor and nftables</h2></div></div>
+<div aria-label="Defense in depth flow" class="flow">
+<div class="node">Client</div><div class="arrow">→</div><div class="node">nftables<br/><small>packet policy</small></div><div class="arrow">→</div><div class="node">Daemon</div><div class="arrow">→</div><div class="node">AppArmor<br/><small>process policy</small></div>
+</div>
+<div aria-labelledby="didTitle" class="sim">
+<h3 id="didTitle">Failure-layer simulator</h3>
+<div class="controls">
+<label class="toggle"><input checked="" id="fwOn" type="checkbox"/> nftables enabled</label>
+<label class="toggle"><input checked="" id="aaOn" type="checkbox"/> AppArmor enforcing</label>
+<label class="toggle"><input id="trustedClient" type="checkbox"/> Client is trusted</label>
+<label class="toggle"><input checked="" id="secretRequest" type="checkbox"/> Exploit requests secret</label>
+</div>
+<div class="matrix"><div class="layer on" id="fwLayer"></div><div class="layer on" id="aaLayer"></div></div>
+<div aria-live="polite" class="result deny" id="didResult" style="margin-top:.8rem"></div>
+</div>
+<div class="compare" style="margin-top:1rem">
+<table>
+<thead><tr><th>Failure</th><th>nftables contribution</th><th>AppArmor contribution</th><th>Residual lesson</th></tr></thead>
+<tbody>
+<tr><td>Service accidentally listens on all interfaces</td><td>Can still restrict source networks and port access</td><td>Does not decide which remote IP is trusted in this lab</td><td>Packet policy catches exposure mistakes</td></tr>
+<tr><td>Application path traversal or command injection</td><td>Traffic may already be from an allowed client</td><td>Can deny ungranted files and execution transitions</td><td>Process policy reduces post-entry damage</td></tr>
+<tr><td>AppArmor profile is too broad</td><td>Limits reachable attack surface</td><td>May fail to contain the exploit fully</td><td>Review both controls independently</td></tr>
+<tr><td>Firewall rule is removed</td><td>No longer protects the port</td><td>Still limits daemon resources</td><td>Independent layers prevent one mistake becoming total compromise</td></tr>
+</tbody>
+</table>
+</div>
+</section><section class="reveal" id="responsibility">
+<div class="sectionHead"><div><div class="kicker">Control boundaries</div><h2>Who owns which security decision?</h2></div></div>
+<div class="compare"><table class="respTable"><thead><tr><th>Requirement</th><th>AppArmor</th><th>nftables</th><th>Practical interpretation</th></tr></thead><tbody>
+<tr><td>Restrict files a daemon reads or writes</td><td class="yes">Yes</td><td class="no">No</td><td>Use narrow path rules and validate both allowed and denied resources.</td></tr>
+<tr><td>Restrict execution transitions and Linux capabilities</td><td class="yes">Yes</td><td class="no">No</td><td>Constrain child execution and privileged kernel operations in the profile.</td></tr>
+<tr><td>Filter source/destination addresses and ports</td><td class="partial">Version-dependent / limited</td><td class="yes">Yes</td><td>Teach and deploy nftables for portable packet-level address and port policy.</td></tr>
+<tr><td>Track established and related connections</td><td class="no">No</td><td class="yes">Yes</td><td>Use connection tracking expressions such as <span class="mono">ct state</span>.</td></tr>
+<tr><td>Rate-limit or count packets</td><td class="no">No</td><td class="yes">Yes</td><td>Use nftables counters, limits, sets, and logs.</td></tr>
+<tr><td>Stop a compromised daemon reading SSH keys</td><td class="yes">Yes</td><td class="no">No</td><td>The firewall cannot see local file reads.</td></tr>
+<tr><td>Stop an unauthorized remote client before the daemon</td><td class="partial">Not the main control</td><td class="yes">Yes</td><td>Drop the packet at the input hook and inspect rule counters.</td></tr>
+</tbody></table></div>
+<div class="callout success" style="margin-top:1rem"><b>Memory rule:</b> nftables decides whether the conversation may reach the process; AppArmor decides what the process may do after it runs.</div>
+</section><section class="reveal pathItem" data-level="advanced" id="operations">
+<div class="sectionHead"><div><div class="kicker">Production maintainability</div><h2>Abstractions, tunables, local overrides, and systemd</h2></div></div>
+<div class="grid g3">
+<div class="card"><h3>🧱 Abstractions</h3><p>Reusable policy fragments under <span class="mono">/etc/apparmor.d/abstractions/</span>. Prefer a reviewed abstraction over repeatedly copying common runtime rules.</p></div>
+<div class="card"><h3>🔧 Tunables</h3><p>Reusable variables and site settings under <span class="mono">/etc/apparmor.d/tunables/</span>, such as home-directory patterns and aliases.</p></div>
+<div class="card"><h3>🧩 Local overrides</h3><p>Site-specific additions commonly stored under <span class="mono">/etc/apparmor.d/local/</span> and explicitly included by the parent profile. This reduces package-upgrade conflicts.</p></div>
+</div>
+<div class="grid g2" style="margin-top:1rem">
+<div class="codepanel"><pre><code>#include &lt;tunables/global&gt;
+
+profile telemetry-service /usr/local/bin/telemetry-service {
+  #include &lt;abstractions/base&gt;
+  #include &lt;abstractions/nameservice&gt;
+  #include if exists &lt;local/usr.local.bin.telemetry-service&gt;
+
+  /etc/telemetry/config.yaml r,
+  /var/lib/telemetry/** rw,
+  /var/log/telemetry/*.log w,
+  network inet stream,
+  capability net_bind_service,
+  /usr/bin/logger ix,
+}</code></pre></div>
+<div class="ruleMap">
+<div class="ruleTarget" data-target="files"><div style="font-size:2rem">📁</div><b>Files</b><p class="small muted">Configuration, data, logs</p></div>
+<div class="ruleTarget" data-target="socket"><div style="font-size:2rem">🌐</div><b>Sockets</b><p class="small muted">Address family and type</p></div>
+<div class="ruleTarget" data-target="capability"><div style="font-size:2rem">🔑</div><b>Capabilities</b><p class="small muted">Narrow privileged actions</p></div>
+<div class="ruleTarget" data-target="execute"><div style="font-size:2rem">⚙️</div><b>Execution</b><p class="small muted">Child-program transition</p></div>
+</div>
+</div>
+<div class="card" style="margin-top:1rem">
+<h3>systemd adds another independent containment layer</h3>
+<div class="grid g2"><div><p>AppArmor does not replace service-manager hardening, and systemd hardening does not replace AppArmor. Combine them deliberately and test the aggregate effect.</p><div class="commandLegend"><span>DAC</span><span>Capabilities</span><span>systemd sandbox</span><span>AppArmor</span><span>nftables</span></div></div>
+<div class="codepanel"><pre><code>[Service]
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+CapabilityBoundingSet=
+ReadWritePaths=/var/lib/telemetry /var/log/telemetry</code></pre></div></div>
+<div class="callout warning" style="margin-top:.8rem"><b>Compatibility note:</b> Enable hardening directives incrementally. A strict filesystem sandbox or empty capability set can break a daemon whose legitimate runtime behavior has not been mapped.</div>
+</div>
+</section>
+<section class="reveal" id="troubleshooting">
+<div class="sectionHead"><div><div class="kicker">Break/fix method</div><h2>Interactive troubleshooting decision tree</h2></div><span class="badge">Find the first failing layer</span></div>
+<div class="decisionWrap sim">
+<div class="decisionControls">
+<label><input checked="" id="tKernel" type="checkbox"/> AppArmor kernel interface enabled</label>
+<label><input checked="" id="tLoaded" type="checkbox"/> Profile loaded</label>
+<label><input checked="" id="tAttached" type="checkbox"/> Process attached to expected profile</label>
+<label><input checked="" id="tListener" type="checkbox"/> Daemon listening on port 8080</label>
+<label><input checked="" id="tLocal" type="checkbox"/> Local curl succeeds</label>
+<label><input checked="" id="tRoute" type="checkbox"/> Client routing reaches server</label>
+<label><input checked="" id="tFirewall" type="checkbox"/> nftables rule permits client</label>
+<button class="btn primary" id="runDecision">Diagnose selected state</button>
+</div>
+<div aria-live="polite" class="card decisionResult" id="decisionResult"><h3>Diagnosis will appear here</h3><p class="muted">Uncheck the first condition that is false, then run the decision tree. The goal is to avoid changing AppArmor when the real failure is routing—or flushing a firewall when the daemon is not listening.</p></div>
+</div>
+<div class="grid g3" style="margin-top:1rem">
+<div class="card"><h3>AppArmor checks</h3><div class="cmd"><button class="copy">Copy</button><pre>cat /sys/module/apparmor/parameters/enabled
+sudo aa-status
+sudo cat /proc/&lt;PID&gt;/attr/current
+sudo apparmor_parser -Q /etc/apparmor.d/aa-lab-server</pre></div></div>
+<div class="card"><h3>Service checks</h3><div class="cmd"><button class="copy">Copy</button><pre>systemctl --no-pager status aa-lab-http
+journalctl -u aa-lab-http -b --no-pager
+ss -lntp | grep ':8080'
+curl -v --max-time 3 http://127.0.0.1:8080/</pre></div></div>
+<div class="card"><h3>Network checks</h3><div class="cmd"><button class="copy">Copy</button><pre>ip route
+sudo ip netns exec aa-client ip route
+sudo ip netns exec aa-untrusted ip route
+sudo ip netns exec aa-client ping -c 2 10.200.0.1
+sudo ip netns exec aa-untrusted ping -c 2 10.201.0.1
+
+if sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1; then
+  sudo nft -a list table inet aa_lab
+else
+  echo '[INFO] nftables table inet aa_lab is not loaded; complete Lab 6 first.'
+fi</pre></div></div>
+</div>
+</section><section class="reveal" id="labs">
+<div class="sectionHead"><div><div class="kicker">Hands-on</div><h2>Validated lab walkthroughs</h2></div><span class="badge">Ubuntu 24.04 LTS baseline</span></div>
+<div class="callout"><b>Default topology — one VM:</b> The root network namespace runs AppArmor, the BusyBox HTTP daemon, and nftables. Two Linux network namespaces—<span class="mono">aa-client</span> and <span class="mono">aa-untrusted</span>—act as trusted and unauthorized client machines through separate veth pairs. This preserves realistic source-IP filtering without requiring additional VMs.</div>
+<details class="lab" open=""><summary>Lab 0 — Prepare the one-VM environment and veth topology</summary><div class="labBody">
+<div class="labMeta"><span class="badge">25 min</span><span class="badge">Single VM</span><span class="badge">Snapshot first</span></div>
+<p>Install the session tools, verify AppArmor, then create two isolated client network namespaces. Do this <b>before</b> setting or using the client/server IP variables.</p><div class="callout warning" style="margin-top:.8rem"><b>Verified interface-name fix:</b> Linux interface names may contain at most 15 visible characters. The unauthorized pair therefore uses <span class="mono">veth-aa-u-host</span> and <span class="mono">veth-aa-u-cli</span>. The older long names fail with “name not a valid ifname.”</div>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo apt update
+sudo apt install -y apparmor apparmor-utils auditd nftables busybox-static curl iproute2 iputils-ping
+
+sudo systemctl enable --now apparmor
+sudo systemctl enable --now auditd
+
+sudo aa-status
+apparmor_parser --version
+nft --version
+uname -r</pre></div>
+<div class="expected"><b>Expected:</b> <span class="mono">apparmor module is loaded</span>; a nonzero count of loaded profiles; nft and kernel version strings. Some distributions log through the kernel journal even when auditd is absent.</div>
+<h3>Create the trusted and unauthorized client namespaces</h3>
+<p>The commands remove only old objects with the lab-specific names, making the setup safe to repeat after an interrupted attempt.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>cat &gt; /tmp/aa-netns-setup.sh &lt;&lt;'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+TRUST_NS='aa-client'
+UNTRUST_NS='aa-untrusted'
+TRUST_HOST_IF='veth-aa-server'
+TRUST_NS_IF='veth-aa-client'
+UNTRUST_HOST_IF='veth-aa-u-host'
+UNTRUST_NS_IF='veth-aa-u-cli'
+
+cleanup_lab_links() {
+  ip netns del "$TRUST_NS" 2&gt;/dev/null || true
+  ip netns del "$UNTRUST_NS" 2&gt;/dev/null || true
+  ip link del "$TRUST_HOST_IF" 2&gt;/dev/null || true
+  ip link del "$UNTRUST_HOST_IF" 2&gt;/dev/null || true
+}
+
+for ifname in "$TRUST_HOST_IF" "$TRUST_NS_IF" "$UNTRUST_HOST_IF" "$UNTRUST_NS_IF"; do
+  if (( ${#ifname} &gt; 15 )); then
+    echo "[FAIL] Interface name '$ifname' is longer than Linux permits (15 characters)." &gt;&amp;2
+    exit 1
+  fi
+done
+
+# Make reruns predictable after a partial or failed attempt.
+cleanup_lab_links
+trap 'rc=$?; echo "[FAIL] Namespace setup stopped at line $LINENO (exit $rc). Cleaning lab links." &gt;&amp;2; cleanup_lab_links; exit $rc' ERR
+
+# Trusted client: root namespace 10.200.0.1 &lt;-&gt; aa-client 10.200.0.2
+ip netns add "$TRUST_NS"
+ip link add "$TRUST_HOST_IF" type veth peer name "$TRUST_NS_IF"
+ip link set "$TRUST_NS_IF" netns "$TRUST_NS"
+ip address add 10.200.0.1/24 dev "$TRUST_HOST_IF"
+ip link set "$TRUST_HOST_IF" up
+ip netns exec "$TRUST_NS" ip address add 10.200.0.2/24 dev "$TRUST_NS_IF"
+ip netns exec "$TRUST_NS" ip link set lo up
+ip netns exec "$TRUST_NS" ip link set "$TRUST_NS_IF" up
+
+# Unauthorized client: root namespace 10.201.0.1 &lt;-&gt; aa-untrusted 10.201.0.2
+ip netns add "$UNTRUST_NS"
+ip link add "$UNTRUST_HOST_IF" type veth peer name "$UNTRUST_NS_IF"
+ip link set "$UNTRUST_NS_IF" netns "$UNTRUST_NS"
+ip address add 10.201.0.1/24 dev "$UNTRUST_HOST_IF"
+ip link set "$UNTRUST_HOST_IF" up
+ip netns exec "$UNTRUST_NS" ip address add 10.201.0.2/24 dev "$UNTRUST_NS_IF"
+ip netns exec "$UNTRUST_NS" ip link set lo up
+ip netns exec "$UNTRUST_NS" ip link set "$UNTRUST_NS_IF" up
+
+trap - ERR
+echo '[PASS] Both namespace/veth paths were created successfully.'
+EOF
+
+chmod +x /tmp/aa-netns-setup.sh
+sudo /tmp/aa-netns-setup.sh</pre></div>
+<div class="callout"><b>Why no bridge or IP forwarding?</b> Each client namespace is directly connected to an IP address owned by the root namespace. The clients are testing services on the host itself, so packets enter the host’s nftables <span class="mono">input</span> hook; they are not being routed through it.</div>
+<h3>Optional convenience variables</h3>
+<div class="cmd"><button class="copy">Copy</button><pre># Optional convenience variables for commands you type manually.
+# Every required command later in this document uses literal lab addresses.
+export SERVER_IP=10.200.0.1
+export CLIENT_IP=10.200.0.2
+export UNTRUSTED_SERVER_IP=10.201.0.1
+export UNTRUSTED_CLIENT_IP=10.201.0.2
+
+printf 'SERVER_IP=%s\nCLIENT_IP=%s\nUNTRUSTED_SERVER_IP=%s\nUNTRUSTED_CLIENT_IP=%s\n' \
+  "$SERVER_IP" "$CLIENT_IP" "$UNTRUSTED_SERVER_IP" "$UNTRUSTED_CLIENT_IP"</pre></div>
+<div class="callout warning"><b>Shell scope:</b> Exports apply only to the current terminal. This no longer breaks the labs: required commands use literal addresses. Re-run the variable block only when you want the shortcuts for your own commands.</div>
+<h3>Verify interfaces and connectivity</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>ip -br address show veth-aa-server
+ip -br address show veth-aa-u-host
+sudo ip netns exec aa-client ip -br address
+sudo ip netns exec aa-untrusted ip -br address
+
+sudo ip netns exec aa-client ip route get 10.200.0.1
+sudo ip netns exec aa-untrusted ip route get 10.201.0.1
+sudo ip netns exec aa-client ping -c 2 10.200.0.1
+sudo ip netns exec aa-untrusted ping -c 2 10.201.0.1</pre></div>
+<div class="expected"><b>Expected:</b> host-side veth interfaces are <span class="mono">UP</span> with <span class="mono">10.200.0.1/24</span> and <span class="mono">10.201.0.1/24</span>; namespace-side interfaces are <span class="mono">UP</span> with <span class="mono">10.200.0.2/24</span> and <span class="mono">10.201.0.2/24</span>; both two-packet ping tests succeed.</div>
+<div class="checklist"><label class="checkitem"><input type="checkbox"/> Both namespaces appear in <span class="mono">ip netns list</span>.</label><label class="checkitem"><input type="checkbox"/> Trusted and unauthorized clients can each ping only their directly connected host address.</label><label class="checkitem"><input type="checkbox"/> A VM snapshot or rollback point exists.</label></div>
+<div class="card pathItem" data-level="advanced" style="margin-top:1rem">
+<h3>Optional pre-lab readiness checker</h3>
+<p>This checker reports prerequisites and verifies the namespace topology without changing AppArmor or nftables policy.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>cat &gt; /tmp/aa-readiness.sh &lt;&lt;'EOF'
+#!/usr/bin/env bash
+set -u
+pass(){ printf '[PASS] %s\n' "$1"; }
+warn(){ printf '[WARN] %s\n' "$1"; }
+fail(){ printf '[FAIL] %s\n' "$1"; }
+
+command -v aa-status &gt;/dev/null &amp;&amp; pass 'aa-status installed' || fail 'Install apparmor-utils'
+command -v apparmor_parser &gt;/dev/null &amp;&amp; pass 'apparmor_parser installed' || fail 'Install apparmor'
+command -v nft &gt;/dev/null &amp;&amp; pass 'nft command installed' || fail 'Install nftables'
+command -v ip &gt;/dev/null &amp;&amp; pass 'iproute2 installed' || fail 'Install iproute2'
+command -v curl &gt;/dev/null &amp;&amp; pass 'curl installed' || fail 'Install curl'
+[[ "$(cat /sys/module/apparmor/parameters/enabled 2&gt;/dev/null)" == Y ]] \
+  &amp;&amp; pass 'AppArmor kernel interface enabled' || fail 'AppArmor kernel interface unavailable'
+systemctl is-active --quiet apparmor \
+  &amp;&amp; pass 'AppArmor service active' || warn 'AppArmor service is not active'
+ip netns list | grep -qw aa-client \
+  &amp;&amp; pass 'Trusted client namespace exists' || fail 'Run the Lab 0 topology script'
+ip netns list | grep -qw aa-untrusted \
+  &amp;&amp; pass 'Unauthorized client namespace exists' || fail 'Run the Lab 0 topology script'
+ip -4 address show dev veth-aa-server 2&gt;/dev/null | grep -q '10.200.0.1/24' \
+  &amp;&amp; pass 'Trusted host-side veth is addressed' || fail 'veth-aa-server is missing or misconfigured'
+ip -4 address show dev veth-aa-u-host 2&gt;/dev/null | grep -q '10.201.0.1/24' \
+  &amp;&amp; pass 'Unauthorized host-side veth is addressed' || fail 'veth-aa-u-host is missing or misconfigured'
+sudo ip netns exec aa-client ip -4 address show dev veth-aa-client 2&gt;/dev/null | grep -q '10.200.0.2/24' \
+  &amp;&amp; pass 'Trusted namespace-side veth is addressed' || fail 'veth-aa-client is missing or misconfigured'
+sudo ip netns exec aa-untrusted ip -4 address show dev veth-aa-u-cli 2&gt;/dev/null | grep -q '10.201.0.2/24' \
+  &amp;&amp; pass 'Unauthorized namespace-side veth is addressed' || fail 'veth-aa-u-cli is missing or misconfigured'
+sudo aa-status 2&gt;/dev/null | grep -q 'aa-lab-server' \
+  &amp;&amp; pass 'Lab profile already loaded' || warn 'Lab profile not loaded yet (normal before Lab 2)'
+if sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1; then
+  pass 'Lab nftables table is loaded'
+else
+  warn 'Lab nftables table is not loaded yet (normal before Lab 6)'
+fi
+EOF
+chmod +x /tmp/aa-readiness.sh
+/tmp/aa-readiness.sh</pre></div>
+<div class="expected"><b>Expected:</b> tool, kernel, namespace, and veth checks pass. The profile check warns before Lab 2 and passes afterward.</div>
+</div></div></details>
+<details class="lab"><summary>Lab 1 — Create a safe daemon and fake secret</summary><div class="labBody">
+<div class="labMeta"><span class="badge">20 min</span><span class="badge">Root namespace</span></div>
+<p>Copy the BusyBox static binary to a unique path. This prevents the training profile from affecting the system’s normal BusyBox binary.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo install -d -m 0755 /opt/aa-lab/bin /srv/aa-lab/www
+BUSYBOX_PATH="$(command -v busybox)"
+echo "BusyBox source: $BUSYBOX_PATH"
+sudo install -m 0755 "$BUSYBOX_PATH" /opt/aa-lab/bin/aa-demo-busybox
+
+cat &lt;&lt;'EOF' | sudo tee /srv/aa-lab/www/index.html
+&lt;!doctype html&gt;
+&lt;html&gt;&lt;body&gt;&lt;h1&gt;Telemetry gateway: healthy&lt;/h1&gt;
+&lt;p&gt;Training service on port 8080.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+EOF
+
+printf '%s\n' 'FAKE-API-KEY=TRAINING-ONLY-12345' | sudo tee /root/aa-lab-secret.txt &gt;/dev/null
+sudo chmod 0600 /root/aa-lab-secret.txt
+sudo ls -l /opt/aa-lab/bin/aa-demo-busybox /root/aa-lab-secret.txt</pre></div>
+<div class="expected"><b>Expected:</b> the copied binary is executable; the fake secret is owned by root with mode <span class="mono">-rw-------</span>.</div>
+<p>Prove the root process passes DAC before AppArmor confinement exists:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo /opt/aa-lab/bin/aa-demo-busybox cat /root/aa-lab-secret.txt</pre></div>
+<div class="expected"><b>Expected:</b> <span class="mono">FAKE-API-KEY=TRAINING-ONLY-12345</span>. DAC allows root; the next labs add mandatory policy.</div>
+</div></details>
+<details class="lab"><summary>Lab 2 — Create and syntax-check the AppArmor profile</summary><div class="labBody">
+<div class="labMeta"><span class="badge">30 min</span><span class="badge">Root namespace</span></div>
+<div class="cmd"><button class="copy">Copy</button><pre>cat &lt;&lt;'EOF' | sudo tee /etc/apparmor.d/aa-lab-server
+#include &lt;tunables/global&gt;
+
+profile aa-lab-server /opt/aa-lab/bin/aa-demo-busybox {
+  #include &lt;abstractions/base&gt;
+
+  /opt/aa-lab/bin/aa-demo-busybox mr,
+  /srv/aa-lab/www/ r,
+  /srv/aa-lab/www/** r,
+  /etc/mime.types r,
+
+  network inet stream,
+}
+EOF
+
+# Parse without loading first; success is normally silent.
+sudo apparmor_parser -Q /etc/apparmor.d/aa-lab-server
+printf 'syntax exit code=%s\n' "$?"
+
+# Load or replace the profile.
+sudo apparmor_parser -r /etc/apparmor.d/aa-lab-server
+sudo aa-status | grep -E 'aa-lab-server|profiles are in enforce mode'</pre></div>
+<div class="expected"><b>Expected:</b> syntax exit code <span class="mono">0</span>. The profile appears in the enforce-mode section. If <span class="mono">-Q</span> is unavailable on an older parser, use <span class="mono">apparmor_parser -p</span> to preprocess and inspect, then load with <span class="mono">-r</span>.</div>
+<div class="callout danger"><b>Do not add</b> <span class="mono">/root/** r,</span> just to make the denial disappear. The denial is the learning objective and represents least privilege.</div>
+</div></details>
+<details class="lab"><summary>Lab 3 — Compare complain and enforce mode</summary><div class="labBody">
+<div class="labMeta"><span class="badge">30 min</span><span class="badge">Root namespace</span></div>
+<h3>A. Complain mode</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo aa-complain /opt/aa-lab/bin/aa-demo-busybox
+sudo aa-status | grep -A5 'profiles are in complain mode'
+
+sudo /opt/aa-lab/bin/aa-demo-busybox cat /root/aa-lab-secret.txt
+sudo journalctl -k --since '-5 min' | grep -i 'apparmor=' | tail -n 10</pre></div>
+<div class="expected"><b>Expected:</b> the fake secret is printed because complain mode does not enforce the missing file permission. A kernel audit event should record the would-be violation, commonly as <span class="mono">apparmor="ALLOWED"</span>.</div>
+<h3>B. Enforce mode</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo aa-enforce /opt/aa-lab/bin/aa-demo-busybox
+sudo /opt/aa-lab/bin/aa-demo-busybox cat /root/aa-lab-secret.txt; echo "exit=$?"
+sudo journalctl -k --since '-5 min' | grep -i 'apparmor=' | tail -n 10</pre></div>
+<div class="expected"><b>Expected:</b> BusyBox reports <span class="mono">Permission denied</span>, returns a nonzero exit status, and the kernel log contains <span class="mono">apparmor="DENIED"</span> for an open/read operation on the fake secret.</div>
+<div class="callout"><b>Log interpretation:</b> <span class="mono">profile=</span> identifies the confined domain; <span class="mono">name=</span> identifies the resource; <span class="mono">requested_mask=</span> is what the process asked for; <span class="mono">denied_mask=</span> is what policy blocked.</div>
+</div></details>
+<details class="lab"><summary>Lab 4 — Run the confined network daemon</summary><div class="labBody">
+<div class="labMeta"><span class="badge">30 min</span><span class="badge">Single VM + namespaces</span></div>
+<p>Create a systemd unit. The service runs as root intentionally, making the MAC restriction easy to demonstrate. In production, also use a dedicated unprivileged service account.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>cat &lt;&lt;'EOF' | sudo tee /etc/systemd/system/aa-lab-http.service
+[Unit]
+Description=AppArmor training HTTP daemon
+After=network.target apparmor.service
+
+[Service]
+Type=simple
+ExecStart=/opt/aa-lab/bin/aa-demo-busybox httpd -f -p 0.0.0.0:8080 -h /srv/aa-lab/www
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now aa-lab-http.service
+sudo systemctl --no-pager --full status aa-lab-http.service
+sudo ss -lntp | grep ':8080'</pre></div>
+<div class="expected"><b>Expected:</b> service state <span class="mono">active (running)</span>; a listener on <span class="mono">0.0.0.0:8080</span>; process path points to the copied BusyBox binary.</div>
+<p>Test from both simulated client machines before applying nftables restrictions:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo ip netns exec aa-client \
+  curl -i --max-time 3 http://10.200.0.1:8080/
+
+sudo ip netns exec aa-untrusted \
+  curl -i --max-time 3 http://10.201.0.1:8080/</pre></div>
+<div class="expected"><b>Expected:</b> both requests return HTTP <span class="mono">200 OK</span> and “Telemetry gateway: healthy”. This baseline proves the later unauthorized failure is caused by nftables rather than by the service or routing.</div>
+<p>Verify the running process is confined:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>PID="$(sudo systemctl show -p MainPID --value aa-lab-http.service)"
+echo "PID=$PID"
+if [[ "$PID" =~ ^[1-9][0-9]*$ ]] &amp;&amp; [[ -r "/proc/$PID/attr/current" ]]; then
+  sudo cat "/proc/$PID/attr/current"
+else
+  echo '[FAIL] The service has no running MainPID. Inspect systemctl status and journalctl first.'
+fi</pre></div>
+<div class="expected"><b>Expected:</b> output contains <span class="mono">aa-lab-server (enforce)</span>.</div>
+</div></details>
+<details class="lab"><summary>Lab 5 — Prove socket and file restrictions</summary><div class="labBody">
+<div class="labMeta"><span class="badge">25 min</span><span class="badge">Root namespace</span></div>
+<p>The profile grants IPv4 stream sockets but not raw sockets and not writes to the web root.</p>
+<h3>A. Allowed read</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo /opt/aa-lab/bin/aa-demo-busybox cat /srv/aa-lab/www/index.html | head</pre></div>
+<div class="expected"><b>Expected:</b> HTML is displayed.</div>
+<h3>B. Denied write</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>printf 'tamper\n' | sudo /opt/aa-lab/bin/aa-demo-busybox tee /srv/aa-lab/www/tampered.txt
+echo "exit=$?"
+sudo journalctl -k --since '-3 min' | grep -i 'aa-lab-server' | tail -n 5</pre></div>
+<div class="expected"><b>Expected:</b> write fails with permission denied; audit output shows a denied create/open/write request.</div>
+<h3>C. Denied raw socket attempt</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo /opt/aa-lab/bin/aa-demo-busybox ping -c 1 127.0.0.1
+echo "exit=$?"
+sudo journalctl -k --since '-3 min' | grep -i 'aa-lab-server' | tail -n 5</pre></div>
+<div class="expected"><b>Expected:</b> ping fails because an ICMP ping typically needs a raw or datagram ICMP socket not granted by <span class="mono">network inet stream,</span>. Exact BusyBox wording can vary by kernel and ping implementation; the audit record is the authoritative evidence.</div>
+</div></details>
+<details class="lab"><summary>Lab 6 — Add nftables without disturbing the host ruleset</summary><div class="labBody">
+<div class="labMeta"><span class="badge">40 min</span><span class="badge">Single VM + namespaces</span><span class="badge">Console recommended</span></div>
+<p>Create a dedicated table. The chain’s default policy is accept, so only TCP port 8080 is affected by the explicit final drop rule. The trusted namespace source <span class="mono">10.200.0.2</span> is accepted; the unauthorized namespace source <span class="mono">10.201.0.2</span> reaches the final drop rule.</p>
+<div class="cmd"><button class="copy">Copy</button><pre># Do not continue unless both namespace paths and the daemon work before filtering.
+sudo ip netns exec aa-client ip route get 10.200.0.1
+sudo ip netns exec aa-untrusted ip route get 10.201.0.1
+sudo systemctl is-active aa-lab-http.service
+sudo ip netns exec aa-client curl -fsS --max-time 3 http://10.200.0.1:8080/ &gt;/dev/null &amp;&amp; echo '[PASS] trusted path works before filtering'
+sudo ip netns exec aa-untrusted curl -fsS --max-time 3 http://10.201.0.1:8080/ &gt;/dev/null &amp;&amp; echo '[PASS] unauthorized path works before filtering'</pre></div><div class="expected"><b>Expected:</b> both route lookups resolve through their namespace-side veth interfaces, the service reports active, and both pre-filter curl tests print PASS. If not, return to Labs 0 or 4 instead of troubleshooting nftables.</div><div class="cmd"><button class="copy">Copy</button><pre>cat &lt;&lt;'EOF' | sudo tee /tmp/aa-lab.nft
+table inet aa_lab {
+  chain input {
+    type filter hook input priority 10; policy accept;
+
+    iifname "lo" tcp dport 8080 counter accept comment "allow local loopback test"
+    ip saddr 10.200.0.2 tcp dport 8080 ct state new,established counter accept comment "allow trusted namespace"
+    tcp dport 8080 counter drop comment "drop all other clients to lab service"
+  }
+}
+EOF
+
+# A previous lab table can make a repeat syntax check report 'File exists'.
+# Delete only this dedicated training table before validating and loading it.
+sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1 &amp;&amp; sudo nft delete table inet aa_lab || true
+
+sudo nft -c -f /tmp/aa-lab.nft
+printf 'nft syntax exit=%s\n' "$?"
+sudo nft -f /tmp/aa-lab.nft
+sudo nft -a list table inet aa_lab</pre></div>
+<div class="expected"><b>Expected:</b> syntax exit code <span class="mono">0</span>. The listed table contains loopback accept, trusted-client accept, and final port-8080 drop rules with counters.</div>
+<h3>Trusted namespace: should succeed</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo ip netns exec aa-client \
+  curl -i --max-time 3 http://10.200.0.1:8080/</pre></div>
+<div class="expected"><b>Expected:</b> HTTP 200 because the packet source is <span class="mono">10.200.0.2</span>, matching <span class="mono">CLIENT_IP</span>.</div>
+<h3>Unauthorized namespace: should fail</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo ip netns exec aa-untrusted \
+  curl -v --max-time 3 http://10.201.0.1:8080/ || true
+
+sudo nft list chain inet aa_lab input</pre></div>
+<div class="expected"><b>Expected:</b> curl times out or fails without receiving the page, and the final TCP-port-8080 drop counter increases. The service remains running; packet policy—not daemon failure—causes the block.</div>
+<div class="callout warning"><b>Existing firewall note:</b> Ubuntu may also be managed by UFW, firewalld, container software, or another nftables manager. Independent base chains can interact. Always inspect <span class="mono">nft list ruleset</span> and test through a console-safe path.</div>
+<h3>Optional: trace packets correctly with nft monitor trace</h3><p>The monitor is silent unless a rule first sets <span class="mono">meta nftrace set 1</span>. Use this temporary trace table in one terminal, generate one request in another terminal, then remove the trace table.</p><div class="cmd"><button class="copy">Copy</button><pre># Safe to rerun: remove only the temporary trace table if it exists.
+sudo nft list table inet aa_trace &gt;/dev/null 2&gt;&amp;1 &amp;&amp; sudo nft delete table inet aa_trace || true
+
+cat &lt;&lt;'EOF' | sudo nft -f -
+table inet aa_trace {
+  chain prerouting {
+    type filter hook prerouting priority -301; policy accept;
+    tcp dport 8080 meta nftrace set 1
+  }
+}
+EOF
+
+# Capture traces for a few seconds in the background.
+sudo sh -c 'timeout 5 nft monitor trace &gt; /tmp/aa-nft-trace.log 2&gt;&amp;1' &amp;
+TRACE_PID=$!
+sleep 1
+sudo ip netns exec aa-client curl -sS --max-time 3 http://10.200.0.1:8080/ &gt;/dev/null
+wait "$TRACE_PID" || true
+
+sudo sed -n '1,80p' /tmp/aa-nft-trace.log
+sudo nft delete table inet aa_trace
+sudo rm -f /tmp/aa-nft-trace.log</pre></div><div class="expected"><b>Expected:</b> trace records identify the packet path and the matching aa_lab accept rule. Running nft monitor trace without the temporary nftrace rule produces no packet trace output.</div></div></details>
+<details class="lab"><summary>Lab 7 — Break one layer and observe the other</summary><div class="labBody">
+<div class="labMeta"><span class="badge">30 min</span><span class="badge">Single VM + namespaces</span></div>
+<h3>Scenario A: Remove the firewall layer</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1 &amp;&amp; sudo nft delete table inet aa_lab || true
+
+sudo ip netns exec aa-client \
+  curl -i --max-time 3 http://10.200.0.1:8080/
+sudo ip netns exec aa-untrusted \
+  curl -i --max-time 3 http://10.201.0.1:8080/</pre></div>
+<div class="expected"><b>Expected:</b> both namespaces can now reach the port, but the daemon remains confined and still cannot read the fake secret.</div>
+<h3>Scenario B: Keep firewall, move AppArmor to complain</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo nft -f /tmp/aa-lab.nft
+sudo aa-complain /opt/aa-lab/bin/aa-demo-busybox
+sudo /opt/aa-lab/bin/aa-demo-busybox cat /root/aa-lab-secret.txt</pre></div>
+<div class="expected"><b>Expected:</b> the trusted namespace can reach port 8080 and the unauthorized namespace remains blocked, but the local confined executable can now read the secret because AppArmor is logging rather than enforcing.</div>
+<h3>Restore secure state</h3>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo aa-enforce /opt/aa-lab/bin/aa-demo-busybox
+sudo systemctl restart aa-lab-http
+sudo aa-status | grep -E 'aa-lab-server|profiles are in enforce mode'
+sudo nft list table inet aa_lab</pre></div>
+</div></details>
+<details class="lab pathItem" data-level="advanced"><summary>Lab 8 — Intentional misconfiguration challenge</summary><div class="labBody">
+<div class="labMeta"><span class="badge">30–40 min</span><span class="badge">Break/fix</span><span class="badge">Do not use on production hosts</span></div>
+<p>The trainer selects one fault. Trainees must identify the failing layer, collect evidence, fix only that layer, and prove secure recovery.</p>
+<div class="grid g2">
+<div class="card"><h3>Fault cards</h3><ol><li>Change the profile attachment to a nonexistent executable.</li><li>Leave the profile in complain mode and claim it is enforcing.</li><li>Remove the web-root read rule.</li><li>Change the nftables trusted source to the wrong IP.</li><li>Stop the service while leaving both security controls intact.</li><li>Move the executable to <span class="mono">/opt/aa-lab/bin/v2/</span> without updating the attachment.</li></ol></div>
+<div class="card"><h3>Required evidence</h3><ol><li>Observed symptom and timestamp</li><li>Process/service state</li><li>Current AppArmor label and mode</li><li>Relevant denial or absence of denial</li><li>nftables counter evidence</li><li>Smallest corrective change</li><li>Positive and negative retest</li></ol></div>
+</div>
+<div class="callout warning" style="margin-top:1rem"><b>Forbidden shortcuts:</b> Do not disable AppArmor, do not permanently leave complain mode, and do not run <span class="mono">nft flush ruleset</span>. Those actions remove evidence and can create a larger outage.</div>
+<div class="expected"><b>Pass condition:</b> the normal page is reachable only from the trusted client; secret reads and unauthorized clients remain blocked; the profile is enforcing.</div>
+</div></details>
+<details class="lab"><summary>Lab 9 — AppArmor allows the socket; nftables blocks the client</summary><div class="labBody">
+<div class="labMeta"><span class="badge">20 min</span><span class="badge">Namespace proof</span></div>
+<p>Keep the AppArmor profile enforcing with <span class="mono">network inet stream,</span> and keep the Lab 6 nftables table loaded. The daemon may create its TCP socket, while nftables independently rejects the unauthorized namespace.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>if ! sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1; then
+  echo '[FAIL] nftables table inet aa_lab is absent. Complete or rerun Lab 6 first.'
+else
+  sudo aa-status | grep -E 'aa-lab-server|enforce'
+  PID="$(sudo systemctl show -p MainPID --value aa-lab-http.service)"
+  sudo cat "/proc/$PID/attr/current"
+  sudo ss -lntp | grep ':8080'
+  sudo nft list chain inet aa_lab input
+fi</pre></div>
+<div class="expected"><b>Expected:</b> AppArmor shows <span class="mono">aa-lab-server (enforce)</span>, and the daemon is listening on <span class="mono">0.0.0.0:8080</span>.</div>
+<p>Generate an unauthorized request and inspect the firewall counter:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo ip netns exec aa-untrusted \
+  curl -v --max-time 3 http://10.201.0.1:8080/ || true
+
+sudo nft list chain inet aa_lab input</pre></div>
+<div class="expected"><b>Expected:</b> curl times out or fails, while the final drop counter increases. This proves AppArmor allowed the daemon’s socket operation and nftables blocked the packet by network policy.</div>
+<p>Confirm the trusted path remains available:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo ip netns exec aa-client \
+  curl -i --max-time 3 http://10.200.0.1:8080/</pre></div>
+<div class="expected"><b>Expected:</b> HTTP 200 from the trusted namespace.</div>
+</div></details>
+<details class="lab"><summary>Lab 10 — nftables allows the port; AppArmor blocks a forbidden file</summary><div class="labBody">
+<div class="labMeta"><span class="badge">20 min</span><span class="badge">Reverse-layer proof</span></div>
+<p>Prove that a permitted network path does not grant the daemon access to unrelated local resources.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>if ! sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1; then
+  echo '[FAIL] nftables table inet aa_lab is absent. Complete or rerun Lab 6 first.'
+else
+  sudo nft list table inet aa_lab
+  sudo ip netns exec aa-client \
+    curl -i --max-time 3 http://10.200.0.1:8080/
+
+  sudo /opt/aa-lab/bin/aa-demo-busybox cat /root/aa-lab-secret.txt
+  echo "secret-read exit=$?"
+  sudo journalctl -k --since '-3 min' | grep -E 'aa-lab-server|apparmor=' | tail -n 10
+fi</pre></div>
+<div class="expected"><b>Expected:</b> the trusted namespace receives HTTP 200, while the same confined executable receives permission denied for the secret. The kernel journal identifies profile <span class="mono">aa-lab-server</span>, operation <span class="mono">open</span>, and a denied read mask.</div>
+</div></details>
+<details class="lab pathItem" data-level="advanced"><summary>Lab 11 — Application upgrade changes the executable path</summary><div class="labBody">
+<div class="labMeta"><span class="badge">25 min</span><span class="badge">Lifecycle scenario</span></div>
+<p>Copy the daemon to a versioned path. Because AppArmor attachment is path-oriented, the old profile does not automatically attach to the new executable.</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo install -d -m 0755 /opt/aa-lab/bin/v2
+sudo install -m 0755 /opt/aa-lab/bin/aa-demo-busybox /opt/aa-lab/bin/v2/aa-demo-busybox
+sudo sh -c '/opt/aa-lab/bin/v2/aa-demo-busybox sleep 20 &amp; echo $! &gt;/run/aa-lab-v2.pid'
+PID="$(sudo cat /run/aa-lab-v2.pid)"
+echo "v2 PID=$PID"
+sudo cat "/proc/$PID/attr/current"
+sudo kill "$PID" 2&gt;/dev/null || true
+sudo rm -f /run/aa-lab-v2.pid</pre></div>
+<div class="expected"><b>Expected before update:</b> the v2 process is normally <span class="mono">unconfined</span> because the profile attaches to the original exact path.</div>
+<p>Create a separate profile for the new path rather than silently widening the original attachment:</p>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo sed   -e 's/profile aa-lab-server /profile aa-lab-server-v2 /'   -e 's#/opt/aa-lab/bin/aa-demo-busybox#/opt/aa-lab/bin/v2/aa-demo-busybox#g'   /etc/apparmor.d/aa-lab-server | sudo tee /etc/apparmor.d/aa-lab-server-v2
+sudo apparmor_parser -Q /etc/apparmor.d/aa-lab-server-v2
+sudo apparmor_parser -r /etc/apparmor.d/aa-lab-server-v2
+sudo aa-status | grep 'aa-lab-server-v2'
+sudo sh -c '/opt/aa-lab/bin/v2/aa-demo-busybox sleep 20 &amp; echo $! &gt;/run/aa-lab-v2.pid'
+PID="$(sudo cat /run/aa-lab-v2.pid)"
+sudo cat "/proc/$PID/attr/current"
+sudo kill "$PID" 2&gt;/dev/null || true
+sudo rm -f /run/aa-lab-v2.pid</pre></div>
+<div class="callout"><b>Production lesson:</b> executable-path changes are security-significant release events. Include profile attachment tests in deployment validation.</div>
+<p>Remove the temporary v2 profile before the general cleanup:</p><div class="cmd"><button class="copy">Copy</button><pre>sudo apparmor_parser -R /etc/apparmor.d/aa-lab-server-v2 2&gt;/dev/null || true
+sudo rm -f /etc/apparmor.d/aa-lab-server-v2
+sudo rm -rf /opt/aa-lab/bin/v2</pre></div>
+</div></details>
+<details class="lab"><summary>Lab 12 — Clean up completely and verify rollback</summary><div class="labBody">
+<div class="labMeta"><span class="badge">15 min</span><span class="badge">Single VM</span></div>
+<div class="cmd"><button class="copy">Copy</button><pre>sudo systemctl disable --now aa-lab-http.service || true
+sudo rm -f /etc/systemd/system/aa-lab-http.service
+sudo systemctl daemon-reload
+
+sudo nft list table inet aa_trace &gt;/dev/null 2&gt;&amp;1 &amp;&amp; sudo nft delete table inet aa_trace || true
+sudo nft list table inet aa_lab &gt;/dev/null 2&gt;&amp;1 &amp;&amp; sudo nft delete table inet aa_lab || true
+
+sudo apparmor_parser -R /etc/apparmor.d/aa-lab-server 2&gt;/dev/null || true
+sudo rm -f /etc/apparmor.d/aa-lab-server /etc/apparmor.d/aa-lab-server-v2
+
+sudo rm -rf /opt/aa-lab /srv/aa-lab
+sudo rm -f /root/aa-lab-secret.txt /tmp/aa-lab.nft /tmp/aa-lab-wrong-client.nft \
+  /tmp/aa-readiness.sh /tmp/aa-netns-setup.sh /tmp/aa-nft-trace.log
+
+# Deleting a namespace normally removes its namespace-side veth automatically.
+sudo ip netns del aa-client 2&gt;/dev/null || true
+sudo ip netns del aa-untrusted 2&gt;/dev/null || true
+sudo ip link del veth-aa-server 2&gt;/dev/null || true
+sudo ip link del veth-aa-u-host 2&gt;/dev/null || true
+
+sudo aa-status
+sudo nft list tables
+ip netns list
+ip -br link | grep -E 'veth-aa-(server|client|u-host|u-cli)' || echo 'No AppArmor lab veth interfaces remain'</pre></div>
+<div class="expected"><b>Expected:</b> the service, training table, profile, binary, web root, fake secret, namespaces, and lab-specific veth interfaces are gone. Other AppArmor profiles and firewall tables remain untouched.</div>
+</div></details>
+</section>
+<section class="reveal pathItem" data-level="advanced" id="capstone">
+<div class="sectionHead"><div><div class="kicker">Integrated assessment</div><h2>Capstone: secure a telemetry API daemon</h2></div><span class="badge">60–90 min</span></div>
+<div class="callout"><b>Scenario:</b> A telemetry daemon must listen on TCP 8080, read one configuration file, write only to its data and log directories, contact an approved diagnostics service, and remain unable to read password databases, SSH keys, or private TLS keys.</div>
+<div class="grid g3 capstone" style="margin-top:1rem">
+<div class="card capstonePhase"><h3>Design</h3><p>State assets, trust boundaries, normal behavior, forbidden behavior, source networks, rollback, and evidence requirements.</p></div>
+<div class="card capstonePhase"><h3>Implement</h3><p>Create a named AppArmor profile, a dedicated nftables table, and optional systemd hardening without changing unrelated host policy.</p></div>
+<div class="card capstonePhase"><h3>Prove</h3><p>Run positive tests, negative tests, inspect process labels, capture audit records and firewall counters, then demonstrate cleanup.</p></div>
+</div>
+<div class="compare" style="margin-top:1rem"><table><thead><tr><th>Evidence</th><th>Required proof</th><th>Pass criterion</th></tr></thead><tbody>
+<tr><td>Profile syntax</td><td><span class="mono">apparmor_parser -Q</span> and loaded profile status</td><td>No parser errors; expected profile is enforcing</td></tr>
+<tr><td>Positive file access</td><td>Read configuration; write data/log file</td><td>Only required paths succeed</td></tr>
+<tr><td>Negative file access</td><td>Attempt <span class="mono">/etc/shadow</span>, <span class="mono">/root/.ssh/</span>, and private-key path</td><td>All are denied and recorded</td></tr>
+<tr><td>Network acceptance</td><td>Trusted client request plus nftables accept counter</td><td>Request succeeds and counter increments</td></tr>
+<tr><td>Network rejection</td><td>Unauthorized client request plus drop counter</td><td>Request fails and drop counter increments</td></tr>
+<tr><td>Rollback</td><td>Remove only capstone service/profile/table</td><td>No unrelated rules or profiles changed</td></tr>
+</tbody></table></div>
+<details class="lab"><summary>Printable trainee observation sheet</summary><div class="labBody worksheet">
+<div class="grid g2"><div><b>Trainee:</b><div class="writeLine"></div></div><div><b>Date / VM snapshot:</b><div class="writeLine"></div></div></div>
+<b>Intended daemon behavior:</b><div class="writeLine"></div><div class="writeLine"></div>
+<b>Forbidden behavior:</b><div class="writeLine"></div><div class="writeLine"></div>
+<div class="evidenceGrid">
+<div class="evidenceBox"><b>Profile status and process label</b></div><div class="evidenceBox"><b>Positive file test</b></div>
+<div class="evidenceBox"><b>AppArmor denial evidence</b></div><div class="evidenceBox"><b>nftables counter evidence</b></div>
+<div class="evidenceBox"><b>Trusted client result</b></div><div class="evidenceBox"><b>Unauthorized client result</b></div>
+</div>
+<p><b>Smallest change made during troubleshooting:</b></p><div class="writeLine"></div><div class="writeLine"></div>
+<p><b>Rollback verification:</b></p><div class="writeLine"></div>
+</div></details>
+</section><section class="reveal" id="validation">
+<div class="sectionHead"><div><div class="kicker">Quality gates</div><h2>Validation checklist</h2></div></div>
+
+
+<div class="grid g3"><div class="card"><h3>Executed network checks</h3><span class="badge">PASS</span><p>Short interface names; two namespaces; two veth pairs; four addresses; route lookups; both ping paths; trusted and unauthorized HTTP before filtering.</p></div><div class="card"><h3>AppArmor parser check</h3><span class="badge">PASS</span><p>The aa-lab-server profile parses successfully with apparmor_parser 4.1.0 in skip-kernel-load mode.</p></div><div class="card"><h3>nftables validation</h3><span class="badge">VM CHECK</span><p>The rules use a dedicated inet aa_lab table and include nft -c -f before loading. Runtime packet filtering must be executed on the trainee VM because this build sandbox has no nft executable/kernel ruleset access.</p></div></div><div class="callout" style="margin-top:1rem"><b>Completion criterion:</b> trainees must show successful Lab 0 topology output, HTTP 200 from the trusted namespace, a failed unauthorized request after Lab 6, an increased nftables drop counter, an enforcing AppArmor process label, and a denied secret read.</div></section>
+<section class="reveal" id="quiz">
+<div class="sectionHead"><div><div class="kicker">Assessment</div><h2>Knowledge check</h2></div><span class="badge">8 questions</span></div>
+<form id="quizForm">
+<div class="quizQ" data-answer="b"><p><b>1.</b> A root-owned daemon can read a file under DAC, but AppArmor denies it. Why?</p><label><input name="q1" type="radio" value="a"/> Root is never subject to AppArmor.</label><label><input name="q1" type="radio" value="b"/> MAC adds a mandatory decision that can deny the operation.</label><label><input name="q1" type="radio" value="c"/> nftables changed the file mode.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="c"><p><b>2.</b> What is complain mode mainly for?</p><label><input name="q2" type="radio" value="a"/> Permanent production blocking</label><label><input name="q2" type="radio" value="b"/> Disabling all audit records</label><label><input name="q2" type="radio" value="c"/> Observing would-be violations while developing policy</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="a"><p><b>3.</b> In the lab profile, what does <span class="mono">network inet stream,</span> grant?</p><label><input name="q3" type="radio" value="a"/> IPv4 stream socket operations</label><label><input name="q3" type="radio" value="b"/> All IPv4 and IPv6 packet flows</label><label><input name="q3" type="radio" value="c"/> Access only from the trusted client IP</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="b"><p><b>4.</b> Which control is best placed to restrict source IPs reaching TCP port 8080 in this lab?</p><label><input name="q4" type="radio" value="a"/> chmod</label><label><input name="q4" type="radio" value="b"/> nftables</label><label><input name="q4" type="radio" value="c"/> systemd Restart=</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="c"><p><b>5.</b> Why copy BusyBox to a dedicated path?</p><label><input name="q5" type="radio" value="a"/> It makes BusyBox faster.</label><label><input name="q5" type="radio" value="b"/> nftables requires it.</label><label><input name="q5" type="radio" value="c"/> The training profile attaches only to the copied executable path.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="a"><p><b>6.</b> What does a missing permission mean in an enforcing allow-list profile?</p><label><input name="q6" type="radio" value="a"/> The operation is denied.</label><label><input name="q6" type="radio" value="b"/> The operation is automatically learned and allowed forever.</label><label><input name="q6" type="radio" value="c"/> The profile is unloaded.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="c"><p><b>7.</b> Which command safely validates an nftables batch before applying it?</p><label><input name="q7" type="radio" value="a"/> nft flush ruleset</label><label><input name="q7" type="radio" value="b"/> nft monitor</label><label><input name="q7" type="radio" value="c"/> nft -c -f file.nft</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="b"><p><b>8.</b> Why use both AppArmor and nftables?</p><label><input name="q8" type="radio" value="a"/> They perform exactly the same decision twice.</label><label><input name="q8" type="radio" value="b"/> They protect different layers: process resources and packet flows.</label><label><input name="q8" type="radio" value="c"/> AppArmor only works when nftables is disabled.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="c"><p><b>9.</b> The service is listening locally, local curl succeeds, but the remote client times out and the nftables drop counter increases. What should be changed first?</p><label><input name="q9" type="radio" value="a"/> Add file permissions to AppArmor.</label><label><input name="q9" type="radio" value="b"/> Disable the AppArmor profile.</label><label><input name="q9" type="radio" value="c"/> Correct the nftables source/rule path.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="a"><p><b>10.</b> After an application upgrade, the new executable runs unconfined while the old path remains protected. What is the most likely cause?</p><label><input name="q10" type="radio" value="a"/> The profile attachment still names the old executable path.</label><label><input name="q10" type="radio" value="b"/> nftables has no output chain.</label><label><input name="q10" type="radio" value="c"/> The daemon lacks a default route.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="b"><p><b>11.</b> Which response to a newly observed <span class="mono">aa-logprof</span> suggestion is safest?</p><label><input name="q11" type="radio" value="a"/> Accept every suggestion to eliminate denials.</label><label><input name="q11" type="radio" value="b"/> Confirm the access is legitimate and narrow the rule before accepting.</label><label><input name="q11" type="radio" value="c"/> Delete the audit log.</label><div class="quizFeedback"></div></div>
+<div class="quizQ" data-answer="c"><p><b>12.</b> A trusted client reaches port 8080, but the daemon cannot read its configuration file and the kernel logs an AppArmor denial. Which layer is failing?</p><label><input name="q12" type="radio" value="a"/> Routing</label><label><input name="q12" type="radio" value="b"/> nftables input filtering</label><label><input name="q12" type="radio" value="c"/> AppArmor file policy</label><div class="quizFeedback"></div></div>
+<div class="quizControls controls"><button class="btn primary" type="submit">Check answers</button><button class="btn secondary" id="resetQuiz" type="button">Reset</button><span aria-live="polite" class="score" id="quizScore"></span></div>
+</form>
+</section>
+<section class="reveal" id="trainer">
+<div class="sectionHead"><div><div class="kicker">Delivery guide</div><h2>Suggested trainer flow</h2></div></div>
+<div class="grid g4">
+</div>
+</section>
+<section class="reveal" id="references">
+<div class="sectionHead"><div><div class="kicker">Primary references</div><h2>Documentation used for verification</h2></div></div>
+<div class="card">
+<ul>
+<li><a href="https://documentation.ubuntu.com/security/security-features/privilege-restriction/apparmor/" rel="noopener" target="_blank">Ubuntu Security Documentation — AppArmor</a></li>
+<li><a href="https://manpages.ubuntu.com/manpages/noble/man5/apparmor.d.5.html" rel="noopener" target="_blank">Ubuntu 24.04 man page — apparmor.d profile syntax</a></li>
+<li><a href="https://apparmor.net/man/4.0/apparmor.d/" rel="noopener" target="_blank">AppArmor project — apparmor.d 4.0 reference</a></li>
+<li><a href="https://documentation.ubuntu.com/security/security-features/network/firewall/nftables/" rel="noopener" target="_blank">Ubuntu Security Documentation — nftables</a></li>
+<li><a href="https://www.netfilter.org/projects/nftables/manpage.html" rel="noopener" target="_blank">Netfilter project — nft command reference</a></li>
+<li><a href="https://apparmor.net/getting-started/create-profile-manually/" rel="noopener" target="_blank">AppArmor project — comprehensive profile workflow and test planning</a></li><li><a href="https://apparmor.net/getting-started/test-with-autopkgtest/" rel="noopener" target="_blank">AppArmor project — reviewing aa-logprof suggestions and test evidence</a></li><li><a href="https://apparmor.net/man/5.0/apparmor.d/" rel="noopener" target="_blank">AppArmor project — apparmor.d 5.0 syntax reference</a></li><li><a href="https://www.freedesktop.org/software/systemd/man/systemd.exec.html" rel="noopener" target="_blank">systemd — execution environment and service sandboxing directives</a></li></ul>
+<p class="small muted">Command output varies slightly with Ubuntu release, AppArmor userspace version, kernel feature ABI, logging stack, and existing firewall manager. The labs therefore pair expected behavior with direct verification commands.</p>
+</div>
+</section>
+</main>
+<footer class="footer">Session 3 · AppArmor and MAC for Network Security · Enhanced lab edition · Self-contained offline trainee reference</footer>
+<div aria-live="polite" class="toast" id="toast" role="status">Copied</div>
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const root=document.documentElement;
+let savedTheme=null; try{savedTheme=localStorage.getItem('aa-theme')}catch(e){} if(savedTheme) root.dataset.theme=savedTheme;
+function updateThemeIcon(){ $('#themeBtn').textContent=root.dataset.theme==='dark'?'☀️':'🌙'; }
+updateThemeIcon();
+$('#themeBtn').addEventListener('click',()=>{root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('aa-theme',root.dataset.theme)}catch(e){} updateThemeIcon();});
+$('#printBtn').addEventListener('click',()=>window.print());
+window.addEventListener('scroll',()=>{const d=document.documentElement;const max=d.scrollHeight-d.clientHeight;$('#readProgress').style.width=(max?d.scrollTop/max*100:0)+'%';},{passive:true});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.08});$$('.reveal').forEach(x=>io.observe(x));
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1300)}
+$$('.copy').forEach(btn=>btn.addEventListener('click',async()=>{const text=btn.nextElementSibling.innerText;try{await navigator.clipboard.writeText(text);toast('Command copied');}catch{toast('Select and copy manually');}}));
+function updateDac(){const dac=$('#dacAllows').checked, loaded=$('#macLoaded').checked, rule=$('#macRule').checked;const allowed=dac && (!loaded || rule);const r=$('#dacResult');r.className='result '+(allowed?'allow':'deny');r.innerHTML=allowed?'<div class="orb">✓</div><div><b>Access allowed.</b><br><span class="muted">DAC allows it and no enforced MAC rule blocks it.</span></div>':'<div class="orb">×</div><div><b>Access denied.</b><br><span class="muted">'+(!dac?'DAC rejects the read.':'AppArmor is loaded and the secret path is not granted.')+'</span></div>'}
+['dacAllows','macLoaded','macRule'].forEach(id=>$('#'+id).addEventListener('change',updateDac));updateDac();
+$$('.codeLine').forEach(line=>{const activate=()=>{$$('.codeLine').forEach(x=>x.classList.remove('active'));line.classList.add('active');$('#anatomyText').innerHTML='<h3>Profile line</h3><p><strong>'+line.textContent.trim().replaceAll('<','&lt;').replaceAll('>','&gt;')+'</strong></p><p>'+line.dataset.info+'</p>'};line.addEventListener('click',activate);line.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}})});
+function setTab(which){const complain=which==='complain';$('#tabComplain').setAttribute('aria-selected',complain);$('#tabEnforce').setAttribute('aria-selected',!complain);$('#panelComplain').hidden=!complain;$('#panelEnforce').hidden=complain}
+$('#tabComplain').addEventListener('click',()=>setTab('complain'));$('#tabEnforce').addEventListener('click',()=>setTab('enforce'));
+$('#runModeSim').addEventListener('click',()=>{const mode=$('#modeSelect').value, box=$('#modeTimeline');box.innerHTML='';const events=[['00:00','Daemon starts under aa-lab-server.'],['00:01','Daemon reads /srv/aa-lab/www/index.html — allowed.'],['00:02','Exploit attempts /root/aa-lab-secret.txt.'],['00:03',mode==='complain'?'Access proceeds; would-be violation is logged.':'Kernel rejects the read; denial is logged.']];events.forEach((ev,i)=>setTimeout(()=>{const d=document.createElement('div');d.className='event';d.innerHTML='<time>'+ev[0]+'</time><div class="card">'+ev[1]+'</div>';box.appendChild(d)},i*420))});
+function updateDid(){const fw=$('#fwOn').checked,aa=$('#aaOn').checked,trusted=$('#trustedClient').checked,secret=$('#secretRequest').checked;const packetPass=!fw||trusted;const resourcePass=!secret||!aa;$('#fwLayer').className='layer '+(fw?'on':'off');$('#aaLayer').className='layer '+(aa?'on':'off');$('#fwLayer').innerHTML='<h3>🔥 nftables</h3><p>'+(fw?(trusted?'Source accepted for port 8080.':'Untrusted source dropped before the daemon.'):'Firewall layer absent; packet reaches the listener.')+'</p>';$('#aaLayer').innerHTML='<h3>🛡️ AppArmor</h3><p>'+(aa?(secret?'Secret path denied if execution reaches the daemon.':'Normal web-root request is allowed.'):'Profile is not enforcing; resource access falls back to DAC and other controls.')+'</p>';const success=packetPass&&resourcePass;const r=$('#didResult');r.className='result '+(success?'allow':'deny');let text;if(!packetPass)text='Attack stopped at nftables: the packet never reaches the daemon.';else if(!resourcePass)text='Packet reaches the daemon, but AppArmor blocks access to the secret.';else if(secret)text='Exploit succeeds: the client reaches the daemon and no enforcing AppArmor rule stops the secret read.';else text='Normal request succeeds through the enabled controls.';r.innerHTML='<div class="orb">'+(success?'✓':'×')+'</div><div><b>'+(success?'Operation succeeds':'Operation stopped')+'</b><br><span class="muted">'+text+'</span></div>'}
+['fwOn','aaOn','trustedClient','secretRequest'].forEach(id=>$('#'+id).addEventListener('change',updateDid));updateDid();
+
+// Learning-path highlighting
+$$('.pathBtn').forEach(btn=>btn.addEventListener('click',()=>{
+  $$('.pathBtn').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+  const path=btn.dataset.path;
+  $$('.pathItem').forEach(item=>item.classList.toggle('dim',path!=='all' && item.dataset.level!==path));
+}));
+
+// Lifecycle explorer
+const lifeDetails=[
+  '<b>Step 1 — Define behavior:</b> Map legitimate resources and forbidden outcomes before writing policy.',
+  '<b>Step 2 — Create baseline:</b> Start narrow. Generated profiles are drafts, not security approval.',
+  '<b>Step 3 — Complain:</b> Exercise all intended functions and abnormal tests while collecting evidence.',
+  '<b>Step 4 — Review logs:</b> Separate required access from attacks, defects, and unrelated system noise.',
+  '<b>Step 5 — Refine:</b> Prefer exact rules, abstractions, and local includes; avoid broad recursive grants.',
+  '<b>Step 6 — Enforce:</b> Repeat positive and negative tests after policy begins blocking.',
+  '<b>Step 7 — Maintain:</b> Revalidate attachments and behavior after application, OS, or dependency upgrades.'
+];
+$$('.lifeStep').forEach(step=>step.addEventListener('click',()=>{
+  $$('.lifeStep').forEach(x=>x.classList.remove('active')); step.classList.add('active');
+  $('#lifeDetail').innerHTML=lifeDetails[Number(step.dataset.life)];
+}));
+
+// Audit-field explainer
+const auditHelp={
+  decision:['Decision','DENIED means an enforcing AppArmor rule blocked the request. ALLOWED may appear for complain-mode policy violations.'],
+  operation:['Operation','The kernel action being mediated, here opening a file. Other records may show exec, capability, network, signal, mount, or DBus actions.'],
+  profile:['Profile','The AppArmor profile responsible for the decision. Confirm the running process really carries this label.'],
+  name:['Target resource','The path or resource involved. Decide whether it belongs to normal application behavior.'],
+  requested:['Requested mask','Permissions the process asked for. Here r means read.'],
+  denied:['Denied mask','The subset rejected by policy. Compare it with the current profile rule.'],
+  comm:['Command name','The task command name. Treat it as supporting evidence; profile and executable attachment are usually more important.'],
+  pid:['Process ID','Use the PID to inspect /proc/PID/attr/current, command line, service cgroup, and other runtime evidence.']
+};
+$$('.auditField').forEach(f=>{const go=()=>{$$('.auditField').forEach(x=>x.classList.remove('active'));f.classList.add('active');const [h,p]=auditHelp[f.dataset.key];$('#auditExplain').innerHTML='<h3>'+h+'</h3><p>'+p+'</p><div class="callout"><b>Selected field:</b> <span class="mono">'+f.textContent+'</span></div>'};f.addEventListener('click',go);f.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
+
+// Profile rule visualizer
+const codeMap=[['/etc/telemetry','files'],['/var/lib/telemetry','files'],['/var/log/telemetry','files'],['network inet','socket'],['capability ','capability'],['/usr/bin/logger','execute']];
+$$('#operations .codepanel code').forEach(code=>code.addEventListener('mousemove',e=>{
+  const sel=window.getSelection()?.toString()||''; if(sel)return;
+}));
+$$('#operations .ruleTarget').forEach(t=>t.addEventListener('click',()=>{$$('#operations .ruleTarget').forEach(x=>x.classList.remove('active'));t.classList.add('active');toast(t.querySelector('b').textContent+' rules highlighted')}));
+
+// Troubleshooting decision tree
+$('#runDecision').addEventListener('click',()=>{
+  const checks=[
+    ['tKernel','Kernel interface','Check boot parameters and whether the AppArmor LSM is enabled. Do not edit the profile yet.'],
+    ['tLoaded','Profile loaded','Parse and load the expected profile; inspect parser errors before changing application code.'],
+    ['tAttached','Process attachment','Confirm executable path and /proc/PID/attr/current. An upgrade or symlink may have changed attachment.'],
+    ['tListener','Listening socket','Inspect service logs and ss output. A firewall cannot permit a listener that does not exist.'],
+    ['tLocal','Local application path','If local curl fails, troubleshoot service/AppArmor/systemd before routing or remote firewall policy.'],
+    ['tRoute','Client routing','Check VM network mode, IP addresses, routes, and reachability before editing nftables.'],
+    ['tFirewall','nftables policy','Inspect handles and counters; correct the dedicated aa_lab table only.']
+  ];
+  let stopped=false,html='<h3>Layer-by-layer result</h3>';
+  checks.forEach(([id,name,advice],i)=>{
+    const ok=$('#'+id).checked;
+    let cls='decisionStep '+(stopped?'':'done');
+    let text=ok?'✓ '+name+' passed.':'✗ '+name+' is the first failed condition. '+advice;
+    if(!ok&&!stopped){cls='decisionStep stop';stopped=true}else if(stopped&&!ok){text='○ '+name+' not evaluated until the earlier failure is fixed.';cls='decisionStep'}
+    else if(stopped){text='○ '+name+' not yet relevant because an earlier layer failed.';cls='decisionStep'}
+    html+='<div class="'+cls+'">'+text+'</div>';
+  });
+  if(!stopped)html+='<div class="decisionStep current"><b>All selected checks pass.</b> Reproduce the exact failing operation, correlate timestamps, and inspect application-specific logs or policy rules.</div>';
+  $('#decisionResult').innerHTML=html;
+});
+
+$('#quizForm').addEventListener('submit',e=>{e.preventDefault();let score=0;$$('.quizQ').forEach((q,i)=>{const chosen=$('input:checked',q),ok=chosen&&chosen.value===q.dataset.answer;score+=ok?1:0;$('.quizFeedback',q).textContent=chosen?(ok?'✓ Correct':'✗ Review this concept'):'Choose an answer';$('.quizFeedback',q).style.color=ok?'var(--success)':'var(--danger)'});const total=$$('.quizQ').length;$('#quizScore').textContent=score+'/'+total;toast(score===total?'Perfect score':'Quiz checked')});
+$('#resetQuiz').addEventListener('click',()=>{$('#quizForm').reset();$$('.quizFeedback').forEach(x=>x.textContent='');$('#quizScore').textContent=''});
+})();
+</script>
+</body>
+</html>
